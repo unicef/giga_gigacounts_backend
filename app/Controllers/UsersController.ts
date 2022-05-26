@@ -7,4 +7,14 @@ export default class UsersController {
     const user = await service.getProfile(auth.user)
     return response.ok(user)
   }
+
+  public async login({ request, response, auth }: HttpContextContract) {
+    try {
+      const { email, password } = request.all()
+      const token = await auth.use('api').attempt(email, password)
+      return response.ok(token)
+    } catch (error) {
+      return response.badRequest({ errors: [{ message: 'Wrong email or password' }] })
+    }
+  }
 }
