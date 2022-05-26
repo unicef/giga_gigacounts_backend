@@ -8,7 +8,13 @@ import {
   ManyToMany,
   hasMany,
   HasMany,
+  beforeCreate,
+  beforeFind,
+  ModelQueryBuilderContract,
+  belongsTo,
+  BelongsTo,
 } from '@ioc:Adonis/Lucid/Orm'
+import Hash from '@ioc:Adonis/Core/Hash'
 
 import Role from 'App/Models/Role'
 import Country from 'App/Models/Country'
@@ -25,24 +31,45 @@ export default class User extends BaseModel {
   @column()
   public email: string
 
-  @column()
+  @column({ serializeAs: null })
   public password: string
 
   @column()
-  public country_id: number
+  public countryId: number
 
-  @column.dateTime({ autoCreate: true })
+  @column()
+  public isAdmin: boolean
+
+  @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   public updatedAt: DateTime
+
+  /**
+   * HOOKS
+   */
+
+  @beforeCreate()
+  public static async hashPassword(user: User) {
+    if (user.$dirty.password) {
+      user.password = await Hash.make(user.password)
+    }
+  }
+
+  @beforeFind()
+  public static getCountry(query: ModelQueryBuilderContract<typeof User>) {
+    query.preload('country').preload('roles')
+  }
 
   /**
    * RELATIONSHIPS
    */
 
-  @hasOne(() => Country)
-  public country: HasOne<typeof Country>
+  @belongsTo(() => Country, {
+    serializeAs: 'country',
+  })
+  public country: BelongsTo<typeof Country>
 
   @manyToMany(() => Role, {
     pivotTable: 'user_roles',
