@@ -18,10 +18,15 @@ test.group('Profile', (group) => {
   })
   test('Sucessfully return Giga admin user profile', async ({ client, expect, assert }) => {
     const admin = await UserFactory.merge({
-      isAdmin: true,
       name: 'Admin',
       email: 'admin@giga.com',
-    }).create()
+    })
+      .with('roles', 1, (role) => {
+        role.merge({
+          name: 'Giga Admin',
+        })
+      })
+      .create()
     const response = await client.get('/user/profile').loginAs(admin)
     const profile = response.body()
     expect(profile?.name).toBe('Admin')

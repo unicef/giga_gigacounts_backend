@@ -9,7 +9,6 @@ export default Factory.define(User, ({ faker }) => {
     name: faker.internet.userName(),
     email: faker.internet.email(),
     password: '123456',
-    isAdmin: false,
   }
 })
   .relation('roles', () => RoleFactory)

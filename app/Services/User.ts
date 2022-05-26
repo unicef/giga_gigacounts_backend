@@ -17,7 +17,7 @@ const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
     name: user.name,
     email: user.email,
     country: shouldReturnCountry ? user.country.name : undefined,
-    role: user.isAdmin ? roles.gigaAdmin : user.roles[0].name,
+    role: user.roles[0].name,
   }
 }
 

@@ -37,9 +37,6 @@ export default class User extends BaseModel {
   @column()
   public countryId: number
 
-  @column()
-  public isAdmin: boolean
-
   @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
 
