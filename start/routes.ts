@@ -1,5 +1,7 @@
 import Route from '@ioc:Adonis/Core/Route'
 
-Route.get('/', async () => {
-  return { hello: 'world' }
-})
+/**
+ * USER ROUTES
+ */
+
+Route.get('/user/profile', 'UsersController.profile').middleware('auth:api')

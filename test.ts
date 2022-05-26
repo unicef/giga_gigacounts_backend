@@ -18,6 +18,9 @@ import 'reflect-metadata'
 import sourceMapSupport from 'source-map-support'
 import { Ignitor } from '@adonisjs/core/build/standalone'
 import { configure, processCliArgs, run, RunnerHooksHandler } from '@japa/runner'
+import { expect } from '@japa/expect'
+import { assert } from '@japa/assert'
+import { apiClient } from '@japa/api-client'
 
 sourceMapSupport.install({ handleUncaughtExceptions: false })
 
@@ -39,6 +42,7 @@ kernel
         teardown: runnerHooks.teardown,
       },
       cwd: kernel.application.appRoot,
+      plugins: [expect(), assert(), apiClient()],
     })
 
     run()
