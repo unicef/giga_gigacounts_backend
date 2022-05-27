@@ -17,7 +17,7 @@ export default class extends BaseSchema {
       table.timestamp('end_date').notNullable()
       table.bigInteger('isp_id').unsigned().references('isps.id').notNullable()
       table.bigInteger('created_by').unsigned().references('users.id').notNullable()
-      table.integer('status_id').unsigned().references('contract_statuses.id').notNullable()
+      table.integer('status').notNullable()
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
     })

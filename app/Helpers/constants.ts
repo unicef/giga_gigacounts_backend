@@ -4,3 +4,12 @@ export const roles = {
   government: 'Government',
   isp: 'ISP',
 }
+
+export enum ContractStatus {
+  Draft,
+  Sent,
+  Confirmed,
+  Ongoing,
+  Expired,
+  Completed,
+}

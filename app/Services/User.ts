@@ -10,9 +10,10 @@ interface UserProfile {
 
 const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
   if (!user) return
-  const shouldReturnCountry = user.roles.some(
-    (v) => [roles.countryOffice, roles.government].indexOf(v.name) >= 0
-  )
+  // const shouldReturnCountry = user.roles.some(
+  //   (v) => [roles.countryOffice, roles.government].indexOf(v.name) >= 0
+  // )
+  const shouldReturnCountry = checkUserRole(user, [roles.countryOffice, roles.government])
   return {
     name: user.name,
     email: user.email,
@@ -21,6 +22,11 @@ const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
   }
 }
 
+const checkUserRole = (user: User, rolesToCheck: string[]): boolean => {
+  return user.roles.some((v) => rolesToCheck.indexOf(v.name) >= 0)
+}
+
 export default {
   getProfile,
+  checkUserRole,
 }

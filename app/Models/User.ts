@@ -80,6 +80,9 @@ export default class User extends BaseModel {
   @hasMany(() => Lta)
   public ltas: HasMany<typeof Lta>
 
-  @hasMany(() => Contract)
+  @hasMany(() => Contract, {
+    localKey: 'id',
+    foreignKey: 'created_by',
+  })
   public contracts: HasMany<typeof Contract>
 }
