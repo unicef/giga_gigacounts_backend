@@ -13,6 +13,7 @@ export default class CreateUsers extends BaseCommand {
     const { default: User } = await import('App/Models/User')
     const { default: Country } = await import('App/Models/Country')
     const { default: Role } = await import('App/Models/Role')
+    const { default: Isp } = await import('App/Models/Isp')
     const { roles } = await import('App/Helpers/constants')
     // Countries
     const brazil = await Country.create({
@@ -31,6 +32,10 @@ export default class CreateUsers extends BaseCommand {
     const countryOffice = await Role.create({ name: roles.countryOffice })
     const government = await Role.create({ name: roles.government })
     const admin = await Role.create({ name: roles.gigaAdmin })
+    const isp = await Role.create({ name: roles.isp })
+    // Isps
+    await Isp.create({ name: 'Vivo' })
+    await Isp.create({ name: 'AT&T' })
     // Users
     await Promise.all([
       //  Office Brazil 1
@@ -80,6 +85,18 @@ export default class CreateUsers extends BaseCommand {
         email: 'admin2@giga.com',
         password: '123456',
       }).then((user) => user.related('roles').save(admin)),
+      User.create({
+        name: 'Vivo',
+        email: 'provider_br@giga.com',
+        password: '123456',
+        countryId: brazil.id,
+      }).then((user) => user.related('roles').save(isp)),
+      User.create({
+        name: 'AT&T',
+        email: 'provider_bw@giga.com',
+        password: '123456',
+        countryId: botswana.id,
+      }).then((user) => user.related('roles').save(isp)),
     ])
   }
 }
