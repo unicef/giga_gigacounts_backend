@@ -1,5 +1,12 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, manyToMany, ManyToMany } from '@ioc:Adonis/Lucid/Orm'
+import {
+  BaseModel,
+  beforeFind,
+  column,
+  manyToMany,
+  ManyToMany,
+  ModelQueryBuilderContract,
+} from '@ioc:Adonis/Lucid/Orm'
 
 import Permission from 'App/Models/Permission'
 import User from 'App/Models/User'
@@ -16,6 +23,15 @@ export default class Role extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   public updatedAt: DateTime
+
+  /**
+   * HOOKS
+   */
+
+  @beforeFind()
+  public static getPermissions(query: ModelQueryBuilderContract<typeof Role>) {
+    query.preload('permissions')
+  }
 
   /**
    * RELATIONSHIPS
