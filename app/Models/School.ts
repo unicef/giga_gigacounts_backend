@@ -27,17 +27,17 @@ export default class School extends BaseModel {
   @column()
   public address: string
 
-  @column()
-  public location_1: string
+  @column({ columnName: 'location_1' })
+  public location1: string
 
-  @column()
-  public location_2: string
+  @column({ columnName: 'location_2' })
+  public location2: string
 
-  @column()
-  public location_3: string
+  @column({ columnName: 'location_3' })
+  public location3: string
 
-  @column()
-  public location_4: string
+  @column({ columnName: 'location_4' })
+  public location4: string
 
   @column()
   public educationLevel: string
@@ -55,12 +55,12 @@ export default class School extends BaseModel {
   public contactPerson: string
 
   @column()
-  public country_id: number
+  public countryId: number
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   public updatedAt: DateTime
 
   /**
