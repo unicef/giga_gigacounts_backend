@@ -24,6 +24,7 @@ const getContractsCountByStatus = async (
       })
     }
   }
+
   const totalCount = await query.count('*')
   const contracts = await query.select('status').distinct('status').groupBy('status').count('*')
   return dto.contractCountByStatusDTO(contracts, totalCount[0].$extras.count)

@@ -13,3 +13,7 @@ export enum ContractStatus {
   Expired,
   Completed,
 }
+
+export const permissions = {
+  countryRead: 'country.read',
+}

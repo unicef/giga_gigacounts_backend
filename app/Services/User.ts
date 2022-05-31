@@ -1,5 +1,7 @@
 import User from 'App/Models/User'
-import { roles } from 'App/Helpers/constants'
+
+import { permissions } from 'App/Helpers/constants'
+import roleService from 'App/Services/Role'
 
 interface UserProfile {
   name: string
@@ -10,14 +12,13 @@ interface UserProfile {
 
 const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
   if (!user) return
-  // const shouldReturnCountry = user.roles.some(
-  //   (v) => [roles.countryOffice, roles.government].indexOf(v.name) >= 0
-  // )
-  const shouldReturnCountry = checkUserRole(user, [roles.countryOffice, roles.government])
+  const userPermissions = await roleService.getRolesPermission(user.roles)
   return {
     name: user.name,
     email: user.email,
-    country: shouldReturnCountry ? user.country.name : undefined,
+    country: userPermissions.some((v) => v === permissions.countryRead)
+      ? user.country?.name
+      : undefined,
     role: user.roles[0].name,
   }
 }
