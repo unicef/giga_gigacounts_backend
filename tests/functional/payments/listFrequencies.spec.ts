@@ -5,7 +5,7 @@ import FrequencyFactory from 'Database/factories/FrequencyFactory'
 import UserFactory from 'Database/factories/UserFactory'
 import Frequency from 'App/Models/Frequency'
 
-test.group('List Currencies', (group) => {
+test.group('List Frequencies', (group) => {
   group.each.setup(async () => {
     await Database.beginGlobalTransaction()
     return () => Database.rollbackGlobalTransaction()
