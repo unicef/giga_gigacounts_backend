@@ -2,41 +2,38 @@ import Route from '@ioc:Adonis/Core/Route'
 
 import { permissions } from 'App/Helpers/constants'
 
-/**
- * USER ROUTES
- */
+Route.post('/api/login', 'UsersController.login').middleware('validator:LoginValidator')
 
-Route.get('/user/profile', 'UsersController.profile').middleware('auth:api')
-Route.post('/login', 'UsersController.login').middleware('validator:LoginValidator')
-
-/**
- * SCHOOL ROUTES
- */
-
-Route.get('/school/country/:country_id', 'SchoolsController.listSchoolByCountry').middleware(
-  'auth:api'
-)
-
-/**
- * CURRENCY ROUTES
- */
-
-Route.get('/currency', 'CurrenciesController.listCurrencies').middleware('auth:api')
-
-/**
- * COUNTRY ROUTES
- */
-
-Route.get('/country', 'CountriesController.listCountries').middleware('auth:api')
-
-/**
- * CONTRACT ROUTES
- */
-
-Route.get('/contract/count/status', 'ContractsController.countByStatus').middleware([
-  'auth:api',
-  `acl:${permissions.contractRead}`,
-])
+Route.group(() => {
+  /**
+   * USER ROUTES
+   */
+  Route.get('/user/profile', 'UsersController.profile')
+  /**
+   * PAYMENT ROUTES
+   */
+  Route.get('/payment/frequencies', 'PaymentsController.listFrequencies')
+  /**
+   * SCHOOL ROUTES
+   */
+  Route.get('/school/country/:country_id', 'SchoolsController.listSchoolByCountry')
+  /**
+   * CURRENCY ROUTES
+   */
+  Route.get('/currency', 'CurrenciesController.listCurrencies')
+  /**
+   * COUNTRY ROUTES
+   */
+  Route.get('/country', 'CountriesController.listCountries')
+  /**
+   * CONTRACT ROUTES
+   */
+  Route.get('/contract/count/status', 'ContractsController.countByStatus').middleware(
+    `acl:${permissions.contractRead}`
+  )
+})
+  .prefix('api')
+  .middleware('auth:api')
 
 /**
  * TESTING PURPOSE ONLY ROUTES

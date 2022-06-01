@@ -13,7 +13,7 @@ test.group('Login', (group) => {
     assert,
   }) => {
     const user = await UserFactory.create()
-    const response = await client.post('/login').json({
+    const response = await client.post('/api/login').json({
       email: user.email,
       password: '123456',
     })
@@ -22,7 +22,7 @@ test.group('Login', (group) => {
     assert.notEmpty(token.token)
   })
   test('Throws a error when email is missing', async ({ client, expect }) => {
-    const response = await client.post('/login').json({
+    const response = await client.post('/api/login').json({
       password: '123456',
     })
     const error = response.error() as import('superagent').HTTPError
@@ -32,7 +32,7 @@ test.group('Login', (group) => {
     expect(JSON.parse(error.text).errors[0].field).toBe('email')
   })
   test('Throws a error when password is missing', async ({ client, expect }) => {
-    const response = await client.post('/login').json({
+    const response = await client.post('/api/login').json({
       email: 'email@email.com',
     })
     const error = response.error() as import('superagent').HTTPError
@@ -43,7 +43,7 @@ test.group('Login', (group) => {
   })
   test('Throws a error when the credentials are wrong', async ({ client, expect }) => {
     const user = await UserFactory.create()
-    let response = await client.post('/login').json({
+    let response = await client.post('/api/login').json({
       email: user.email,
       password: '1234562',
     })
@@ -52,7 +52,7 @@ test.group('Login', (group) => {
     expect(JSON.parse(error.text).errors.length).toBe(1)
     expect(JSON.parse(error.text).errors[0].message).toBe('Wrong email or password')
     // with wrong email
-    response = await client.post('/login').json({
+    response = await client.post('/api/login').json({
       email: 'wrong@email.com',
       password: '123456',
     })

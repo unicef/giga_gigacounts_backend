@@ -12,7 +12,7 @@ test.group('List Countries', (group) => {
   test('Successfully return all the countries', async ({ client, expect, assert }) => {
     await CountryFactory.apply('random').createMany(10)
     const user = await UserFactory.with('country', 1).with('roles', 1).create()
-    const response = await client.get('/country').loginAs(user)
+    const response = await client.get('/api/country').loginAs(user)
     const countries = response.body()
     expect(countries.length).toBe(11)
     countries.map((c) => {

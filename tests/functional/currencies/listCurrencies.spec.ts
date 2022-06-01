@@ -12,7 +12,7 @@ test.group('List Currencies', (group) => {
   test('Successfully return all the countries', async ({ client, expect, assert }) => {
     await CurrencyFactory.apply('random').createMany(5)
     const user = await UserFactory.with('country', 1).with('roles', 1).create()
-    const response = await client.get('/currency').loginAs(user)
+    const response = await client.get('/api/currency').loginAs(user)
     const currencies = response.body()
     expect(currencies.length).toBe(5)
     currencies.map((c) => {
