@@ -1,10 +1,16 @@
 import Country from 'App/Models/Country'
 import Factory from '@ioc:Adonis/Lucid/Factory'
+import { Faker } from '@faker-js/faker'
 
-export default Factory.define(Country, () => {
+let fake: Faker
+
+export default Factory.define(Country, ({ faker }) => {
+  fake = faker
   return {
     name: 'Testland',
     code: 'TTD',
     flagUrl: 'www.testland.com/flag',
   }
-}).build()
+})
+  .state('random', (country) => (country.name = fake.name.firstName()))
+  .build()

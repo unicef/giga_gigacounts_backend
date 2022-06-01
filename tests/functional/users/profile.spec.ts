@@ -8,7 +8,9 @@ test.group('Profile', (group) => {
     return () => Database.rollbackGlobalTransaction()
   })
   test('Sucessfully return Country Office user profile', async ({ client, expect, assert }) => {
-    const user = await UserFactory.with('country', 1).with('roles', 1).create()
+    const user = await UserFactory.with('country', 1)
+      .with('roles', 1, (role) => role.with('permissions', 1))
+      .create()
     const response = await client.get('/user/profile').loginAs(user)
     const profile = response.body()
     assert.notEmpty(profile?.name)
@@ -37,9 +39,11 @@ test.group('Profile', (group) => {
   test('Sucessfully return Government user profile', async ({ client, expect, assert }) => {
     const user = await UserFactory.with('country', 1)
       .with('roles', 1, (role) => {
-        role.merge({
-          name: 'Government',
-        })
+        role
+          .merge({
+            name: 'Government',
+          })
+          .with('permissions', 1)
       })
       .create()
     const response = await client.get('/user/profile').loginAs(user)
@@ -51,9 +55,11 @@ test.group('Profile', (group) => {
   })
   test('Sucessfully return ISP user profile', async ({ client, expect, assert }) => {
     const user = await UserFactory.with('roles', 1, (role) => {
-      role.merge({
-        name: 'ISP',
-      })
+      role
+        .merge({
+          name: 'ISP',
+        })
+        .with('permissions', 1)
     }).create()
     const response = await client.get('/user/profile').loginAs(user)
     const profile = response.body()
