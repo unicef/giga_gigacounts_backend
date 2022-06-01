@@ -30,7 +30,7 @@ export default class Metric extends BaseModel {
    */
 
   @beforeFind()
-  public static getSuggestedValue(query: ModelQueryBuilderContract<typeof Metric>) {
+  public static getSuggestedMetrics(query: ModelQueryBuilderContract<typeof Metric>) {
     query.preload('suggestedMetrics')
   }
 

@@ -13,9 +13,10 @@ Route.post('/login', 'UsersController.login').middleware('validator:LoginValidat
  * METRIC ROUTES
  */
 
-Route.get('/metric/suggested-values', 'MetricsController.listMetricsSuggestedValues').middleware(
-  'auth:api'
-)
+Route.get('/metric/suggested-values', 'MetricsController.listMetricsSuggestedValues').middleware([
+  'auth:api',
+  `acl:${permissions.metricRead}`,
+])
 
 /**
  * SCHOOL ROUTES
@@ -45,8 +46,6 @@ Route.get('/contract/count/status', 'ContractsController.countByStatus').middlew
   'auth:api',
   `acl:${permissions.contractRead}`,
 ])
-
-Route.get('/contract/count/status', 'ContractsController.countByStatus').middleware('auth:api')
 
 /**
  * TESTING PURPOSE ONLY ROUTES
