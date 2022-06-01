@@ -27,7 +27,9 @@ After installing these programs, run the following commands:
 
 `$ npm install`
 
-### Setting up some users
+### Setting up tables and some users
+
+`$ node ace migration:run`
 
 `$ node ace create:users`
 
