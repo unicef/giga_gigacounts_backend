@@ -1,8 +1,15 @@
 import Currency from 'App/Models/Currency'
 import Factory from '@ioc:Adonis/Lucid/Factory'
 
-export default Factory.define(Currency, () => {
+import { Faker } from '@faker-js/faker'
+
+let fake: Faker
+
+export default Factory.define(Currency, ({ faker }) => {
+  fake = faker
   return {
     name: 'US Dollar',
   }
-}).build()
+})
+  .state('random', (currency) => (currency.name = fake.name.firstName()))
+  .build()
