@@ -18,7 +18,11 @@ test.group('Contract count by status', (group) => {
     expect,
   }) => {
     const [country1, country2] = await setupCountries()
-    const user = await UserFactory.merge({ countryId: country1.id }).with('roles', 1).create()
+    const user = await UserFactory.merge({ countryId: country1.id })
+      .with('roles', 1, (role) =>
+        role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.read' }))
+      )
+      .create()
     await setupModels(country1.id, country2.id, user.id)
     const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
@@ -33,9 +37,11 @@ test.group('Contract count by status', (group) => {
   test('Successfully counts all contracts if the user is admin', async ({ client, expect }) => {
     const [country1, country2] = await setupCountries()
     const user = await UserFactory.with('roles', 1, (role) => {
-      role.merge({
-        name: 'Giga Admin',
-      })
+      role
+        .merge({
+          name: 'Giga Admin',
+        })
+        .with('permissions', 1, (permission) => permission.merge({ name: 'contract.read' }))
     }).create()
     await setupModels(country1.id, country2.id, user.id)
     const response = await client.get('/contract/count/status').loginAs(user)
@@ -55,9 +61,11 @@ test.group('Contract count by status', (group) => {
     const [country1, country2] = await setupCountries()
     const user = await UserFactory.merge({ name: 'Verizon', countryId: country1.id })
       .with('roles', 1, (role) => {
-        role.merge({
-          name: 'ISP',
-        })
+        role
+          .merge({
+            name: 'ISP',
+          })
+          .with('permissions', 1, (permission) => permission.merge({ name: 'contract.read' }))
       })
       .create()
     await setupModels(country1.id, country2.id, user.id)
@@ -74,9 +82,11 @@ test.group('Contract count by status', (group) => {
     const [country1, country2] = await setupCountries()
     const user = await UserFactory.merge({ countryId: country1.id })
       .with('roles', 1, (role) => {
-        role.merge({
-          name: 'Government',
-        })
+        role
+          .merge({
+            name: 'Government',
+          })
+          .with('permissions', 1, (permission) => permission.merge({ name: 'contract.read' }))
       })
       .create()
     await setupModels(country1.id, country2.id, user.id)
