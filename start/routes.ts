@@ -38,8 +38,6 @@ Route.get('/contract/count/status', 'ContractsController.countByStatus').middlew
   `acl:${permissions.contractRead}`,
 ])
 
-Route.get('/contract/count/status', 'ContractsController.countByStatus').middleware('auth:api')
-
 /**
  * TESTING PURPOSE ONLY ROUTES
  */

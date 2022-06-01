@@ -15,7 +15,9 @@ test.group('Profile', (group) => {
     const profile = response.body()
     assert.notEmpty(profile?.name)
     assert.notEmpty(profile?.email)
-    expect(profile?.country).toBe('Testland')
+    expect(profile?.country.name).toBe('Testland')
+    expect(profile?.country.flagUrl).toBe('www.testland.com/flag')
+    expect(profile?.country.code).toBe('TTD')
     expect(profile?.role).toBe('Country Office')
   })
   test('Sucessfully return Giga admin user profile', async ({ client, expect, assert }) => {
@@ -50,7 +52,9 @@ test.group('Profile', (group) => {
     const profile = response.body()
     assert.notEmpty(profile?.name)
     assert.notEmpty(profile?.email)
-    expect(profile?.country).toBe('Testland')
+    expect(profile?.country.name).toBe('Testland')
+    expect(profile?.country.flagUrl).toBe('www.testland.com/flag')
+    expect(profile?.country.code).toBe('TTD')
     expect(profile?.role).toBe('Government')
   })
   test('Sucessfully return ISP user profile', async ({ client, expect, assert }) => {
