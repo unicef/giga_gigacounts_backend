@@ -16,7 +16,6 @@ import Currency from 'App/Models/Currency'
 import Frequency from 'App/Models/Frequency'
 import Isp from 'App/Models/Isp'
 import User from 'App/Models/User'
-import ContractStatus from 'App/Models/ContractStatus'
 import ExpectedMetric from 'App/Models/ExpectedMetric'
 import Attachment from 'App/Models/Attachment'
 import School from 'App/Models/School'
@@ -60,7 +59,7 @@ export default class Contract extends BaseModel {
   public createdBy: number
 
   @column()
-  public statusId: number
+  public status: number
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -89,11 +88,9 @@ export default class Contract extends BaseModel {
 
   @belongsTo(() => User, {
     localKey: 'created_by',
+    foreignKey: 'id',
   })
   public user: BelongsTo<typeof User>
-
-  @belongsTo(() => ContractStatus)
-  public status: BelongsTo<typeof ContractStatus>
 
   @hasMany(() => ExpectedMetric)
   public expectedMetrics: HasMany<typeof ExpectedMetric>
