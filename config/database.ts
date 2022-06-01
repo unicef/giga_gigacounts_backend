@@ -26,12 +26,6 @@ const databaseConfig: DatabaseConfig = {
     |--------------------------------------------------------------------------
     | PostgreSQL config
     |--------------------------------------------------------------------------
-    |
-    | Configuration for PostgreSQL database. Make sure to install the driver
-    | from npm when using this connection
-    |
-    | npm i pg
-    |
     */
     pg: {
       client: 'pg',
