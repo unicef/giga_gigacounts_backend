@@ -22,6 +22,15 @@ Route.get('/payment/frequencies', 'PaymentsController.listFrequencies')
 Route.get('/isp', 'IspsController.listIsps').middleware(`acl:${permissions.ispRead}`)
 
 /**
+ * METRIC ROUTES
+ */
+
+Route.get('/metric/suggested-values', 'MetricsController.listMetricsSuggestedValues').middleware([
+  'auth:api',
+  `acl:${permissions.metricRead}`,
+])
+
+/**
  * SCHOOL ROUTES
  */
 
