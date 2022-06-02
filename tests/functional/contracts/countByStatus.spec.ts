@@ -24,7 +24,7 @@ test.group('Contract count by status', (group) => {
       )
       .create()
     await setupModels(country1.id, country2.id, user.id)
-    const response = await client.get('/api/contract/count/status').loginAs(user)
+    const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
     expect(statusCount.totalCount).toBe('3')
     expect(statusCount.counts[0].status).toBe('Draft')
@@ -44,7 +44,7 @@ test.group('Contract count by status', (group) => {
         .with('permissions', 1, (permission) => permission.merge({ name: 'contract.read' }))
     }).create()
     await setupModels(country1.id, country2.id, user.id)
-    const response = await client.get('/api/contract/count/status').loginAs(user)
+    const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
     expect(statusCount.totalCount).toBe('4')
     expect(statusCount.counts[2].status).toBe('Draft')
@@ -69,7 +69,7 @@ test.group('Contract count by status', (group) => {
       })
       .create()
     await setupModels(country1.id, country2.id, user.id)
-    const response = await client.get('/api/contract/count/status').loginAs(user)
+    const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
     expect(statusCount.totalCount).toBe('1')
     expect(statusCount.counts[0].status).toBe('Draft')
@@ -90,7 +90,7 @@ test.group('Contract count by status', (group) => {
       })
       .create()
     await setupModels(country1.id, country2.id, user.id)
-    const response = await client.get('/api/contract/count/status').loginAs(user)
+    const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
     expect(statusCount.totalCount).toBe('1')
     expect(statusCount.counts[0].status).toBe('Ongoing')

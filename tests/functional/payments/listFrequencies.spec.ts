@@ -26,7 +26,7 @@ test.group('List Frequencies', (group) => {
       },
     ]).createMany(4)
     const user = await UserFactory.with('roles', 1).create()
-    const response = await client.get('/api/payment/frequencies').loginAs(user)
+    const response = await client.get('/payment/frequencies').loginAs(user)
     const frequencies = response.body() as Frequency[]
     expect(frequencies.length).toBe(4)
     expect(frequencies.some((f) => f.name === 'Daily')).toBeTruthy()

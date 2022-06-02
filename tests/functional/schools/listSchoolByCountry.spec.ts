@@ -18,7 +18,7 @@ test.group('List Schools by country', (group) => {
     const [country1, country2] = await setupCountries()
     await setupSchools(country1.id, country2.id)
     const user = await UserFactory.with('roles', 1).create()
-    let response = await client.get(`/api/school/country/${country1.id}`).loginAs(user)
+    let response = await client.get(`/school/country/${country1.id}`).loginAs(user)
     const schools = response.body() as any[]
     expect(schools.length).toBe(4)
     schools.map((s) => {
@@ -26,7 +26,7 @@ test.group('List Schools by country', (group) => {
       assert.notEmpty(s.name)
       expect(s.country_id).toBe(country1.id)
     })
-    response = await client.get(`/api/school/country/${country2.id}`).loginAs(user)
+    response = await client.get(`/school/country/${country2.id}`).loginAs(user)
     const schools2 = response.body() as any[]
     expect(schools2.length).toBe(2)
     schools2.map((s) => {
