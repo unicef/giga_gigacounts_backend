@@ -16,6 +16,15 @@ Route.post('/login', 'UsersController.login').middleware('validator:LoginValidat
 Route.get('/payment/frequencies', 'PaymentsController.listFrequencies')
 
 /**
+ * METRIC ROUTES
+ */
+
+Route.get('/metric/suggested-values', 'MetricsController.listMetricsSuggestedValues').middleware([
+  'auth:api',
+  `acl:${permissions.metricRead}`,
+])
+
+/**
  * SCHOOL ROUTES
  */
 
