@@ -2,42 +2,53 @@ import Route from '@ioc:Adonis/Core/Route'
 
 import { permissions } from 'App/Helpers/constants'
 
-Route.post('/api/login', 'UsersController.login').middleware('validator:LoginValidator')
+/**
+ * USER ROUTES
+ */
 
-Route.group(() => {
-  /**
-   * USER ROUTES
-   */
-  Route.get('/user/profile', 'UsersController.profile')
-  /**
-   * PAYMENT ROUTES
-   */
-  Route.get('/payment/frequencies', 'PaymentsController.listFrequencies')
-  /**
-   * SCHOOL ROUTES
-   */
-  Route.get('/school/country/:country_id', 'SchoolsController.listSchoolByCountry')
-  /**
-   * CURRENCY ROUTES
-   */
-  Route.get('/currency', 'CurrenciesController.listCurrencies')
-  /**
-   * COUNTRY ROUTES
-   */
-  Route.get('/country', 'CountriesController.listCountries')
-  /**
-   * CONTRACT ROUTES
-   */
-  Route.get('/contract/count/status', 'ContractsController.countByStatus').middleware(
-    `acl:${permissions.contractRead}`
-  )
-  /**
-   * ISP ROUTES
-   */
-  Route.get('/isp', 'IspsController.listIsps').middleware(`acl:${permissions.ispRead}`)
-})
-  .prefix('api')
-  .middleware('auth:api')
+Route.get('/user/profile', 'UsersController.profile').middleware('auth:api')
+Route.post('/login', 'UsersController.login').middleware('validator:LoginValidator')
+
+/**
+ * PAYMENT ROUTES
+ */
+
+Route.get('/payment/frequencies', 'PaymentsController.listFrequencies')
+
+/**
+ * ISP ROUTES
+ */
+
+Route.get('/isp', 'IspsController.listIsps').middleware(`acl:${permissions.ispRead}`)
+
+/**
+ * SCHOOL ROUTES
+ */
+
+Route.get('/school/country/:country_id', 'SchoolsController.listSchoolByCountry').middleware(
+  'auth:api'
+)
+
+/**
+ * CURRENCY ROUTES
+ */
+
+Route.get('/currency', 'CurrenciesController.listCurrencies').middleware('auth:api')
+
+/**
+ * COUNTRY ROUTES
+ */
+
+Route.get('/country', 'CountriesController.listCountries').middleware('auth:api')
+
+/**
+ * CONTRACT ROUTES
+ */
+
+Route.get('/contract/count/status', 'ContractsController.countByStatus').middleware([
+  'auth:api',
+  `acl:${permissions.contractRead}`,
+])
 
 /**
  * TESTING PURPOSE ONLY ROUTES
