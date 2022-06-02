@@ -18,4 +18,6 @@ export const permissions = {
   countryRead: 'country.read',
   contractRead: 'contract.read',
   metricRead: 'metric.read',
+  ispRead: 'isp.read',
+  schoolRead: 'school.read',
 }

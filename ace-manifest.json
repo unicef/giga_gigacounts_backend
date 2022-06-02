@@ -1,11 +1,11 @@
 {
   "commands": {
-    "create:users": {
+    "seed:db": {
       "settings": {
         "loadApp": true
       },
-      "commandPath": "./commands/CreateUsers",
-      "commandName": "create:users",
+      "commandPath": "./commands/SeedDB",
+      "commandName": "seed:db",
       "description": "",
       "args": [],
       "aliases": [],
