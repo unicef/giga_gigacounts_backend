@@ -27,7 +27,7 @@ test.group('List ISPs', (group) => {
         role.with('permissions', 1, (permission) => permission.merge({ name: 'isp.read' }))
       )
       .create()
-    const response = await client.get('/api/isp').loginAs(user)
+    const response = await client.get('/isp').loginAs(user)
     const isps = response.body() as Isp[]
     expect(isps.length).toBe(3)
     expect(isps.some((i) => i.name === 'T-Mobile')).toBeTruthy()

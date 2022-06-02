@@ -19,7 +19,7 @@ Route.get('/payment/frequencies', 'PaymentsController.listFrequencies')
  * ISP ROUTES
  */
 
-Route.get('/isp', 'IspsController.listIsps').middleware(`acl:${permissions.ispRead}`)
+Route.get('/isp', 'IspsController.listIsps').middleware(['auth:api', `acl:${permissions.ispRead}`])
 
 /**
  * METRIC ROUTES
