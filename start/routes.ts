@@ -10,6 +10,12 @@ Route.get('/user/profile', 'UsersController.profile').middleware('auth:api')
 Route.post('/login', 'UsersController.login').middleware('validator:LoginValidator')
 
 /**
+ * PAYMENT ROUTES
+ */
+
+Route.get('/payment/frequencies', 'PaymentsController.listFrequencies')
+
+/**
  * METRIC ROUTES
  */
 
