@@ -31,7 +31,7 @@ After installing these programs, run the following commands:
 
 `$ node ace migration:run`
 
-`$ node ace create:users`
+`$ node ace seed:db`
 
 > This command will create a couple of users/countries/roles on the database
 
