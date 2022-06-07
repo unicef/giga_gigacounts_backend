@@ -22,6 +22,7 @@ export default class CreateUsers extends BaseCommand {
     const { default: Contract } = await import('App/Models/Contract')
     const { default: Metric } = await import('App/Models/Metric')
     const { default: ExpectedMetric } = await import('App/Models/ExpectedMetric')
+    const { default: Draft } = await import('App/Models/Draft')
     const { roles, permissions, ContractStatus } = await import('App/Helpers/constants')
     // Metrics
     const uptime = await Metric.create({
@@ -220,6 +221,14 @@ export default class CreateUsers extends BaseCommand {
     }).then((ctc) => {
       ctc.related('schools').save(school2)
       return ctc
+    })
+    await Draft.create({
+      countryId: botswana.id,
+      governmentBehalf: true,
+      name: 'Draft Botswana 1',
+      currencyId: usd.id,
+      frequencyId: frequency.id,
+      createdBy: bwUser.id,
     })
     // Expected Metrics
     await ExpectedMetric.createMany([

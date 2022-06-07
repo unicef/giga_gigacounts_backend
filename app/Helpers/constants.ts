@@ -17,6 +17,7 @@ export enum ContractStatus {
 export const permissions = {
   countryRead: 'country.read',
   contractRead: 'contract.read',
+  contractWrite: 'contract.write',
   ispRead: 'isp.read',
   metricRead: 'metric.read',
   schoolRead: 'school.read',
