@@ -1,3 +1,5 @@
+import { TransactionClientContract } from '@ioc:Adonis/Lucid/Database'
+import ExpectedMetric from 'App/Models/ExpectedMetric'
 import Metric from 'App/Models/Metric'
 
 const listMetricsSuggestedValues = async () => {
@@ -10,6 +12,19 @@ const listMetricsSuggestedValues = async () => {
   return metrics
 }
 
+const createExpectedMetrics = async (
+  metrics: { metricId: number; value: number }[],
+  contractId: number,
+  trx: TransactionClientContract
+): Promise<ExpectedMetric[]> => {
+  return Promise.all(
+    metrics.map(async (m) =>
+      ExpectedMetric.create({ metricId: m.metricId, contractId, value: m.value }, { client: trx })
+    )
+  )
+}
+
 export default {
   listMetricsSuggestedValues,
+  createExpectedMetrics,
 }

@@ -6,6 +6,7 @@ import Country from 'App/Models/Country'
 
 interface UserProfile {
   name: string
+  lastName: string
   email: string
   country?: Partial<Country>
   role: string
@@ -17,6 +18,7 @@ const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
   return {
     name: user.name,
     email: user.email,
+    lastName: user.lastName,
     country:
       userPermissions.some((v) => v === permissions.countryRead) && user.country
         ? {

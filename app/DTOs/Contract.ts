@@ -7,20 +7,25 @@ export interface ContractsStatusCount {
     status: string
     count: any
   }[]
-  totalCount: string
+  totalCount: number
 }
 
 const contractCountByStatusDTO = (
   contracts: Contract[],
-  totalCount: string
+  totalCount: string,
+  draftsCount: string
 ): ContractsStatusCount => {
   const counts = contracts.map((c) => ({
     status: ContractStatus[c.$attributes.status],
     count: c.$extras.count,
   }))
+  counts[counts.length] = {
+    status: ContractStatus[0],
+    count: draftsCount,
+  }
   return {
     counts,
-    totalCount,
+    totalCount: parseInt(totalCount) + parseInt(draftsCount),
   }
 }
 

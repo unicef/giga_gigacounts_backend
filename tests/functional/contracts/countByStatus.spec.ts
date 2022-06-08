@@ -5,6 +5,7 @@ import ContractFactory from 'Database/factories/ContractFactory'
 import UserFactory from 'Database/factories/UserFactory'
 import CountryFactory from 'Database/factories/CountryFactory'
 import IspFactory from 'Database/factories/IspFactory'
+import DraftFactory from 'Database/factories/DraftFactory'
 
 import { ContractsStatusCount } from 'App/DTOs/Contract'
 
@@ -26,13 +27,13 @@ test.group('Contract count by status', (group) => {
     await setupModels(country1.id, country2.id, user.id)
     const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
-    expect(statusCount.totalCount).toBe('3')
-    expect(statusCount.counts[0].status).toBe('Draft')
-    expect(statusCount.counts[0].count).toBe('1')
-    expect(statusCount.counts[1].status).toBe('Sent')
-    expect(statusCount.counts[1].count).toBe('1')
-    expect(statusCount.counts[2].status).toBe('Ongoing')
+    expect(statusCount.totalCount).toBe(3)
+    expect(statusCount.counts[2].status).toBe('Draft')
     expect(statusCount.counts[2].count).toBe('1')
+    expect(statusCount.counts[0].status).toBe('Sent')
+    expect(statusCount.counts[0].count).toBe('1')
+    expect(statusCount.counts[1].status).toBe('Ongoing')
+    expect(statusCount.counts[1].count).toBe('1')
   })
   test('Successfully counts all contracts if the user is admin', async ({ client, expect }) => {
     const [country1, country2] = await setupCountries()
@@ -46,7 +47,7 @@ test.group('Contract count by status', (group) => {
     await setupModels(country1.id, country2.id, user.id)
     const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
-    expect(statusCount.totalCount).toBe('4')
+    expect(statusCount.totalCount).toBe(4)
     expect(statusCount.counts[2].status).toBe('Draft')
     expect(statusCount.counts[2].count).toBe('2')
     expect(statusCount.counts[0].status).toBe('Sent')
@@ -71,7 +72,7 @@ test.group('Contract count by status', (group) => {
     await setupModels(country1.id, country2.id, user.id)
     const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
-    expect(statusCount.totalCount).toBe('1')
+    expect(statusCount.totalCount).toBe(1)
     expect(statusCount.counts[0].status).toBe('Draft')
     expect(statusCount.counts[0].count).toBe('1')
   })
@@ -92,7 +93,7 @@ test.group('Contract count by status', (group) => {
     await setupModels(country1.id, country2.id, user.id)
     const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
-    expect(statusCount.totalCount).toBe('1')
+    expect(statusCount.totalCount).toBe(1)
     expect(statusCount.counts[0].status).toBe('Ongoing')
     expect(statusCount.counts[0].count).toBe('1')
   })
@@ -107,13 +108,23 @@ const setupCountries = async () => {
 const setupModels = async (countryId: number, otherCountry: number, userId: number) => {
   const isp = await IspFactory.merge({ name: 'Verizon' }).create()
   const isp1 = await IspFactory.create()
-  await ContractFactory.merge([
+  await DraftFactory.merge([
     {
       countryId: countryId,
-      status: 0,
       createdBy: userId,
       ispId: isp.id,
     },
+    {
+      countryId: otherCountry,
+      createdBy: userId,
+      ispId: isp1.id,
+      governmentBehalf: true,
+    },
+  ])
+    .with('currency')
+    .with('frequency')
+    .createMany(2)
+  await ContractFactory.merge([
     {
       countryId: countryId,
       status: 1,
@@ -127,15 +138,8 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
       ispId: isp1.id,
       governmentBehalf: true,
     },
-    {
-      countryId: otherCountry,
-      status: 0,
-      createdBy: userId,
-      ispId: isp1.id,
-      governmentBehalf: true,
-    },
   ])
     .with('currency')
     .with('frequency')
-    .createMany(4)
+    .createMany(2)
 }

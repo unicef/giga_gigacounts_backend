@@ -6,7 +6,8 @@ import RoleFactory from './RoleFactory'
 
 export default Factory.define(User, ({ faker }) => {
   return {
-    name: faker.internet.userName(),
+    name: faker.name.firstName(),
+    lastName: faker.name.lastName(),
     email: faker.internet.email(),
     password: '123456',
   }
