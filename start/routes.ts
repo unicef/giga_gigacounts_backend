@@ -77,6 +77,7 @@ Route.post('/contract/draft', 'ContractsController.saveDraft').middleware([
 
 Route.post('/attachments/upload', 'AttachmentsController.upload').middleware([
   'auth:api',
+  'validator:UploadFileValidator',
   `acl:${permissions.attachmentWrite}`,
 ])
 
