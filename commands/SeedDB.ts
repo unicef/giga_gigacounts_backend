@@ -125,7 +125,8 @@ export default class CreateUsers extends BaseCommand {
     const [brUser, _, bwUser] = await Promise.all([
       //  Office Brazil 1
       User.create({
-        name: 'Brazil Officer 1',
+        name: 'Brazil',
+        lastName: 'Officer 1',
         email: 'officer1_br@giga.com',
         password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
         countryId: brazil.id,
@@ -135,14 +136,16 @@ export default class CreateUsers extends BaseCommand {
       }),
       //  Office Brazil 2
       User.create({
-        name: 'Brazil Officer 2',
+        name: 'Brazil',
+        lastName: 'Officer 2',
         email: 'officer2_br@giga.com',
         password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
         countryId: brazil.id,
       }).then((user) => user.related('roles').save(countryOffice)),
       //  Office Botswana
       User.create({
-        name: 'Botswana Officer',
+        name: 'Botswana',
+        lastName: 'Officer',
         email: 'officer_bw@giga.com',
         password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
         countryId: botswana.id,
@@ -152,38 +155,44 @@ export default class CreateUsers extends BaseCommand {
       }),
       //  Government Brazil
       User.create({
-        name: 'Brazil Gov',
+        name: 'Brazil',
+        lastName: 'Gov',
         email: 'gov_br@giga.com',
         password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
         countryId: brazil.id,
       }).then((user) => user.related('roles').save(government)),
       //  Government Botswana
       User.create({
-        name: 'Botswana Gov',
+        name: 'Botswana',
+        lastName: 'Gov',
         email: 'gov_bw@giga.com',
         password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
         countryId: botswana.id,
       }).then((user) => user.related('roles').save(government)),
       //  Giga Admin 1
       User.create({
-        name: 'Giga Admin 1',
+        name: 'Giga',
+        lastName: 'Admin 1',
         email: 'admin1@giga.com',
         password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
       }).then((user) => user.related('roles').save(admin)),
       //  Giga Admin 2
       User.create({
-        name: 'Giga Admin 2',
+        name: 'Giga',
+        lastName: 'Admin 2',
         email: 'admin2@giga.com',
         password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
       }).then((user) => user.related('roles').save(admin)),
       User.create({
         name: 'Vivo',
+        lastName: 'Provider',
         email: 'provider_br@giga.com',
         password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
         countryId: brazil.id,
       }).then((user) => user.related('roles').save(isp)),
       User.create({
         name: 'AT&T',
+        lastName: 'Provider',
         email: 'provider_bw@giga.com',
         password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
         countryId: botswana.id,
