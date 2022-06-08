@@ -60,6 +60,15 @@ Route.get('/contract/count/status', 'ContractsController.countByStatus').middlew
 ])
 
 /**
+ * ATTACHMENTS ROUTES
+ */
+
+Route.post('/attachments/upload', 'AttachmentsController.upload').middleware([
+  'auth:api',
+  `acl:${permissions.attachmentWrite}`,
+])
+
+/**
  * TESTING PURPOSE ONLY ROUTES
  */
 

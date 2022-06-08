@@ -1,6 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import service from 'App//Services/Contract'
+import service from 'App/Services/Contract'
 
 export default class ContractsController {
   public async countByStatus({ response, auth }: HttpContextContract) {

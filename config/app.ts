@@ -180,7 +180,7 @@ export const logger: LoggerConfig = {
   | can have huge impact on performance.
   |
   */
-  prettyPrint: Env.get('NODE_ENV') === 'development',
+  prettyPrint: Env.get('NODE_ENV') === 'dev',
 }
 
 /*
