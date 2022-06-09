@@ -39,13 +39,16 @@ const getContractList = async (user: User) => {
     .preload('lta')
     .preload('isp')
     .preload('expectedMetrics')
-    .preload('payments')
+    .withAggregate('payments', (qry) => {
+      qry.whereNotNull('paid_date').sum('amount').as('total_payments')
+    })
     .preload('schools', (builder) => {
       builder.preload('measures')
     })
     .withCount('schools') // c.$extras.schools_count
 
-  dto.contractListDTO(contracts)
+  // console.log(contracts)
+  // dto.contractListDTO(contracts)
   return contracts
 }
 
