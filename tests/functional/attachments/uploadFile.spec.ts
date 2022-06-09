@@ -7,7 +7,6 @@ import testUtils from '../../utils'
 import Attachment from 'App/Models/Attachment'
 
 const lower20Pdf = `${__dirname}/lower_20.pdf`
-const bigger20Pdf = `${__dirname}/bigger_20.pdf`
 const imageJpg = `${__dirname}/image.jpg`
 const imagePng = `${__dirname}/image.png`
 
@@ -17,12 +16,16 @@ test.group('Upload file attachments', (group) => {
     return () => Database.rollbackGlobalTransaction()
   })
   test('Return an error when the file passed exceeds 20mb limit', async ({ expect, client }) => {
-    const file = await testUtils.toBase64('data:application/pdf;base64,', bigger20Pdf)
+    const bigger20Pdf = 'data:application/pdf;base64,' + Buffer.allocUnsafe(20 * 1024 * 1025)
     const user = await UserFactory.with('roles', 1, (role) =>
       role.with('permissions', 1, (permission) => permission.merge({ name: 'attachment.write' }))
     ).create()
-    const response = await client.post('/attachments/upload').loginAs(user).json({ file })
+    const response = await client
+      .post('/attachments/upload')
+      .loginAs(user)
+      .json({ file: bigger20Pdf })
     const error = response.error() as import('superagent').HTTPError
+    console.log(error)
     expect(error.status).toBe(413)
     expect(JSON.parse(error.text).message).toBe(
       'E_REQUEST_ENTITY_TOO_LARGE: request entity too large'
