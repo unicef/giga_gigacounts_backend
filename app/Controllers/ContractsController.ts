@@ -33,4 +33,16 @@ export default class ContractsController {
       return response.status(error.status).send(error.message)
     }
   }
+
+  public async contractList({ response, auth }: HttpContextContract) {
+    try {
+      if (!auth.user) return
+      const contracts = await service.getContractList(auth.user)
+      return response.ok(contracts)
+    } catch (error) {
+      console.log(error)
+      // return response.status(error.status).send(error.message)
+      return error
+    }
+  }
 }

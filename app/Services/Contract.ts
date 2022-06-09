@@ -11,6 +11,7 @@ import metricService from 'App/Services/Metric'
 import dto, { ContractsStatusCount } from 'App/DTOs/Contract'
 import utils from 'App/Helpers/utils'
 import Draft from 'App/Models/Draft'
+import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
 
 export interface ContractCreation {
   draftId?: number
@@ -28,6 +29,24 @@ export interface ContractCreation {
   attachments?: { attachments: { id: number }[] }
   schools: { schools: { id: number }[] }
   expectedMetrics: { metrics: { metricId: number; value: number }[] }
+}
+
+const getContractList = async (user: User) => {
+  const { query, draftQuery } = await something(user)
+
+  const contracts = await query
+    .preload('country')
+    .preload('lta')
+    .preload('isp')
+    .preload('expectedMetrics')
+    .preload('payments')
+    .preload('schools', (builder) => {
+      builder.preload('measures')
+    })
+    .withCount('schools') // c.$extras.schools_count
+
+  dto.contractListDTO(contracts)
+  return contracts
 }
 
 const createContract = async (data: ContractCreation): Promise<Contract> => {
@@ -103,7 +122,39 @@ const getContractsCountByStatus = async (
   )
 }
 
+const something = async (
+  user: User
+): Promise<{
+  query: ModelQueryBuilderContract<typeof Contract, Contract>
+  draftQuery: ModelQueryBuilderContract<typeof Draft, Draft>
+}> => {
+  let query = Contract.query()
+  let draftQuery = Draft.query()
+
+  if (!userService.checkUserRole(user, [roles.gigaAdmin])) {
+    query.where('countryId', user.countryId)
+    draftQuery.where('countryId', user.countryId)
+
+    if (userService.checkUserRole(user, [roles.government])) {
+      query.andWhere('governmentBehalf', true)
+      draftQuery.andWhere('governmentBehalf', true)
+    }
+
+    if (userService.checkUserRole(user, [roles.isp])) {
+      query.whereHas('isp', (qry) => {
+        qry.where('name', user.name)
+      })
+      draftQuery.whereHas('isp', (qry) => {
+        qry.where('name', user.name)
+      })
+    }
+  }
+
+  return { query, draftQuery }
+}
+
 export default {
   getContractsCountByStatus,
   createContract,
+  getContractList,
 }

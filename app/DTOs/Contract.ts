@@ -29,6 +29,12 @@ const contractCountByStatusDTO = (
   }
 }
 
+const contractListDTO = (contracts: Contract[]) => {
+  const ltas = []
+  contracts.map((c) => {})
+}
+
 export default {
   contractCountByStatusDTO,
+  contractListDTO,
 }
