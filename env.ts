@@ -23,4 +23,5 @@ export default Env.rules({
   NODE_ENV: Env.schema.enum(['dev', 'production', 'test'] as const),
   AZURE_STORAGE_CONNECTION_STRING: Env.schema.string(),
   AZURE_CONTAINER_NAME: Env.schema.string(),
+  ORIGINS_ALLOWED: Env.schema.string(),
 })

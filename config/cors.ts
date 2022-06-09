@@ -7,6 +7,8 @@
 
 import { CorsConfig } from '@ioc:Adonis/Core/Cors'
 
+const origins = process.env.ORIGINS_ALLOWED || ''
+
 const corsConfig: CorsConfig = {
   /*
   |--------------------------------------------------------------------------
@@ -44,7 +46,7 @@ const corsConfig: CorsConfig = {
   |                     one of the above values.
   |
   */
-  origin: true,
+  origin: origins.split(','),
 
   /*
   |--------------------------------------------------------------------------
