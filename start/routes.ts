@@ -72,6 +72,16 @@ Route.post('/contract/draft', 'ContractsController.saveDraft').middleware([
 ])
 
 /**
+ * ATTACHMENTS ROUTES
+ */
+
+Route.post('/attachments/upload', 'AttachmentsController.upload').middleware([
+  'auth:api',
+  'validator:UploadFileValidator',
+  `acl:${permissions.attachmentWrite}`,
+])
+
+/**
  * TESTING PURPOSE ONLY ROUTES
  */
 

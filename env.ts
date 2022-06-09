@@ -20,5 +20,7 @@ export default Env.rules({
   APP_KEY: Env.schema.string(),
   APP_NAME: Env.schema.string(),
   DRIVE_DISK: Env.schema.enum(['local'] as const),
-  NODE_ENV: Env.schema.enum(['development', 'production', 'test'] as const),
+  NODE_ENV: Env.schema.enum(['dev', 'production', 'test'] as const),
+  AZURE_STORAGE_CONNECTION_STRING: Env.schema.string(),
+  AZURE_CONTAINER_NAME: Env.schema.string(),
 })

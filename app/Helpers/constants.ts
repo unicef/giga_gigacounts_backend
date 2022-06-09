@@ -21,4 +21,6 @@ export const permissions = {
   ispRead: 'isp.read',
   metricRead: 'metric.read',
   schoolRead: 'school.read',
+  attachmentWrite: 'attachment.write',
+  attachmentRead: 'attachment.read',
 }
