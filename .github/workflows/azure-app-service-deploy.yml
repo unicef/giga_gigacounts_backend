@@ -53,7 +53,7 @@ jobs:
         ENV_FILE_ENCODED: ${{ secrets[env.ENV_FILE_VAR_NAME] }}
       run: |
         echo $ENV_FILE_ENCODED | base64 --decode > .env
-        docker build --platform linux/amd64 -t unicefgiga.azurecr.io/backend:${{ github.sha }} .
+        docker build --platform linux/amd64 -t unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-${{ github.sha }} .
         docker push unicefgiga.azurecr.io/backend:${{ github.sha }}
 
   deploy:
