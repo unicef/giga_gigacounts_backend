@@ -42,3 +42,16 @@ After installing these programs, run the following commands:
 ## Testing
 
 `$ node ace test`
+
+
+## DEV/STAGE envs (Azure)
+
+DEV and STAGE environments deploys to Azure via GitHub actions.
+There are 2 secrets configured in GitHub: DEV_ENV_FILE and STAGE_ENV_FILE.
+Each secret contains base64 encoded .env file for the corresponding environment.
+
+In order to update GitHub secret for any environment, prepare .env file locally (look into .env.azure.example), encode it with base64 and provide the result with the repo admin.
+
+Example:
+
+`$ cat .env.azure.dev | base64 > env_azure_dev.txt`

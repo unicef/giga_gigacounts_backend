@@ -7,6 +7,8 @@
 
 import { CorsConfig } from '@ioc:Adonis/Core/Cors'
 
+const origins = process.env.ORIGINS_ALLOWED || ''
+
 const corsConfig: CorsConfig = {
   /*
   |--------------------------------------------------------------------------
@@ -20,7 +22,7 @@ const corsConfig: CorsConfig = {
   | you can define a function to enable/disable it on per request basis as well.
   |
   */
-  enabled: false,
+  enabled: true,
 
   // You can also use a function that return true or false.
   // enabled: (request) => request.url().startsWith('/api')
@@ -44,7 +46,7 @@ const corsConfig: CorsConfig = {
   |                     one of the above values.
   |
   */
-  origin: true,
+  origin: origins.split(','),
 
   /*
   |--------------------------------------------------------------------------
