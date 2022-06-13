@@ -40,9 +40,8 @@ export default class ContractsController {
       const contracts = await service.getContractList(auth.user)
       return response.ok(contracts)
     } catch (error) {
-      console.log(error)
-      // return response.status(error.status).send(error.message)
-      return error
+      if (!error.status) return response.internalServerError(error.message)
+      return response.status(error.status).send(error.message)
     }
   }
 }

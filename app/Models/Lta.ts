@@ -13,6 +13,7 @@ import {
 import User from 'App/Models/User'
 import Isp from 'App/Models/Isp'
 import Contract from 'App/Models/Contract'
+import Country from 'App/Models/Country'
 
 export default class Lta extends BaseModel {
   @column({ isPrimary: true })
@@ -23,6 +24,9 @@ export default class Lta extends BaseModel {
 
   @column()
   public createdBy: number
+
+  @column()
+  public countryId: number
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -50,4 +54,7 @@ export default class Lta extends BaseModel {
 
   @hasMany(() => Contract)
   public contracts: HasMany<typeof Contract>
+
+  @belongsTo(() => Country)
+  public country: BelongsTo<typeof Country>
 }

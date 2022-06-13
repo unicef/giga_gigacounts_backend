@@ -12,6 +12,8 @@ import dto, { ContractsStatusCount } from 'App/DTOs/Contract'
 import utils from 'App/Helpers/utils'
 import Draft from 'App/Models/Draft'
 import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
+import Measure from 'App/Models/Measure'
+import Lta from 'App/Models/Lta'
 
 export interface ContractCreation {
   draftId?: number
@@ -32,7 +34,7 @@ export interface ContractCreation {
 }
 
 const getContractList = async (user: User) => {
-  const { query, draftQuery } = await something(user)
+  const { query, draftQuery, ltaQuery } = await queryBuilder(user)
 
   const contracts = await query
     .preload('country')
@@ -40,16 +42,29 @@ const getContractList = async (user: User) => {
     .preload('isp')
     .preload('expectedMetrics')
     .withAggregate('payments', (qry) => {
-      qry.whereNotNull('paid_date').sum('amount').as('total_payments')
+      qry.sum('amount').as('total_payments')
     })
-    .preload('schools', (builder) => {
-      builder.preload('measures')
-    })
-    .withCount('schools') // c.$extras.schools_count
+    .preload('schools')
+    .withCount('schools')
 
-  // console.log(contracts)
-  // dto.contractListDTO(contracts)
-  return contracts
+  const drafts = await draftQuery.preload('country').preload('lta').preload('isp')
+
+  const ltas = await ltaQuery
+
+  const schoolsMeasures = {}
+
+  for (const contract of contracts) {
+    if (!contract.schools?.length) continue
+    for (const school of contract.schools) {
+      schoolsMeasures[school.name] = await Measure.query()
+        .avg('value')
+        .where('school_id', school.id)
+        .select('metric_id')
+        .groupBy('metric_id')
+    }
+  }
+
+  return dto.contractListDTO(contracts, drafts, ltas, schoolsMeasures)
 }
 
 const createContract = async (data: ContractCreation): Promise<Contract> => {
@@ -93,27 +108,8 @@ const getContractsCountByStatus = async (
   user?: User
 ): Promise<ContractsStatusCount | undefined> => {
   if (!user) return
-  let query = Contract.query()
-  let draftQuery = Draft.query()
 
-  if (!userService.checkUserRole(user, [roles.gigaAdmin])) {
-    query.where('countryId', user.countryId)
-    draftQuery.where('countryId', user.countryId)
-
-    if (userService.checkUserRole(user, [roles.government])) {
-      query.andWhere('governmentBehalf', true)
-      draftQuery.andWhere('governmentBehalf', true)
-    }
-
-    if (userService.checkUserRole(user, [roles.isp])) {
-      query.whereHas('isp', (qry) => {
-        qry.where('name', user.name)
-      })
-      draftQuery.whereHas('isp', (qry) => {
-        qry.where('name', user.name)
-      })
-    }
-  }
+  const { query, draftQuery } = await queryBuilder(user)
 
   const totalCount = await query.count('*')
   const contracts = await query.select('status').distinct('status').groupBy('status').count('*')
@@ -125,18 +121,21 @@ const getContractsCountByStatus = async (
   )
 }
 
-const something = async (
+const queryBuilder = async (
   user: User
 ): Promise<{
   query: ModelQueryBuilderContract<typeof Contract, Contract>
   draftQuery: ModelQueryBuilderContract<typeof Draft, Draft>
+  ltaQuery: ModelQueryBuilderContract<typeof Lta, Lta>
 }> => {
   let query = Contract.query()
   let draftQuery = Draft.query()
+  let ltaQuery = Lta.query()
 
   if (!userService.checkUserRole(user, [roles.gigaAdmin])) {
     query.where('countryId', user.countryId)
     draftQuery.where('countryId', user.countryId)
+    ltaQuery.where('countryId', user.countryId)
 
     if (userService.checkUserRole(user, [roles.government])) {
       query.andWhere('governmentBehalf', true)
@@ -150,10 +149,13 @@ const something = async (
       draftQuery.whereHas('isp', (qry) => {
         qry.where('name', user.name)
       })
+      ltaQuery.whereHas('isps', (qry) => {
+        qry.where('name', user.name)
+      })
     }
   }
 
-  return { query, draftQuery }
+  return { query, draftQuery, ltaQuery }
 }
 
 export default {

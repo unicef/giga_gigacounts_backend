@@ -1,9 +1,9 @@
 import Contract from 'App/Models/Contract'
+import Draft from 'App/Models/Draft'
+import ExpectedMetric from 'App/Models/ExpectedMetric'
 
 import { ContractStatus } from 'App/Helpers/constants'
-import Payment from 'App/Models/Payment'
-import School from 'App/Models/School'
-import ExpectedMetric from 'App/Models/ExpectedMetric'
+import Lta from 'App/Models/Lta'
 
 export interface ContractsStatusCount {
   counts: {
@@ -11,6 +11,40 @@ export interface ContractsStatusCount {
     count: any
   }[]
   totalCount: number
+}
+
+export interface ContractListDTO {
+  ltas: LtaList
+  contracts: ContractList[]
+}
+
+interface LtaList {
+  [name: string]: ContractList[]
+}
+
+interface ContractList {
+  id: number
+  name: string
+  isp?: string
+  status: string
+  country?: {
+    name: string
+    code: string
+    flagUrl: string
+  }
+  schoolsConnection?: SchoolsConnection
+  numberOfSchools?: number
+  budget?: {
+    budget: string
+    totalSpend: string
+  }
+  ltaId?: number
+}
+
+interface SchoolsConnection {
+  withoutConnection: number
+  atLeastOneBellowAvg: number
+  allEqualOrHigherAvg: number
 }
 
 const contractCountByStatusDTO = (
@@ -32,24 +66,110 @@ const contractCountByStatusDTO = (
   }
 }
 
-const contractListDTO = (data: Contract[]) => {
-  const ltas = {}
-  const contracts: Contract[] = []
-  data.map((c) => {
-    if (c.ltaId) {
-      if (ltas[c.lta.name]) {
-        ltas[c.lta.name] = ltas[c.lta.name].push(c)
-      } else {
-        ltas[c.lta.name] = [c]
+const contractListDTO = (
+  data: Contract[],
+  drafts: Draft[],
+  ltasData: Lta[],
+  schoolsMeasures: {}
+): ContractListDTO => {
+  const ltas: LtaList = formatLtaList(ltasData)
+  const contracts: ContractList[] = []
+
+  drafts.map((d) => {
+    const draft = {
+      id: d.id,
+      name: d.name,
+      isp: d.isp?.name,
+      status: 'Draft',
+      country: d.country
+        ? {
+            name: d.country.name,
+            flagUrl: d.country.flagUrl,
+            code: d.country.code,
+          }
+        : undefined,
+      numberOfSchools: d.schools?.schools.length,
+      ltaId: d.ltaId,
+    }
+
+    if (d.ltaId) {
+      if (ltas[d.lta.name]) {
+        ltas[d.lta.name].push(draft)
       }
     } else {
-      contracts.push(c)
+      contracts.push(draft)
     }
   })
-  console.log(ltas)
+
+  data.map((c) => {
+    const schoolsConnection: SchoolsConnection = {
+      withoutConnection: 0,
+      atLeastOneBellowAvg: 0,
+      allEqualOrHigherAvg: 0,
+    }
+
+    if (c.schools.length) {
+      c.schools.map((s) => {
+        evaluateMeasures(schoolsMeasures[s.name], c.expectedMetrics, schoolsConnection)
+      })
+    }
+
+    const contract = {
+      id: c.id,
+      name: c.name,
+      isp: c.isp.name,
+      status: ContractStatus[c.status],
+      country: {
+        name: c.country.name,
+        flagUrl: c.country.flagUrl,
+        code: c.country.code,
+      },
+      schoolsConnection,
+      numberOfSchools: c.$extras.schools_count,
+      budget: {
+        budget: c.budget,
+        totalSpend: c.$extras.total_payments,
+      },
+      ltaId: c.ltaId,
+    }
+
+    if (c.ltaId) {
+      if (ltas[c.lta.name]) {
+        ltas[c.lta.name].push(contract)
+      }
+    } else {
+      contracts.push(contract)
+    }
+  })
+
+  return {
+    ltas,
+    contracts,
+  }
 }
 
-const calculateMetrics = (schools: School[], expectedMetrics: ExpectedMetric) => {}
+const formatLtaList = (ltas: Lta[]) => {
+  const ltasObj = {}
+  ltas.map((l) => (ltasObj[l.name] = []))
+  return ltasObj
+}
+
+const evaluateMeasures = (
+  schoolMeasures: any[],
+  expectedMetrics: ExpectedMetric[],
+  schoolsConnection: SchoolsConnection
+) => {
+  if (!schoolMeasures.length) return (schoolsConnection.withoutConnection += 1)
+  for (const em of expectedMetrics) {
+    const index = schoolMeasures.findIndex(
+      (sm) => sm.metricId.toString() === em.metricId.toString()
+    )
+    if (schoolMeasures[index].$extras.avg < em.value) {
+      return (schoolsConnection.atLeastOneBellowAvg += 1)
+    }
+  }
+  return (schoolsConnection.allEqualOrHigherAvg += 1)
+}
 
 export default {
   contractCountByStatusDTO,

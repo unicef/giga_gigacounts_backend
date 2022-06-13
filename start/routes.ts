@@ -71,7 +71,10 @@ Route.post('/contract/draft', 'ContractsController.saveDraft').middleware([
   `acl:${permissions.contractWrite}`,
 ])
 
-Route.get('/contract', 'ContractsController.contractList').middleware(['auth:api'])
+Route.get('/contract', 'ContractsController.contractList').middleware([
+  'auth:api',
+  `acl:${permissions.contractRead}`,
+])
 
 /**
  * TESTING PURPOSE ONLY ROUTES
