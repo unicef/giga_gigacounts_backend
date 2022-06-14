@@ -44,7 +44,7 @@ interface ContractList {
 interface SchoolsConnection {
   withoutConnection: number
   atLeastOneBellowAvg: number
-  allEqualOrHigherAvg: number
+  allEqualOrAboveAvg: number
 }
 
 const contractCountByStatusDTO = (
@@ -75,70 +75,70 @@ const contractListDTO = (
   const ltas: LtaList = formatLtaList(ltasData)
   const contracts: ContractList[] = []
 
-  drafts.map((d) => {
-    const draft = {
-      id: d.id,
-      name: d.name,
-      isp: d.isp?.name,
+  drafts.map((draft) => {
+    const draftData = {
+      id: draft.id,
+      name: draft.name,
+      isp: draft.isp?.name,
       status: 'Draft',
-      country: d.country
+      country: draft.country
         ? {
-            name: d.country.name,
-            flagUrl: d.country.flagUrl,
-            code: d.country.code,
+            name: draft.country.name,
+            flagUrl: draft.country.flagUrl,
+            code: draft.country.code,
           }
         : undefined,
-      numberOfSchools: d.schools?.schools.length,
-      ltaId: d.ltaId,
+      numberOfSchools: draft.schools?.schools.length,
+      ltaId: draft.ltaId,
     }
 
-    if (d.ltaId) {
-      if (ltas[d.lta.name]) {
-        ltas[d.lta.name].push(draft)
+    if (draft.ltaId) {
+      if (ltas[draft.lta.name]) {
+        ltas[draft.lta.name].push(draftData)
       }
     } else {
-      contracts.push(draft)
+      contracts.push(draftData)
     }
   })
 
-  data.map((c) => {
+  data.map((contract) => {
     const schoolsConnection: SchoolsConnection = {
       withoutConnection: 0,
       atLeastOneBellowAvg: 0,
-      allEqualOrHigherAvg: 0,
+      allEqualOrAboveAvg: 0,
     }
 
-    if (c.schools.length) {
-      c.schools.map((s) => {
-        evaluateMeasures(schoolsMeasures[s.name], c.expectedMetrics, schoolsConnection)
+    if (contract.schools.length) {
+      contract.schools.map((school) => {
+        evaluateMeasures(schoolsMeasures[school.name], contract.expectedMetrics, schoolsConnection)
       })
     }
 
-    const contract = {
-      id: c.id,
-      name: c.name,
-      isp: c.isp.name,
-      status: ContractStatus[c.status],
+    const contractData = {
+      id: contract.id,
+      name: contract.name,
+      isp: contract.isp.name,
+      status: ContractStatus[contract.status],
       country: {
-        name: c.country.name,
-        flagUrl: c.country.flagUrl,
-        code: c.country.code,
+        name: contract.country.name,
+        flagUrl: contract.country.flagUrl,
+        code: contract.country.code,
       },
       schoolsConnection,
-      numberOfSchools: c.$extras.schools_count,
+      numberOfSchools: contract.$extras.schools_count,
       budget: {
-        budget: c.budget,
-        totalSpend: c.$extras.total_payments,
+        budget: contract.budget,
+        totalSpend: contract.$extras.total_payments,
       },
-      ltaId: c.ltaId,
+      ltaId: contract.ltaId,
     }
 
-    if (c.ltaId) {
-      if (ltas[c.lta.name]) {
-        ltas[c.lta.name].push(contract)
+    if (contract.ltaId) {
+      if (ltas[contract.lta.name]) {
+        ltas[contract.lta.name].push(contractData)
       }
     } else {
-      contracts.push(contract)
+      contracts.push(contractData)
     }
   })
 
@@ -149,9 +149,13 @@ const contractListDTO = (
 }
 
 const formatLtaList = (ltas: Lta[]) => {
-  const ltasObj = {}
-  ltas.map((l) => (ltasObj[l.name] = []))
-  return ltasObj
+  return ltas.reduce(
+    (aggregate, current) => ({
+      ...aggregate,
+      [current.name]: [],
+    }),
+    {}
+  )
 }
 
 const evaluateMeasures = (
@@ -168,7 +172,7 @@ const evaluateMeasures = (
       return (schoolsConnection.atLeastOneBellowAvg += 1)
     }
   }
-  return (schoolsConnection.allEqualOrHigherAvg += 1)
+  return (schoolsConnection.allEqualOrAboveAvg += 1)
 }
 
 export default {

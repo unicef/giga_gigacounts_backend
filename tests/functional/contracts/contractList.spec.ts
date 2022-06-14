@@ -31,7 +31,7 @@ test.group('Contract List', (group) => {
       expect(lta[0].country?.name).toBe('Testland')
       expect(lta[0].schoolsConnection?.withoutConnection).toBe(1)
       expect(lta[0].schoolsConnection?.atLeastOneBellowAvg).toBe(0)
-      expect(lta[0].schoolsConnection?.allEqualOrHigherAvg).toBe(0)
+      expect(lta[0].schoolsConnection?.allEqualOrAboveAvg).toBe(0)
       expect(lta[0].numberOfSchools).toBe('1')
     }
     expect(contractList.contracts.length).toBe(2)
@@ -39,7 +39,7 @@ test.group('Contract List', (group) => {
     expect(contractList.contracts[1].status).toBe('Ongoing')
     expect(contractList.contracts[1].schoolsConnection?.withoutConnection).toBe(0)
     expect(contractList.contracts[1].schoolsConnection?.atLeastOneBellowAvg).toBe(0)
-    expect(contractList.contracts[1].schoolsConnection?.allEqualOrHigherAvg).toBe(1)
+    expect(contractList.contracts[1].schoolsConnection?.allEqualOrAboveAvg).toBe(1)
     expect(contractList.contracts[1].numberOfSchools).toBe('1')
   })
   test('Successfully return all contracts that are government behalf for a specific country', async ({
@@ -66,7 +66,7 @@ test.group('Contract List', (group) => {
     expect(contractList.contracts[0].status).toBe('Ongoing')
     expect(contractList.contracts[0].schoolsConnection?.withoutConnection).toBe(0)
     expect(contractList.contracts[0].schoolsConnection?.atLeastOneBellowAvg).toBe(0)
-    expect(contractList.contracts[0].schoolsConnection?.allEqualOrHigherAvg).toBe(1)
+    expect(contractList.contracts[0].schoolsConnection?.allEqualOrAboveAvg).toBe(1)
     expect(contractList.contracts[0].numberOfSchools).toBe('1')
   })
   test('Successfully return all contract for a specific ISP', async ({
@@ -95,7 +95,7 @@ test.group('Contract List', (group) => {
     expect(contractList.contracts[1].isp).toBe('Verizon')
     expect(contractList.contracts[1].schoolsConnection?.withoutConnection).toBe(0)
     expect(contractList.contracts[1].schoolsConnection?.atLeastOneBellowAvg).toBe(0)
-    expect(contractList.contracts[1].schoolsConnection?.allEqualOrHigherAvg).toBe(1)
+    expect(contractList.contracts[1].schoolsConnection?.allEqualOrAboveAvg).toBe(1)
     expect(contractList.contracts[1].numberOfSchools).toBe('1')
   })
   test('Successfully return all contracts if the user is admin', async ({ client, expect }) => {
@@ -118,7 +118,7 @@ test.group('Contract List', (group) => {
     expect(contractList.contracts[2].isp).toBe('Verizon')
     expect(contractList.contracts[2].schoolsConnection?.withoutConnection).toBe(0)
     expect(contractList.contracts[2].schoolsConnection?.atLeastOneBellowAvg).toBe(0)
-    expect(contractList.contracts[2].schoolsConnection?.allEqualOrHigherAvg).toBe(1)
+    expect(contractList.contracts[2].schoolsConnection?.allEqualOrAboveAvg).toBe(1)
     expect(contractList.contracts[2].numberOfSchools).toBe('1')
     expect(contractList.contracts[2].budget?.budget).toBe('10000')
     expect(contractList.contracts[2].budget?.totalSpend).toBe('1500')
