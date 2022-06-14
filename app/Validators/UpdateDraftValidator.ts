@@ -6,7 +6,7 @@ export default class UpdateDraftValidator {
 
   public schema = schema.create({
     id: schema.number(),
-    name: schema.string(),
+    name: schema.string.optional(),
     countryId: schema.number.nullableAndOptional(),
     governmentBehalf: schema.boolean.nullableAndOptional(),
     ltaId: schema.number.nullableAndOptional(),

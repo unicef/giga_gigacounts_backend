@@ -25,7 +25,6 @@ test.group('Upload file attachments', (group) => {
       .loginAs(user)
       .json({ file: bigger20Pdf })
     const error = response.error() as import('superagent').HTTPError
-    console.log(error)
     expect(error.status).toBe(413)
     expect(JSON.parse(error.text).message).toBe(
       'E_REQUEST_ENTITY_TOO_LARGE: request entity too large'

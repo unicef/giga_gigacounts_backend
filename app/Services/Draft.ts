@@ -10,7 +10,7 @@ const updateDraft = async (draftData: Draft): Promise<Draft> => {
 
   if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
 
-  draft.name = draftData.name
+  draft.name = draftData?.name || draft.name
   draft.countryId = draftData?.countryId
   draft.governmentBehalf = draftData?.governmentBehalf
   draft.ltaId = draftData?.ltaId
