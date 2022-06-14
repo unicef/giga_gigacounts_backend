@@ -33,4 +33,14 @@ export default class ContractsController {
       return response.status(error.status).send(error.message)
     }
   }
+
+  public async updateDraft({ response, request }: HttpContextContract) {
+    try {
+      const draftData = request.all() as Draft
+      const draft = await draftService.updateDraft(draftData)
+      response.ok(draft)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
 }
