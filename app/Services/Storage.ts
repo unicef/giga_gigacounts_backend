@@ -7,7 +7,7 @@ import EntityTooLargeException from 'App/Exceptions/EntityTooLargeException'
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING || ''
 const containerName = `${process.env.AZURE_CONTAINER_NAME}`
 
-const limitInBytes = 20000000 // 20 mb
+const limitInBytes = 20971520 // 20 mb
 
 const uploadFile = async (file: string): Promise<string> => {
   const matches = file.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) || []
@@ -31,6 +31,7 @@ const checkFileSize = (base64: string) => {
   let y = 1
   if (base64.slice(-2) == '==') y = 2
   const sizeInBytes = base64.length * (3 / 4) - y
+  console.log(sizeInBytes)
   if (sizeInBytes > limitInBytes) {
     throw new EntityTooLargeException('request entity too large', 413, 'E_REQUEST_ENTITY_TOO_LARGE')
   }
