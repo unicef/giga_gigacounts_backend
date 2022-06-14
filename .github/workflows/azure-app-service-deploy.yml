@@ -48,12 +48,19 @@ jobs:
         username: ${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }}
         password: ${{ secrets.AZURE_CONTAINER_REGISTRY_PASSWORD }}
 
-    - name: Build and push container image to registry
+    - name: Build container image
       env:
         ENV_FILE_ENCODED: ${{ secrets[env.ENV_FILE_VAR_NAME] }}
       run: |
         echo $ENV_FILE_ENCODED | base64 --decode > .env
         docker build --platform linux/amd64 -t unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-${{ github.sha }} .
+
+    - name: Run DB migration
+      run: |
+        docker run --rm unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-${{ github.sha }} /bin/sh -c "node ace migration:run"
+
+    - name: Push container image to registry
+      run: |
         docker push unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-${{ github.sha }}
 
   deploy:
