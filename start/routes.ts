@@ -71,6 +71,12 @@ Route.post('/contract/draft', 'ContractsController.saveDraft').middleware([
   `acl:${permissions.contractWrite}`,
 ])
 
+Route.post('/contract/change-status', 'ContractsController.changeStatus').middleware([
+  'auth:api',
+  'validator:ChangeStatusValidator',
+  `acl:${permissions.contractWrite}`,
+])
+
 /**
  * ATTACHMENTS ROUTES
  */

@@ -3,7 +3,11 @@ import { DateTime } from 'luxon'
 
 import Contract from 'App/Models/Contract'
 import User from 'App/Models/User'
+import StatusTransition from 'App/Models/StatusTransition'
+
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
+import NotFoundException from 'App/Exceptions/NotFoundException'
+import InvalidStatusException from 'App/Exceptions/InvalidStatusException'
 
 import { roles, ContractStatus } from 'App/Helpers/constants'
 import userService from 'App/Services/User'
@@ -103,7 +107,47 @@ const getContractsCountByStatus = async (
   )
 }
 
+const changeStatus = async (contractId: number, newStatus: ContractStatus, userId?: number) => {
+  if (!userId) return
+  const trx = await Database.transaction()
+  try {
+    const contract = await Contract.find(contractId, { client: trx })
+
+    if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+
+    let oldStatus = contract.status
+    if (oldStatus + 1 !== newStatus || !(newStatus in ContractStatus)) {
+      throw new InvalidStatusException('Invalid status', 400, 'INVALID_STATUS')
+    }
+
+    await StatusTransition.create(
+      {
+        who: userId,
+        contractId: contract.id,
+        initialStatus: oldStatus,
+        finalStatus: newStatus,
+      },
+      { client: trx }
+    )
+
+    contract.status = newStatus
+    await contract.useTransaction(trx).save()
+
+    await trx.commit()
+    return contract
+  } catch (error) {
+    await trx.rollback()
+    if (error) throw error
+    throw new FailedDependencyException(
+      'Some dependency failed while updating contract status',
+      424,
+      'FAILED_DEPENDENCY'
+    )
+  }
+}
+
 export default {
   getContractsCountByStatus,
   createContract,
+  changeStatus,
 }
