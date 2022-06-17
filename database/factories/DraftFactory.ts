@@ -8,7 +8,7 @@ import IspFactory from './IspFactory'
 
 export default Factory.define(Draft, ({ faker }) => {
   return {
-    name: faker.name.firstName(),
+    name: faker.company.companyName(),
   }
 })
   .relation('country', () => CountryFactory)
