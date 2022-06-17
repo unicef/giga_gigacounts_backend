@@ -4,6 +4,7 @@ import { BaseModel, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm'
 import User from 'App/Models/User'
 import School from 'App/Models/School'
 import Contract from 'App/Models/Contract'
+import Lta from 'App/Models/Lta'
 
 export default class Country extends BaseModel {
   @column({ isPrimary: true })
@@ -36,4 +37,7 @@ export default class Country extends BaseModel {
 
   @hasMany(() => Contract)
   public contracts: HasMany<typeof Contract>
+
+  @hasMany(() => Lta)
+  public ltas: HasMany<typeof Lta>
 }

@@ -1,6 +1,8 @@
 import School from 'App/Models/School'
 import Factory from '@ioc:Adonis/Lucid/Factory'
 import CountryFactory from './CountryFactory'
+import MeasureFactory from './MeasureFactory'
+import ContractFactory from './ContractFactory'
 
 export default Factory.define(School, ({ faker }) => {
   return {
@@ -17,4 +19,6 @@ export default Factory.define(School, ({ faker }) => {
   }
 })
   .relation('country', () => CountryFactory)
+  .relation('measures', () => MeasureFactory)
+  .relation('contracts', () => ContractFactory)
   .build()

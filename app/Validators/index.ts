@@ -3,6 +3,7 @@ import UploadFileValidator from './UploadFileValidator'
 import SaveDraftValidator from './SaveDraftValidator'
 import CreateContractValidator from './CreateContractValidator'
 import UpdateDraftValidator from './UpdateDraftValidator'
+import ChangeStatusValidator from './ChangeStatusValidator'
 
 export default (validator: string) => {
   switch (validator) {
@@ -16,6 +17,8 @@ export default (validator: string) => {
       return CreateContractValidator
     case 'UpdateDraftValidator':
       return UpdateDraftValidator
+    case 'ChangeStatusValidator':
+      return ChangeStatusValidator
     default:
       return ''
   }

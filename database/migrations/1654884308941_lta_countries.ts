@@ -1,11 +1,11 @@
 import BaseSchema from '@ioc:Adonis/Lucid/Schema'
 
 export default class extends BaseSchema {
-  protected tableName = 'users'
+  protected tableName = 'ltas'
 
   public async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.string('last_name').notNullable().defaultTo('')
+      table.bigInteger('country_id').unsigned().references('countries.id')
     })
   }
 

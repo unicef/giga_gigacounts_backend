@@ -48,12 +48,11 @@ test.group('Contract count by status', (group) => {
     const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
     expect(statusCount.totalCount).toBe(4)
-    expect(statusCount.counts[2].status).toBe('Draft')
-    expect(statusCount.counts[2].count).toBe('2')
-    expect(statusCount.counts[0].status).toBe('Sent')
-    expect(statusCount.counts[0].count).toBe('1')
-    expect(statusCount.counts[1].status).toBe('Ongoing')
-    expect(statusCount.counts[1].count).toBe('1')
+    for (const count of statusCount.counts) {
+      if (count.status === 'Draft') expect(count.count).toBe('2')
+      if (count.status === 'Sent') expect(count.count).toBe('1')
+      if (count.status === 'Ongoing') expect(count.count).toBe('1')
+    }
   })
   test('Successfully counts only contracts from the same isp and country if the user is an isp', async ({
     client,
