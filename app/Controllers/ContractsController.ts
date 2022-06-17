@@ -34,6 +34,16 @@ export default class ContractsController {
     }
   }
 
+  public async contractList({ response, auth }: HttpContextContract) {
+    try {
+      if (!auth.user) return
+      const contracts = await service.getContractList(auth.user)
+      return response.ok(contracts)
+    } catch (error) {
+      if (!error.status) return response.internalServerError(error.message)
+    }
+  }
+
   public async changeStatus({ response, request, auth }: HttpContextContract) {
     try {
       const { contract_id, status } = request.all()

@@ -33,6 +33,15 @@ export default class Attachment extends BaseModel {
   })
   public contracts: ManyToMany<typeof Contract>
 
-  @hasMany(() => Payment)
-  public payments: HasMany<typeof Payment>
+  @hasMany(() => Payment, {
+    localKey: 'id',
+    foreignKey: 'invoice_id',
+  })
+  public paymentInvoice: HasMany<typeof Payment>
+
+  @hasMany(() => Payment, {
+    localKey: 'id',
+    foreignKey: 'receiptId',
+  })
+  public paymentReceipt: HasMany<typeof Payment>
 }
