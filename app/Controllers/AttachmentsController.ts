@@ -9,7 +9,7 @@ export default class AttachmentsController {
       const attachment = await service.uploadAttachment(file)
       return response.ok(attachment)
     } catch (error) {
-      return response.status(413).send(error.message)
+      return response.status(error.status).send(error.message)
     }
   }
 }
