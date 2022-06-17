@@ -3,8 +3,7 @@ import { DateTime } from 'luxon'
 import { v1 } from 'uuid'
 
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING || ''
-const env = process.env.NODE_ENV === 'test' ? 'dev' : process.env.NODE_ENV
-const containerName = `${process.env.AZURE_CONTAINER_NAME}-${env}`
+const containerName = `${process.env.AZURE_CONTAINER_NAME}`
 
 const uploadFile = async (file: string): Promise<string> => {
   const blobClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING)

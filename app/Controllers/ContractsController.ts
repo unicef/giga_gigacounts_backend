@@ -41,6 +41,15 @@ export default class ContractsController {
       return response.ok(contracts)
     } catch (error) {
       if (!error.status) return response.internalServerError(error.message)
+    }
+  }
+
+  public async changeStatus({ response, request, auth }: HttpContextContract) {
+    try {
+      const { contract_id, status } = request.all()
+      const contract = await service.changeStatus(contract_id, status, auth.user?.id)
+      response.ok(contract)
+    } catch (error) {
       return response.status(error.status).send(error.message)
     }
   }

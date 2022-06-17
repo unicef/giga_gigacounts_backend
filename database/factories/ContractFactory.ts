@@ -18,7 +18,7 @@ export default Factory.define(Contract, ({ faker }) => {
     budget: '10000',
     startDate: DateTime.now(),
     endDate: DateTime.now(),
-    status: 0,
+    status: 1,
   }
 })
   .relation('country', () => CountryFactory)
