@@ -34,6 +34,16 @@ export default class ContractsController {
     }
   }
 
+  public async getDraft({ response, request }: HttpContextContract) {
+    try {
+      const { draft_id } = request.params()
+      const draft = await draftService.getDraft(draft_id)
+      response.ok(draft)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
+
   public async updateDraft({ response, request }: HttpContextContract) {
     try {
       const draftData = request.all() as Draft

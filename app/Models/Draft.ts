@@ -6,6 +6,7 @@ import Frequency from 'App/Models/Frequency'
 import Currency from 'App/Models/Currency'
 import Lta from 'App/Models/Lta'
 import Country from 'App/Models/Country'
+import User from 'App/Models/User'
 
 export default class Draft extends BaseModel {
   @column({ isPrimary: true })
@@ -77,4 +78,10 @@ export default class Draft extends BaseModel {
 
   @belongsTo(() => Isp)
   public isp: BelongsTo<typeof Isp>
+
+  @belongsTo(() => User, {
+    localKey: 'id',
+    foreignKey: 'createdBy',
+  })
+  public user: BelongsTo<typeof User>
 }
