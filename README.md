@@ -17,6 +17,8 @@ You need a couple of things to be installed in order to run this application:
 - [Node/NPM](https://nodejs.org/en/)
 - [Docker](https://www.docker.com/products/docker-desktop/)
 
+`$ npm install -g yarn `
+
 After installing these programs, run the following commands:
 
 ### Setting up the database image
@@ -25,7 +27,7 @@ After installing these programs, run the following commands:
 
 ### Installing project dependencies
 
-`$ npm install`
+`$ yarn install`
 
 ### Setting up tables and some users
 
@@ -37,12 +39,11 @@ After installing these programs, run the following commands:
 
 ## Running
 
-`$ npm run dev `
+`$ yarn run dev `
 
 ## Testing
 
 `$ node ace test`
-
 
 ## DEV/STAGE envs (Azure)
 
