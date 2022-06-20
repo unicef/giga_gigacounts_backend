@@ -99,6 +99,7 @@ export default class CreateUsers extends BaseCommand {
     // Isps
     const isp1 = await Isp.firstOrCreate({ name: 'Vivo' })
     const isp2 = await Isp.firstOrCreate({ name: 'AT&T' })
+    const isp3 = await Isp.firstOrCreate({ name: 'Verizon Communications' })
     // Users
     const [brUser, _, bwUser] = await Promise.all([
       //  Office Brazil 1
@@ -185,7 +186,8 @@ export default class CreateUsers extends BaseCommand {
       isp1.id,
       [ltaOne.id, ltaTwo.id],
       brazilSchools,
-      [uptime.id, latency.id, download.id, upload.id]
+      [uptime.id, latency.id, download.id, upload.id],
+      isp3.id
     )
     await Contract.firstOrCreate({
       countryId: botswana.id,

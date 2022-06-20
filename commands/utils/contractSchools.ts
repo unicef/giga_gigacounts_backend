@@ -14,18 +14,19 @@ export const createContracts = async (
   ispId: number,
   ltas: number[],
   schools: School[],
-  metricsId: number[]
+  metricsId: number[],
+  isp2Id: number
 ) => {
   const attachment = await Attachment.create({ url: 'www.url.com ' })
   await Contract.firstOrCreate(
     generateContracts(
-      'Contract Brazil 1',
+      '43341171',
       countryId,
       currencyId,
       frequencyId,
       userId,
       ContractStatus.Ongoing,
-      ispId,
+      isp2Id,
       ltas[0]
     )
   ).then((ctc) => {
@@ -38,7 +39,7 @@ export const createContracts = async (
   })
   await Contract.firstOrCreate(
     generateContracts(
-      'Contract Brazil 2',
+      '23315657',
       countryId,
       currencyId,
       frequencyId,
@@ -54,7 +55,7 @@ export const createContracts = async (
   })
   await Contract.firstOrCreate(
     generateContracts(
-      'Contract Brazil 3',
+      '33315657',
       countryId,
       currencyId,
       frequencyId,
@@ -70,12 +71,12 @@ export const createContracts = async (
   })
   // //
   await Draft.firstOrCreate({
-    name: 'Draft Brazil 1',
+    name: '43316557',
     ltaId: ltas[1],
   })
   await Contract.firstOrCreate(
     generateContracts(
-      'Contract Brazil 4',
+      '53315657',
       countryId,
       currencyId,
       frequencyId,
@@ -94,7 +95,7 @@ export const createContracts = async (
   })
   await Contract.firstOrCreate(
     generateContracts(
-      'Contract Brazil 5',
+      '63315657',
       countryId,
       currencyId,
       frequencyId,
@@ -114,7 +115,7 @@ export const createContracts = async (
   //
   await Contract.firstOrCreate(
     generateContracts(
-      'Contract Brazil 6',
+      '73315657',
       countryId,
       currencyId,
       frequencyId,
@@ -132,7 +133,7 @@ export const createContracts = async (
   })
   await Contract.firstOrCreate(
     generateContracts(
-      'Contract Brazil 7',
+      '83315657',
       countryId,
       currencyId,
       frequencyId,
@@ -149,7 +150,7 @@ export const createContracts = async (
     return ctc
   })
   await Draft.firstOrCreate({
-    name: 'Draft Brazil 2',
+    name: '93315657',
     schools: { schools: [{ id: schools[15].id }] },
   })
 }
