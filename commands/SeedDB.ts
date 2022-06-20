@@ -21,110 +21,88 @@ export default class CreateUsers extends BaseCommand {
     const { default: School } = await import('App/Models/School')
     const { default: Contract } = await import('App/Models/Contract')
     const { default: Metric } = await import('App/Models/Metric')
-    const { default: ExpectedMetric } = await import('App/Models/ExpectedMetric')
     const { default: Draft } = await import('App/Models/Draft')
+    const { default: Lta } = await import('App/Models/Lta')
     const { roles, permissions, ContractStatus } = await import('App/Helpers/constants')
+    const { createContracts, createSchools } = await import('./utils/contractSchools')
     // Metrics
-    const uptime = await Metric.create({
-      name: 'Uptime',
-    })
-    const latency = await Metric.create({
-      name: 'latency',
-    })
-    const download = await Metric.create({
-      name: 'Download speed',
-    })
-    const upload = await Metric.create({
-      name: 'Upload speed',
-    })
+    const uptime = await Metric.firstOrCreate({ name: 'Uptime' })
+    const latency = await Metric.firstOrCreate({ name: 'Latency' })
+    const download = await Metric.firstOrCreate({ name: 'Download speed' })
+    const upload = await Metric.firstOrCreate({ name: 'Upload speed' })
     // Frequency
-    const frequency = await Frequency.create({ name: 'Monthly' })
+    const frequency = await Frequency.firstOrCreate({ name: 'Monthly' })
     // Currencies
-    const brl = await Currency.create({ name: 'Brazilian Real' })
-    const usd = await Currency.create({ name: 'US Dollar' })
+    const brl = await Currency.firstOrCreate({ name: 'Brazilian Real' })
+    const usd = await Currency.firstOrCreate({ name: 'US Dollar' })
     // Countries
-    const brazil = await Country.create({
+    const brazil = await Country.firstOrCreate({
       name: 'Brazil',
       code: 'BR',
       flagUrl:
         'https://sauniconnectweb.blob.core.windows.net/uniconnectweb/images/fc029acd-297a-4fdc-bd2f-05d586f95106.png',
     })
-    const botswana = await Country.create({
+    const botswana = await Country.firstOrCreate({
       name: 'Botswana',
       code: 'BW',
       flagUrl:
         'https://sauniconnectweb.blob.core.windows.net/uniconnectweb/images/a526f447-623a-4d61-a22b-5e959c6fe553.png',
     })
+    // Ltas
+    const ltaOne = await Lta.firstOrCreate({ name: 'LLTS-1234', countryId: brazil.id })
+    const ltaTwo = await Lta.firstOrCreate({ name: 'LLTS-5678', countryId: brazil.id })
+    const ltaThree = await Lta.firstOrCreate({ name: 'LLTS-7890', countryId: botswana.id })
     // Schools
-    const [school1, school2] = await School.createMany([
-      {
-        name: 'School 1',
-        externalId: 1001,
-        address: 'None Street',
-        location1: 'Location 1',
-        location2: 'Location 2',
-        location3: 'Location 3',
-        location4: 'Location 4',
-        educationLevel: 'High school',
-        geopoint: '10.32424, 5.84978',
-        email: 'school1@school.com',
-        phoneNumber: '(123) 1111-1111',
-        contactPerson: 'School Owner',
-        countryId: brazil.id,
-      },
-      {
-        name: 'School 2',
-        externalId: 1002,
-        address: 'None Street',
-        location1: 'Location 1',
-        location2: 'Location 2',
-        location3: 'Location 3',
-        location4: 'Location 4',
-        educationLevel: 'Primary school',
-        geopoint: '10.32424, 5.84978',
-        email: 'school2@school.com',
-        phoneNumber: '(123) 2222-2222',
-        contactPerson: 'School Owner 2',
-        countryId: botswana.id,
-      },
+    const botSchool = await School.firstOrCreate({
+      name: 'School Bot 1',
+      externalId: 1002,
+      address: 'None Street',
+      location1: 'Location 1',
+      location2: 'Location 2',
+      location3: 'Location 3',
+      location4: 'Location 4',
+      educationLevel: 'Primary school',
+      geopoint: '10.32424, 5.84978',
+      email: 'school2@school.com',
+      phoneNumber: '(123) 2222-2222',
+      contactPerson: 'School Owner 2',
+      countryId: botswana.id,
+    })
+    const brazilSchools = await createSchools(brazil.id, [
+      uptime.id,
+      latency.id,
+      download.id,
+      upload.id,
     ])
     // Permissions
-    const countryRead = await Permission.create({
-      name: permissions.countryRead,
-    })
-    const contractRead = await Permission.create({
-      name: permissions.contractRead,
-    })
-    const ispRead = await Permission.create({
-      name: permissions.ispRead,
-    })
-    const schoolRead = await Permission.create({
-      name: permissions.schoolRead,
-    })
+    const countryRead = await Permission.firstOrCreate({ name: permissions.countryRead })
+    const contractRead = await Permission.firstOrCreate({ name: permissions.contractRead })
+    const ispRead = await Permission.firstOrCreate({ name: permissions.ispRead })
+    const schoolRead = await Permission.firstOrCreate({ name: permissions.schoolRead })
     // Roles
-    const countryOffice = await Role.create({ name: roles.countryOffice }).then((role) => {
+    const countryOffice = await Role.firstOrCreate({ name: roles.countryOffice }).then((role) => {
       role.related('permissions').saveMany([countryRead, contractRead, ispRead, schoolRead])
       return role
     })
-    const government = await Role.create({ name: roles.government }).then((role) => {
+    const government = await Role.firstOrCreate({ name: roles.government }).then((role) => {
       role.related('permissions').saveMany([countryRead, contractRead, ispRead, schoolRead])
       return role
     })
-    const admin = await Role.create({ name: roles.gigaAdmin }).then((role) => {
+    const admin = await Role.firstOrCreate({ name: roles.gigaAdmin }).then((role) => {
       role.related('permissions').saveMany([countryRead, contractRead, ispRead, schoolRead])
       return role
     })
-    const isp = await Role.create({ name: roles.isp }).then((role) => {
+    const isp = await Role.firstOrCreate({ name: roles.isp }).then((role) => {
       role.related('permissions').saveMany([countryRead, contractRead, ispRead, schoolRead])
       return role
     })
     // Isps
-    const isp1 = await Isp.create({ name: 'Vivo' })
-    const isp2 = await Isp.create({ name: 'AT&T' })
+    const isp1 = await Isp.firstOrCreate({ name: 'Vivo' })
+    const isp2 = await Isp.firstOrCreate({ name: 'AT&T' })
     // Users
     const [brUser, _, bwUser] = await Promise.all([
       //  Office Brazil 1
-      User.create({
+      User.firstOrCreate({
         name: 'Brazil',
         lastName: 'Officer 1',
         email: 'officer1_br@giga.com',
@@ -135,7 +113,7 @@ export default class CreateUsers extends BaseCommand {
         return user
       }),
       //  Office Brazil 2
-      User.create({
+      User.firstOrCreate({
         name: 'Brazil',
         lastName: 'Officer 2',
         email: 'officer2_br@giga.com',
@@ -143,7 +121,7 @@ export default class CreateUsers extends BaseCommand {
         countryId: brazil.id,
       }).then((user) => user.related('roles').save(countryOffice)),
       //  Office Botswana
-      User.create({
+      User.firstOrCreate({
         name: 'Botswana',
         lastName: 'Officer',
         email: 'officer_bw@giga.com',
@@ -154,7 +132,7 @@ export default class CreateUsers extends BaseCommand {
         return user
       }),
       //  Government Brazil
-      User.create({
+      User.firstOrCreate({
         name: 'Brazil',
         lastName: 'Gov',
         email: 'gov_br@giga.com',
@@ -162,7 +140,7 @@ export default class CreateUsers extends BaseCommand {
         countryId: brazil.id,
       }).then((user) => user.related('roles').save(government)),
       //  Government Botswana
-      User.create({
+      User.firstOrCreate({
         name: 'Botswana',
         lastName: 'Gov',
         email: 'gov_bw@giga.com',
@@ -170,27 +148,27 @@ export default class CreateUsers extends BaseCommand {
         countryId: botswana.id,
       }).then((user) => user.related('roles').save(government)),
       //  Giga Admin 1
-      User.create({
+      User.firstOrCreate({
         name: 'Giga',
         lastName: 'Admin 1',
         email: 'admin1@giga.com',
         password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
       }).then((user) => user.related('roles').save(admin)),
       //  Giga Admin 2
-      User.create({
+      User.firstOrCreate({
         name: 'Giga',
         lastName: 'Admin 2',
         email: 'admin2@giga.com',
         password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
       }).then((user) => user.related('roles').save(admin)),
-      User.create({
+      User.firstOrCreate({
         name: 'Vivo',
         lastName: 'Provider',
         email: 'provider_br@giga.com',
         password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
         countryId: brazil.id,
       }).then((user) => user.related('roles').save(isp)),
-      User.create({
+      User.firstOrCreate({
         name: 'AT&T',
         lastName: 'Provider',
         email: 'provider_bw@giga.com',
@@ -199,23 +177,17 @@ export default class CreateUsers extends BaseCommand {
       }).then((user) => user.related('roles').save(isp)),
     ])
     // Contracts
-    const contract1 = await Contract.create({
-      countryId: brazil.id,
-      governmentBehalf: false,
-      name: 'Contract Brazil 1',
-      currencyId: brl.id,
-      budget: '1000000',
-      frequencyId: frequency.id,
-      startDate: DateTime.now(),
-      endDate: DateTime.now(),
-      ispId: isp1.id,
-      createdBy: brUser.id,
-      status: ContractStatus.Sent,
-    }).then((ctc) => {
-      ctc.related('schools').save(school1)
-      return ctc
-    })
-    const contract2 = await Contract.create({
+    await createContracts(
+      brazil.id,
+      brl.id,
+      frequency.id,
+      brUser.id,
+      isp1.id,
+      [ltaOne.id, ltaTwo.id],
+      brazilSchools,
+      [uptime.id, latency.id, download.id, upload.id]
+    )
+    await Contract.firstOrCreate({
       countryId: botswana.id,
       governmentBehalf: true,
       name: 'Contract Botswana 1',
@@ -227,11 +199,12 @@ export default class CreateUsers extends BaseCommand {
       ispId: isp2.id,
       createdBy: bwUser.id,
       status: ContractStatus.Ongoing,
+      ltaId: ltaThree.id,
     }).then((ctc) => {
-      ctc.related('schools').save(school2)
+      ctc.related('schools').save(botSchool)
       return ctc
     })
-    await Draft.create({
+    await Draft.firstOrCreate({
       countryId: botswana.id,
       governmentBehalf: true,
       name: 'Draft Botswana 1',
@@ -239,48 +212,5 @@ export default class CreateUsers extends BaseCommand {
       frequencyId: frequency.id,
       createdBy: bwUser.id,
     })
-    // Expected Metrics
-    await ExpectedMetric.createMany([
-      {
-        contractId: contract1.id,
-        metricId: uptime.id,
-        value: 95,
-      },
-      {
-        contractId: contract1.id,
-        metricId: latency.id,
-        value: 300,
-      },
-      {
-        contractId: contract1.id,
-        metricId: download.id,
-        value: 100,
-      },
-      {
-        contractId: contract1.id,
-        metricId: upload.id,
-        value: 3,
-      },
-      {
-        contractId: contract2.id,
-        metricId: uptime.id,
-        value: 95,
-      },
-      {
-        contractId: contract2.id,
-        metricId: latency.id,
-        value: 300,
-      },
-      {
-        contractId: contract2.id,
-        metricId: download.id,
-        value: 100,
-      },
-      {
-        contractId: contract2.id,
-        metricId: upload.id,
-        value: 3,
-      },
-    ])
   }
 }
