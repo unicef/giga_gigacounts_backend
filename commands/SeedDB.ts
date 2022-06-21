@@ -75,6 +75,9 @@ export default class CreateUsers extends BaseCommand {
       upload.id,
     ])
     // Permissions
+    const contractWrite = await Permission.create({ name: permissions.contractWrite })
+    const attachmentWrite = await Permission.create({ name: permissions.attachmentWrite })
+    const attachmentRead = await Permission.create({ name: permissions.attachmentRead })
     const countryRead = await Permission.firstOrCreate({ name: permissions.countryRead })
     const contractRead = await Permission.firstOrCreate({ name: permissions.contractRead })
     const ispRead = await Permission.firstOrCreate({ name: permissions.ispRead })
@@ -89,7 +92,17 @@ export default class CreateUsers extends BaseCommand {
       return role
     })
     const admin = await Role.firstOrCreate({ name: roles.gigaAdmin }).then((role) => {
-      role.related('permissions').saveMany([countryRead, contractRead, ispRead, schoolRead])
+      role
+        .related('permissions')
+        .saveMany([
+          countryRead,
+          contractRead,
+          ispRead,
+          schoolRead,
+          contractWrite,
+          attachmentWrite,
+          attachmentRead,
+        ])
       return role
     })
     const isp = await Role.firstOrCreate({ name: roles.isp }).then((role) => {
