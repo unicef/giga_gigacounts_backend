@@ -16,6 +16,7 @@ const uploadAttachment = async (file: string): Promise<Attachment> => {
 const getAttachment = async (attachmentId: number): Promise<Attachment> => {
   const attachment = await Attachment.find(attachmentId)
   if (!attachment) throw new NotFoundException('Attachment not found', 404, 'NOT_FOUND')
+  attachment.url = storage.generateSasToken(attachment.url)
   return attachment
 }
 
