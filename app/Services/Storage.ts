@@ -1,4 +1,9 @@
-import { BlobServiceClient } from '@azure/storage-blob'
+import {
+  BlobServiceClient,
+  generateBlobSASQueryParameters,
+  BlobSASPermissions,
+  StorageSharedKeyCredential,
+} from '@azure/storage-blob'
 import { DateTime } from 'luxon'
 import { v1 } from 'uuid'
 
@@ -6,6 +11,8 @@ import EntityTooLargeException from 'App/Exceptions/EntityTooLargeException'
 
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING || ''
 const containerName = `${process.env.AZURE_CONTAINER_NAME}`
+const accountName = `${process.env.AZURE_ACCOUNT_NAME}`
+const key = `${process.env.AZURE_ACCOUNT_KEY}`
 
 const limitInBytes = 20971520 // 20 mb
 
@@ -21,6 +28,32 @@ const uploadFile = async (file: string): Promise<string> => {
   await blockBlobClient.uploadData(buffer)
   return blockBlobClient.url
 }
+
+const generateSasToken = (url: string) => {
+  const blobName = getBlobName(url)
+  const cerds = new StorageSharedKeyCredential(accountName, key)
+  const blobSAS = generateBlobSASQueryParameters(
+    {
+      containerName,
+      blobName,
+      permissions: BlobSASPermissions.parse('racwd'),
+      startsOn: new Date(),
+      expiresOn: new Date(new Date().valueOf() + 86400),
+    },
+    cerds
+  ).toString()
+  return `${url}?${blobSAS}`
+}
+
+const deleteFile = async (url: string) => {
+  const blobName = getBlobName(url)
+  const blobClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING)
+  const container = blobClient.getContainerClient(containerName)
+  const blockBlobClient = container.getBlockBlobClient(blobName)
+  return blockBlobClient.delete()
+}
+
+const getBlobName = (url: string) => url.substring(url.lastIndexOf('/') + 1)
 
 const createFileName = (fileExtension: string) =>
   `${v1()}-${DateTime.now().toMillis()}.${fileExtension}`
@@ -38,4 +71,6 @@ const checkFileSize = (base64: string) => {
 
 export default {
   uploadFile,
+  generateSasToken,
+  deleteFile,
 }

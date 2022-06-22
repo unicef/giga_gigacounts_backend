@@ -108,6 +108,11 @@ Route.delete('/attachments/:attachment_id', 'AttachmentsController.deleteAttachm
   `acl:${permissions.attachmentWrite}`,
 ])
 
+Route.get('/attachments/:attachment_id', 'AttachmentsController.getAttachment').middleware([
+  'auth:api',
+  `acl:${permissions.attachmentRead}`,
+])
+
 /**
  * TESTING PURPOSE ONLY ROUTES
  */

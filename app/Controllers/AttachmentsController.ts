@@ -22,4 +22,14 @@ export default class AttachmentsController {
       return response.status(error.status).send(error.message)
     }
   }
+
+  public async getAttachment({ response, request }: HttpContextContract) {
+    try {
+      const { attachment_id } = request.params()
+      const attachment = await service.getAttachment(attachment_id)
+      response.ok(attachment)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
 }
