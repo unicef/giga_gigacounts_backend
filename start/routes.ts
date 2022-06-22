@@ -97,12 +97,16 @@ Route.post('/contract/change-status', 'ContractsController.changeStatus').middle
  * ATTACHMENTS ROUTES
  */
 
-Route.post('/attachments/upload', 'AttachmentsController.upload')
-// .middleware([
-//   'auth:api',
-//   'validator:UploadFileValidator',
-//   `acl:${permissions.attachmentWrite}`,
-// ])
+Route.post('/attachments/upload', 'AttachmentsController.upload').middleware([
+  'auth:api',
+  'validator:UploadFileValidator',
+  `acl:${permissions.attachmentWrite}`,
+])
+
+Route.get('/attachments/:attachment_id', 'AttachmentsController.getAttachment').middleware([
+  'auth:api',
+  `acl:${permissions.attachmentRead}`,
+])
 
 /**
  * TESTING PURPOSE ONLY ROUTES
