@@ -176,7 +176,7 @@ const evaluateMeasures = (
     const index = schoolMeasures.findIndex(
       (sm) => sm.metricId.toString() === em.metricId.toString()
     )
-    if (schoolMeasures[index].$extras.avg < em.value) {
+    if (schoolMeasures[index]?.$extras.avg < em.value) {
       return (schoolsConnection.atLeastOneBellowAvg += 1)
     }
   }
