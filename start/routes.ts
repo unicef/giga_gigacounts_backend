@@ -103,6 +103,11 @@ Route.post('/attachments/upload', 'AttachmentsController.upload').middleware([
   `acl:${permissions.attachmentWrite}`,
 ])
 
+Route.get('/attachments/:attachment_id', 'AttachmentsController.getAttachment').middleware([
+  'auth:api',
+  `acl:${permissions.attachmentRead}`,
+])
+
 /**
  * TESTING PURPOSE ONLY ROUTES
  */

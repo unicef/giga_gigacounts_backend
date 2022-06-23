@@ -7,7 +7,10 @@ const removeProperty = (object: any, propertyName: string) => {
   return rest
 }
 
+const getPercentage = (baseValue: number, value: number) => (value / baseValue) * 100
+
 export default {
   destructObjArrayWithId,
   removeProperty,
+  getPercentage,
 }
