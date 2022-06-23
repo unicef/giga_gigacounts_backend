@@ -1,9 +1,10 @@
 import Contract from 'App/Models/Contract'
 import Draft from 'App/Models/Draft'
 import ExpectedMetric from 'App/Models/ExpectedMetric'
+import Lta from 'App/Models/Lta'
 
 import { ContractStatus } from 'App/Helpers/constants'
-import Lta from 'App/Models/Lta'
+import utils from 'App/Helpers/utils'
 
 export interface ContractsStatusCount {
   counts: {
@@ -34,10 +35,7 @@ interface ContractList {
   }
   schoolsConnection?: SchoolsConnection
   numberOfSchools?: number
-  budget?: {
-    budget: string
-    totalSpend: string
-  }
+  totalSpent?: number
   ltaId?: number
 }
 
@@ -124,12 +122,22 @@ const contractListDTO = (
         flagUrl: contract.country.flagUrl,
         code: contract.country.code,
       },
-      schoolsConnection,
-      numberOfSchools: contract.$extras.schools_count,
-      budget: {
-        budget: contract.budget,
-        totalSpend: contract.$extras.total_payments,
+      schoolsConnection: {
+        withoutConnection: utils.getPercentage(
+          contract.$extras.schools_count,
+          schoolsConnection.withoutConnection
+        ),
+        atLeastOneBellowAvg: utils.getPercentage(
+          contract.$extras.schools_count,
+          schoolsConnection.atLeastOneBellowAvg
+        ),
+        allEqualOrAboveAvg: utils.getPercentage(
+          contract.$extras.schools_count,
+          schoolsConnection.allEqualOrAboveAvg
+        ),
       },
+      numberOfSchools: contract.$extras.schools_count,
+      totalSpent: utils.getPercentage(parseInt(contract.budget), contract.$extras.total_payments),
       ltaId: contract.ltaId,
     }
 
