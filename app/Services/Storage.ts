@@ -45,6 +45,14 @@ const generateSasToken = (url: string) => {
   return `${url}?${blobSAS}`
 }
 
+const deleteFile = async (url: string) => {
+  const blobName = getBlobName(url)
+  const blobClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING)
+  const container = blobClient.getContainerClient(containerName)
+  const blockBlobClient = container.getBlockBlobClient(blobName)
+  return blockBlobClient.delete()
+}
+
 const getBlobName = (url: string) => url.substring(url.lastIndexOf('/') + 1)
 
 const createFileName = (fileExtension: string) =>
@@ -64,4 +72,5 @@ const checkFileSize = (base64: string) => {
 export default {
   uploadFile,
   generateSasToken,
+  deleteFile,
 }

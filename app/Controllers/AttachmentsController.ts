@@ -13,6 +13,16 @@ export default class AttachmentsController {
     }
   }
 
+  public async deleteAttachment({ response, request }: HttpContextContract) {
+    try {
+      const { attachment_id } = request.params()
+      const result = await service.deleteAttachment(attachment_id)
+      response.ok(result)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
+
   public async getAttachment({ response, request }: HttpContextContract) {
     try {
       const { attachment_id } = request.params()
