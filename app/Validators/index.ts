@@ -20,6 +20,6 @@ export default (validator: string) => {
     case 'ChangeStatusValidator':
       return ChangeStatusValidator
     default:
-      return ''
+      return
   }
 }
