@@ -23,4 +23,6 @@ export const permissions = {
   schoolRead: 'school.read',
   attachmentWrite: 'attachment.write',
   attachmentRead: 'attachment.read',
+  ltaRead: 'lta.read',
+  ltaWrite: 'lta.write',
 }

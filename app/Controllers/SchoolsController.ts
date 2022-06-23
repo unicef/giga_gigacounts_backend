@@ -4,8 +4,8 @@ import service from 'App/Services/School'
 
 export default class SchoolsController {
   public async listSchoolByCountry({ response, request }: HttpContextContract) {
-    const { country_id } = request.params()
-    const schools = await service.listSchoolByCountry(country_id)
+    const { countryId } = request.qs()
+    const schools = await service.listSchoolByCountry(countryId)
     return response.ok(schools)
   }
 }
