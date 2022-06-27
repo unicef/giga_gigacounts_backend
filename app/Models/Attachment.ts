@@ -13,6 +13,9 @@ export default class Attachment extends BaseModel {
   public url: string
 
   @column()
+  public name: string
+
+  @column()
   public ipfsUrl: string
 
   @column.dateTime({ autoCreate: true, serializeAs: null })

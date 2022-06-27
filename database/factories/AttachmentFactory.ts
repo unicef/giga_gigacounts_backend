@@ -3,8 +3,9 @@ import Factory from '@ioc:Adonis/Lucid/Factory'
 
 import ContractFactory from './ContractFactory'
 
-export default Factory.define(Attachment, () => {
+export default Factory.define(Attachment, ({ faker }) => {
   return {
+    name: faker.name.firstName(),
     url: 'www.url.com',
   }
 })

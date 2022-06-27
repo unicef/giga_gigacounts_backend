@@ -120,6 +120,7 @@ test.group('Create Contract', (group) => {
     expect(status[0].contractId).toBe(contract?.id)
     expect(status[0].initialStatus).toBe(ContractStatus.Draft)
     expect(status[0].finalStatus).toBe(ContractStatus.Sent)
+    // @ts-ignore: Unreachable code error
     expect(status[0].data?.draftCreation).toBe(draft.createdAt?.toString())
   })
   test('Successfully rollback the transaction if a error occur', async ({
@@ -255,7 +256,7 @@ const createAttachment = async (client: ApiClient, user: User, typeId: number) =
   const response = await client
     .post('/attachments/upload')
     .loginAs(user)
-    .json({ file, type: 'draft', typeId })
+    .json({ file, type: 'draft', typeId, name: 'fake name' })
   const attachment = response.body() as Attachment
   return attachment
 }

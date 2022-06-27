@@ -152,7 +152,7 @@ const createAttachment = async (client: ApiClient, user: User, type: string, typ
   const response = await client
     .post('/attachments/upload')
     .loginAs(user)
-    .json({ file, type, typeId })
+    .json({ file, type, typeId, name: 'fake name' })
   const attachment = response.body() as Attachment
   return attachment
 }

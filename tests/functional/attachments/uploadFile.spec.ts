@@ -27,7 +27,7 @@ test.group('Upload file attachments', (group) => {
     const response = await client
       .post('/attachments/upload')
       .loginAs(user)
-      .json({ file: bigger20Pdf, type: 'receipt', typeId: 1 })
+      .json({ file: bigger20Pdf, type: 'receipt', typeId: 1, name: 'fake name' })
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(413)
     expect(JSON.parse(error.text).message).toBe(
@@ -43,7 +43,7 @@ test.group('Upload file attachments', (group) => {
     const response = await client
       .post('/attachments/upload')
       .loginAs(user)
-      .json({ file, type: 'draft', typeId: draft.id })
+      .json({ file, type: 'draft', typeId: draft.id, name: 'fake name' })
     const attachment = response.body() as Attachment
     assert.include(
       attachment.url,
@@ -70,7 +70,7 @@ test.group('Upload file attachments', (group) => {
     const response = await client
       .post('/attachments/upload')
       .loginAs(user)
-      .json({ file, type: 'invoice', typeId: payment.id })
+      .json({ file, type: 'invoice', typeId: payment.id, name: 'fake name' })
     const attachment = response.body() as Attachment
     assert.include(
       attachment.url,
@@ -96,7 +96,7 @@ test.group('Upload file attachments', (group) => {
     const response = await client
       .post('/attachments/upload')
       .loginAs(user)
-      .json({ file, type: 'receipt', typeId: payment.id })
+      .json({ file, type: 'receipt', typeId: payment.id, name: 'fake name' })
     const attachment = response.body() as Attachment
     assert.include(
       attachment.url,

@@ -18,6 +18,7 @@ export interface UploadRequest {
   file: string
   type: AttachmentsType
   typeId: number
+  name: string
 }
 
 export interface DeleteRequest {
@@ -67,7 +68,7 @@ const uploadAttachment = async (data: UploadRequest): Promise<Attachment> => {
   const trx = await Database.transaction()
   try {
     const fileUrl = await storage.uploadFile(data.file)
-    const attachment = await Attachment.create({ url: fileUrl }, { client: trx })
+    const attachment = await Attachment.create({ url: fileUrl, name: data.name }, { client: trx })
 
     if (data.type === AttachmentsType.DRAFT) {
       const draft = await Draft.find(data.typeId, { client: trx })

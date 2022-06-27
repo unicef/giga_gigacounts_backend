@@ -8,6 +8,7 @@ export default class UploadFileValidator {
 
   public schema = schema.create({
     file: schema.string(),
+    name: schema.string(),
     type: schema.enum(Object.values(AttachmentsType)),
     typeId: schema.number(),
   })
