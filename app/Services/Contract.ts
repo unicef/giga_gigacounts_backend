@@ -94,6 +94,20 @@ const createContract = async (data: ContractCreation): Promise<Contract> => {
       if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
 
       await draft.useTransaction(trx).related('attachments').detach()
+
+      await StatusTransition.create(
+        {
+          who: data.createdBy,
+          contractId: contract.id,
+          initialStatus: ContractStatus.Draft,
+          finalStatus: ContractStatus.Sent,
+          data: {
+            draftCreation: draft.createdAt,
+          },
+        },
+        { client: trx }
+      )
+
       await draft.useTransaction(trx).delete()
     }
 

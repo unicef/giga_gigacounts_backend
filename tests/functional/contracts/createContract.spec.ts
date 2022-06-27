@@ -19,6 +19,8 @@ import User from 'App/Models/User'
 import Attachment from 'App/Models/Attachment'
 
 import testUtils from '../../utils'
+import StatusTransition from 'App/Models/StatusTransition'
+import { ContractStatus } from 'App/Helpers/constants'
 
 const requiredFields = [
   'name',
@@ -112,6 +114,13 @@ test.group('Create Contract', (group) => {
     expect(contract?.attachments[0].id).toBe(attachment.id)
     const deletedDraft = await Draft.findBy('id', draft.id)
     expect(deletedDraft).toBe(null)
+    const status = await StatusTransition.all()
+    expect(status.length).toBe(1)
+    expect(status[0].who).toBe(user.id)
+    expect(status[0].contractId).toBe(contract?.id)
+    expect(status[0].initialStatus).toBe(ContractStatus.Draft)
+    expect(status[0].finalStatus).toBe(ContractStatus.Sent)
+    expect(status[0].data?.draftCreation).toBe(draft.createdAt?.toString())
   })
   test('Successfully rollback the transaction if a error occur', async ({
     client,
@@ -155,6 +164,32 @@ test.group('Create Contract', (group) => {
       expect(e.rule).toBe('required')
       expect(requiredFields.some((v) => v === e.field)).toBeTruthy()
     })
+  })
+  test('Throw a error when creating a contract from a draft if invalid id', async ({
+    client,
+    expect,
+  }) => {
+    const user = await UserFactory.with('roles', 1, (role) => {
+      role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
+    }).create()
+    const { country, currency, frequency, isp, metrics, school } = await setupModels()
+    await DraftFactory.create()
+    const body = buildContract(
+      'Contract 1',
+      country.id,
+      currency.id,
+      frequency.id,
+      isp.id,
+      user.id,
+      buildManyToMany([school.id], 'schools'),
+      buildMetrics(metrics),
+      undefined,
+      100001
+    )
+    const response = await client.post('/contract').loginAs(user).json(body)
+    const error = response.error() as import('superagent').HTTPError
+    expect(error.status).toBe(404)
+    expect(error.text).toBe('NOT_FOUND: Draft not found')
   })
 })
 
