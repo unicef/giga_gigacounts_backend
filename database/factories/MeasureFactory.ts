@@ -3,6 +3,7 @@ import Factory from '@ioc:Adonis/Lucid/Factory'
 
 import SchoolFactory from './SchoolFactory'
 import MetricFactory from './MetricFactory'
+import ContractFactory from './ContractFactory'
 
 export default Factory.define(Measure, () => {
   return {
@@ -11,4 +12,5 @@ export default Factory.define(Measure, () => {
 })
   .relation('school', () => SchoolFactory)
   .relation('metric', () => MetricFactory)
+  .relation('contract', () => ContractFactory)
   .build()

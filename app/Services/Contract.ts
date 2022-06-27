@@ -63,6 +63,7 @@ const getContractList = async (user: User) => {
       schoolsMeasures[school.name] = await Measure.query()
         .avg('value')
         .where('school_id', school.id)
+        .andWhere('contract_id', contract.id)
         .select('metric_id')
         .groupBy('metric_id')
     }

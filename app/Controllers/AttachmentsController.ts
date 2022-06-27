@@ -9,7 +9,7 @@ export default class AttachmentsController {
       const attachment = await service.uploadAttachment(file)
       return response.ok(attachment)
     } catch (error) {
-      return response.status(error.status).send(error.message)
+      return response.status(error?.status || error.statusCode).send(error.message)
     }
   }
 
@@ -19,7 +19,7 @@ export default class AttachmentsController {
       const result = await service.deleteAttachment(attachment_id)
       response.ok(result)
     } catch (error) {
-      return response.status(error.status).send(error.message)
+      return response.status(error?.status || error.statusCode).send(error.message)
     }
   }
 
@@ -29,7 +29,7 @@ export default class AttachmentsController {
       const attachment = await service.getAttachment(attachment_id)
       response.ok(attachment)
     } catch (error) {
-      return response.status(error.status).send(error.message)
+      return response.status(error?.status || error.statusCode).send(error.message)
     }
   }
 }

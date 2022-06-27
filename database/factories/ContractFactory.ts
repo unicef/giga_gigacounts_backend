@@ -17,7 +17,7 @@ export default Factory.define(Contract, ({ faker }) => {
     governmentBehalf: false,
     budget: '10000',
     startDate: DateTime.now(),
-    endDate: DateTime.now(),
+    endDate: DateTime.fromJSDate(new Date(new Date().valueOf() + 86400000)),
     status: 1,
   }
 })
