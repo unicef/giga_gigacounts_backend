@@ -33,13 +33,16 @@ After installing these programs, run the following commands:
 
 `$ node ace migration:run`
 
+`$ NODE_ENV=test node ace migration:run`
+
 `$ node ace seed:db`
 
 > This command will create a couple of users/countries/roles on the database
+> Don't run this command on the test database
 
 ## Running
 
-`$ yarn run dev `
+`$ yarn run dev`
 
 ## Testing
 
