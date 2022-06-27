@@ -3,6 +3,7 @@ import { BaseModel, column, HasMany, hasMany, manyToMany, ManyToMany } from '@io
 
 import Contract from 'App/Models/Contract'
 import Payment from './Payment'
+import Draft from './Draft'
 
 export default class Attachment extends BaseModel {
   @column({ isPrimary: true })
@@ -44,4 +45,13 @@ export default class Attachment extends BaseModel {
     foreignKey: 'receiptId',
   })
   public paymentReceipt: HasMany<typeof Payment>
+
+  @manyToMany(() => Draft, {
+    pivotTable: 'draft_attachments',
+    localKey: 'id',
+    pivotForeignKey: 'attachment_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'draft_id',
+  })
+  public drafts: ManyToMany<typeof Draft>
 }

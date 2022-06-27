@@ -1,7 +1,22 @@
+import Database from '@ioc:Adonis/Lucid/Database'
 import Attachment from 'App/Models/Attachment'
+import Draft from 'App/Models/Draft'
+import Payment from 'App/Models/Payment'
 import NotFoundException from 'App/Exceptions/NotFoundException'
 
 import storage from 'App/Services/Storage'
+import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
+
+export enum AttachmentsType {
+  INVOICE = 'invoice',
+  RECEIPT = 'receipt',
+  DRAFT = 'draft',
+}
+export interface UploadRequest {
+  file: string
+  type: AttachmentsType
+  typeId: number
+}
 
 const deleteAttachment = async (attachmentId: number) => {
   const attachment = await Attachment.find(attachmentId)
@@ -11,13 +26,35 @@ const deleteAttachment = async (attachmentId: number) => {
   return attachment.delete()
 }
 
-const uploadAttachment = async (file: string): Promise<Attachment> => {
+const uploadAttachment = async (data: UploadRequest): Promise<Attachment> => {
+  const trx = await Database.transaction()
   try {
-    const fileUrl = await storage.uploadFile(file)
-    const attachment = await Attachment.create({ url: fileUrl })
+    const fileUrl = await storage.uploadFile(data.file)
+    const attachment = await Attachment.create({ url: fileUrl }, { client: trx })
+    if (data.type === AttachmentsType.DRAFT) {
+      const draft = await Draft.find(data.typeId, { client: trx })
+      if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
+      await draft.related('attachments').attach([attachment.id], trx)
+    }
+
+    if (data.type === AttachmentsType.RECEIPT || data.type === AttachmentsType.INVOICE) {
+      const payment = await Payment.find(data.typeId, { client: trx })
+      if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
+      payment[`${data.type}_id`] = attachment.id
+      await payment.useTransaction(trx).save()
+    }
+
+    await trx.commit()
+
     return attachment
   } catch (error) {
-    throw error
+    await trx.rollback()
+    if (error?.status == 404) throw error
+    throw new FailedDependencyException(
+      'Some dependency failed while uploading attachment',
+      424,
+      'FAILED_DEPENDENCY'
+    )
   }
 }
 
