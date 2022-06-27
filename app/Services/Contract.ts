@@ -93,7 +93,23 @@ const createContract = async (data: ContractCreation): Promise<Contract> => {
 
     if (data.draftId) {
       const draft = await Draft.findBy('id', data.draftId, { client: trx })
-      await draft?.delete()
+
+      if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
+
+      await StatusTransition.create(
+        {
+          who: data.createdBy,
+          contractId: contract.id,
+          initialStatus: ContractStatus.Draft,
+          finalStatus: ContractStatus.Sent,
+          data: {
+            draftCreation: draft.createdAt,
+          },
+        },
+        { client: trx }
+      )
+
+      await draft.useTransaction(trx).delete()
     }
 
     await trx.commit()
@@ -101,6 +117,7 @@ const createContract = async (data: ContractCreation): Promise<Contract> => {
     return contract
   } catch (error) {
     await trx.rollback()
+    if (error.status === 404) throw error
     throw new FailedDependencyException(
       'Some dependency failed while creating contract',
       424,

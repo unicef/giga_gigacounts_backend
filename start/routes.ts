@@ -34,9 +34,10 @@ Route.get('/metric/suggested-values', 'MetricsController.listMetricsSuggestedVal
  * SCHOOL ROUTES
  */
 
-Route.get('/school/country/:country_id', 'SchoolsController.listSchoolByCountry').middleware(
-  'auth:api'
-)
+Route.get('/school', 'SchoolsController.listSchoolByCountry').middleware([
+  'auth:api',
+  `acl:${permissions.schoolRead}`,
+])
 
 /**
  * CURRENCY ROUTES
@@ -112,6 +113,12 @@ Route.get('/attachments/:attachment_id', 'AttachmentsController.getAttachment').
   'auth:api',
   `acl:${permissions.attachmentRead}`,
 ])
+
+/**
+ * LTAS ROUTES
+ */
+
+Route.get('/lta', 'LtasController.listLtas').middleware(['auth:api', `acl:${permissions.ltaRead}`])
 
 /**
  * TESTING PURPOSE ONLY ROUTES
