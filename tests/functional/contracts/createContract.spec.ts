@@ -107,7 +107,6 @@ test.group('Create Contract', (group) => {
     expect(status[0].contractId).toBe(contract?.id)
     expect(status[0].initialStatus).toBe(ContractStatus.Draft)
     expect(status[0].finalStatus).toBe(ContractStatus.Sent)
-    expect(status[0].data?.draftId).toBe(draft.id)
     expect(status[0].data?.draftCreation).toBe(draft.createdAt?.toString())
   })
   test('Successfully rollback the transaction if a error occur', async ({

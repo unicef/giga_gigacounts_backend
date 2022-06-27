@@ -102,7 +102,6 @@ const createContract = async (data: ContractCreation): Promise<Contract> => {
           initialStatus: ContractStatus.Draft,
           finalStatus: ContractStatus.Sent,
           data: {
-            draftId: draft.id,
             draftCreation: draft.createdAt,
           },
         },
