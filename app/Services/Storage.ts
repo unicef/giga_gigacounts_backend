@@ -11,10 +11,14 @@ import EntityTooLargeException from 'App/Exceptions/EntityTooLargeException'
 
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING || ''
 const containerName = `${process.env.AZURE_CONTAINER_NAME}`
-const accountName = `${process.env.AZURE_ACCOUNT_NAME}`
-const key = `${process.env.AZURE_ACCOUNT_KEY}`
 
 const limitInBytes = 20971520 // 20 mb
+
+const getAccountName = () =>
+  AZURE_STORAGE_CONNECTION_STRING.split('AccountName=').pop()?.split(';')[1] || ''
+
+const getAccountKey = () =>
+  AZURE_STORAGE_CONNECTION_STRING.split('AccountKey=').pop()?.split(';')[2] || ''
 
 const uploadFile = async (file: string): Promise<string> => {
   const matches = file.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) || []
@@ -31,7 +35,7 @@ const uploadFile = async (file: string): Promise<string> => {
 
 const generateSasToken = (url: string) => {
   const blobName = getBlobName(url)
-  const cerds = new StorageSharedKeyCredential(accountName, key)
+  const cerds = new StorageSharedKeyCredential(getAccountName(), getAccountKey())
   const blobSAS = generateBlobSASQueryParameters(
     {
       containerName,
