@@ -17,9 +17,7 @@ export default class CreateContractValidator {
     endDate: schema.date(),
     ispId: schema.number(),
     createdBy: schema.number(),
-    attachments: schema.object.optional().members({
-      attachments: schema.array().members(schema.object().members({ id: schema.string() })),
-    }),
+    attachments: schema.array.optional().members(schema.object().members({ id: schema.string() })),
     schools: schema.object().members({
       schools: schema.array().members(schema.object().members({ id: schema.number() })),
     }),

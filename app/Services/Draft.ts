@@ -19,7 +19,6 @@ const getDraft = async (draftId: number) => {
   await draft.load('user')
   await draft.load('attachments')
 
-  // const attachments = await Attachment.findMany(destructDraftsArray(draft.attachments))
   const schools = await School.findMany(destructDraftsArray(draft.schools?.schools))
 
   const expectedMetrics: { name?: string; value: number }[] = []
@@ -60,7 +59,6 @@ const updateDraft = async (draftData: Draft): Promise<Draft> => {
   draft.endDate = draftData?.endDate
   draft.ispId = draftData?.ispId
   draft.createdBy = draftData?.createdBy
-  // draft.attachments = draftData?.attachments
   draft.schools = draftData?.schools
   draft.expectedMetrics = draftData?.expectedMetrics
 

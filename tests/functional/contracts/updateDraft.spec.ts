@@ -11,25 +11,20 @@ test.group('Update Draft', (group) => {
     await Database.beginGlobalTransaction()
     return () => Database.rollbackGlobalTransaction()
   })
-  test('Successfully update a draft', async ({ client, expect, assert }) => {
+  test('Successfully update a draft', async ({ client, expect }) => {
     const country = await CountryFactory.create()
     const draft = await DraftFactory.create()
     const user = await createUser()
-    const response = await client
-      .put('/contract/draft')
-      .loginAs(user)
-      .json({
-        id: draft.id,
-        countryId: country.id,
-        budget: '100000',
-        attachments: { attachments: [{ id: 1 }] },
-      })
+    const response = await client.put('/contract/draft').loginAs(user).json({
+      id: draft.id,
+      countryId: country.id,
+      budget: '100000',
+    })
     const body = response.body() as Draft
     const draftUpdated = await Draft.find(body.id)
     expect(draftUpdated?.name).toBe(draft.name)
     expect(draftUpdated?.countryId).toBe(country.id)
     expect(draftUpdated?.budget).toBe('100000')
-    assert.deepEqual(draftUpdated?.attachments, { attachments: [{ id: 1 }] })
     expect(draftUpdated?.ltaId).toBeNull()
     expect(draftUpdated?.currencyId).toBeNull()
     expect(draftUpdated?.frequencyId).toBeNull()

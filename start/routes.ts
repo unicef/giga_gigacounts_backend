@@ -104,10 +104,10 @@ Route.post('/attachments/upload', 'AttachmentsController.upload').middleware([
   `acl:${permissions.attachmentWrite}`,
 ])
 
-Route.delete('/attachments/:attachment_id', 'AttachmentsController.deleteAttachment').middleware([
-  'auth:api',
-  `acl:${permissions.attachmentWrite}`,
-])
+Route.delete(
+  '/attachments/:attachmentId/:type/:typeId',
+  'AttachmentsController.deleteAttachment'
+).middleware(['auth:api', `acl:${permissions.attachmentWrite}`])
 
 Route.get('/attachments/:attachment_id', 'AttachmentsController.getAttachment').middleware([
   'auth:api',

@@ -8,6 +8,7 @@ import PaymentFactory from 'Database/factories/PaymentFactory'
 import testUtils from '../../utils'
 import Attachment from 'App/Models/Attachment'
 import Draft from 'App/Models/Draft'
+import Payment from 'App/Models/Payment'
 
 const lower20Pdf = `${__dirname}/lower_20.pdf`
 const imageJpg = `${__dirname}/image.jpg`
@@ -54,16 +55,18 @@ test.group('Upload file attachments', (group) => {
     assert.isNotEmpty(attachment.id)
     expect(attachment.url).toBe(foundDraft?.attachments[0].url)
   })
-  test('Successfully upload a png file as an invoice', async ({ assert, client }) => {
+  test('Successfully upload a png file as an invoice', async ({ assert, client, expect }) => {
     const file = await testUtils.toBase64('data:image/png;base64,', imagePng)
     const user = await UserFactory.with('roles', 1, (role) =>
       role.with('permissions', 1, (permission) => permission.merge({ name: 'attachment.write' }))
     ).create()
-    const payment = await PaymentFactory.with('contract', 1, (ctc) => {
-      ctc.with('country').with('currency').with('frequency').with('isp').merge({
-        createdBy: user.id,
+    const payment = await PaymentFactory.merge({ amount: 100 })
+      .with('contract', 1, (ctc) => {
+        ctc.with('country').with('currency').with('frequency').with('isp').merge({
+          createdBy: user.id,
+        })
       })
-    }).create()
+      .create()
     const response = await client
       .post('/attachments/upload')
       .loginAs(user)
@@ -75,27 +78,33 @@ test.group('Upload file attachments', (group) => {
     )
     assert.include(attachment.url, '.png')
     assert.isNotEmpty(attachment.id)
+    const foundPayment = await Payment.find(payment.id)
+    expect(attachment.id).toBe(foundPayment?.invoiceId)
   })
-  // test('Successfully upload a jpg file as a receipt', async ({ assert, client }) => {
-  //   const payment = await PaymentFactory.with('contract', 1, (ctc) => {
-  //     ctc.with('country').with('currency').with('frequency').with('isp').merge({
-  //       createdBy: user.id,
-  //     })
-  //   }).create()
-  //   const file = await testUtils.toBase64('data:image/jpg;base64,', imageJpg)
-  //   const user = await UserFactory.with('roles', 1, (role) =>
-  //     role.with('permissions', 1, (permission) => permission.merge({ name: 'attachment.write' }))
-  //   ).create()
-  //   const response = await client
-  //     .post('/attachments/upload')
-  //     .loginAs(user)
-  //     .json({ file, type: 'receipt', typeId: payment.id })
-  //   const attachment = response.body() as Attachment
-  //   assert.include(
-  //     attachment.url,
-  //     'https://unicefgigastoragedev.blob.core.windows.net/attachments-dev/'
-  //   )
-  //   assert.include(attachment.url, '.jpg')
-  //   assert.isNotEmpty(attachment.id)
-  // })
+  test('Successfully upload a jpg file as a receipt', async ({ assert, client, expect }) => {
+    const file = await testUtils.toBase64('data:image/jpg;base64,', imageJpg)
+    const user = await UserFactory.with('roles', 1, (role) =>
+      role.with('permissions', 1, (permission) => permission.merge({ name: 'attachment.write' }))
+    ).create()
+    const payment = await PaymentFactory.merge({ amount: 100 })
+      .with('contract', 1, (ctc) => {
+        ctc.with('country').with('currency').with('frequency').with('isp').merge({
+          createdBy: user.id,
+        })
+      })
+      .create()
+    const response = await client
+      .post('/attachments/upload')
+      .loginAs(user)
+      .json({ file, type: 'receipt', typeId: payment.id })
+    const attachment = response.body() as Attachment
+    assert.include(
+      attachment.url,
+      'https://unicefgigastoragedev.blob.core.windows.net/attachments-dev/'
+    )
+    assert.include(attachment.url, '.jpg')
+    assert.isNotEmpty(attachment.id)
+    const foundPayment = await Payment.find(payment.id)
+    expect(attachment.id).toBe(foundPayment?.receiptId)
+  })
 })
