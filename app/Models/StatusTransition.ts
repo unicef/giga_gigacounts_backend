@@ -26,6 +26,9 @@ export default class StatusTransition extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
+  @column()
+  public data?: Object
+
   /**
    * RELATIONSHIPS
    */
