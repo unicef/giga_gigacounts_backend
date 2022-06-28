@@ -6,7 +6,7 @@ import AttachmentFactory from 'Database/factories/AttachmentFactory'
 
 import Attachment from 'App/Models/Attachment'
 
-test.group('Upload file attachments', (group) => {
+test.group('Delete Attachments', (group) => {
   group.each.setup(async () => {
     await Database.beginGlobalTransaction()
     return () => Database.rollbackGlobalTransaction()
