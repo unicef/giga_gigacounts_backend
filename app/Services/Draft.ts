@@ -7,7 +7,7 @@ import { DateTime } from 'luxon'
 
 import dto from 'App/DTOs/Draft'
 
-export interface UpdateDraft {
+export interface DraftData {
   id: number
   name?: string
   countryId?: number
@@ -62,7 +62,7 @@ const destructDraftsArray = (object?: { id: number }[]) => {
   return (object || []).map((x) => x.id)
 }
 
-const updateDraft = async (draftData: UpdateDraft): Promise<Draft> => {
+const updateDraft = async (draftData: DraftData): Promise<Draft> => {
   const draft = await Draft.find(draftData.id)
 
   if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
