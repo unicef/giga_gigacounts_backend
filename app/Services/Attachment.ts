@@ -45,9 +45,10 @@ const deleteAttachment = async (data: DeleteRequest) => {
 
     if (data.type === AttachmentsType.RECEIPT || data.type === AttachmentsType.INVOICE) {
       const payment = await Payment.find(data.typeId, { client: trx })
-      if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
-      payment[`${data.type}Id`] = null
-      await payment.useTransaction(trx).save()
+      if (payment) {
+        payment[`${data.type}Id`] = null
+        await payment.useTransaction(trx).save()
+      }
     }
 
     await attachment.useTransaction(trx).delete()
