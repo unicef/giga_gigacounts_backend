@@ -191,7 +191,7 @@ export const createContracts = async (
     ctc.related('expectedMetrics').createMany(generateExpectedMetrics(ctc.id, metricsId))
     return ctc
   })
-  const school16 = await createSchool('School 15', countryId, metricsId)
+  const school16 = await createSchool('School 16', countryId, metricsId)
   await Draft.firstOrCreate({
     name: '93315657',
     schools: { schools: [{ id: school16.id }] },
