@@ -35,9 +35,7 @@ test.group('Upload file attachments', (group) => {
     let foundDraft = await Draft.find(draft.id)
     await foundDraft?.load('attachments')
     expect(foundDraft?.attachments.length).toBe(1)
-    const response = await client
-      .delete(`/attachments/${attachment.id}/draft/${draft.id}`)
-      .loginAs(user)
+    const response = await client.delete(`/attachments/${attachment.id}`).loginAs(user)
     const body = response.body() as Attachment
     assert.isEmpty(body)
     const attachmentFound = await Attachment.find(attachment.id)
@@ -66,9 +64,7 @@ test.group('Upload file attachments', (group) => {
     let foundContract = await Contract.find(contract.id)
     await foundContract?.load('attachments')
     expect(foundContract?.attachments.length).toBe(1)
-    const response = await client
-      .delete(`/attachments/${attachment.id}/contract/${contract.id}`)
-      .loginAs(user)
+    const response = await client.delete(`/attachments/${attachment.id}`).loginAs(user)
     const body = response.body() as Attachment
     assert.isEmpty(body)
     const attachmentFound = await Attachment.find(attachment.id)
@@ -95,9 +91,7 @@ test.group('Upload file attachments', (group) => {
     const attachment = await createAttachment(client, user, 'receipt', payment.id)
     let foundPayment = await Payment.find(payment.id)
     expect(foundPayment?.receiptId).toBe(attachment.id)
-    const response = await client
-      .delete(`/attachments/${attachment.id}/receipt/${payment.id}`)
-      .loginAs(user)
+    const response = await client.delete(`/attachments/${attachment.id}`).loginAs(user)
     const body = response.body() as Attachment
     assert.isEmpty(body)
     const attachmentFound = await Attachment.find(attachment.id)
@@ -123,9 +117,7 @@ test.group('Upload file attachments', (group) => {
     const attachment = await createAttachment(client, user, 'invoice', payment.id)
     let foundPayment = await Payment.find(payment.id)
     expect(foundPayment?.invoiceId).toBe(attachment.id)
-    const response = await client
-      .delete(`/attachments/${attachment.id}/invoice/${payment.id}`)
-      .loginAs(user)
+    const response = await client.delete(`/attachments/${attachment.id}`).loginAs(user)
     const body = response.body() as Attachment
     assert.isEmpty(body)
     const attachmentFound = await Attachment.find(attachment.id)
@@ -140,7 +132,7 @@ test.group('Upload file attachments', (group) => {
     const user = await UserFactory.with('roles', 1, (role) =>
       role.with('permissions', 1, (permission) => permission.merge({ name: 'attachment.write' }))
     ).create()
-    const response = await client.delete(`/attachments/3333/contract/3333`).loginAs(user)
+    const response = await client.delete(`/attachments/3333`).loginAs(user)
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(404)
     expect(error.text).toBe('NOT_FOUND: Attachment not found')

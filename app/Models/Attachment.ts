@@ -39,7 +39,7 @@ export default class Attachment extends BaseModel {
 
   @hasMany(() => Payment, {
     localKey: 'id',
-    foreignKey: 'invoice_id',
+    foreignKey: 'invoiceId',
   })
   public paymentInvoice: HasMany<typeof Payment>
 

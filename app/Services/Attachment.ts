@@ -1,4 +1,4 @@
-import Database from '@ioc:Adonis/Lucid/Database'
+import Database, { TransactionClientContract } from '@ioc:Adonis/Lucid/Database'
 import Attachment from 'App/Models/Attachment'
 import Draft from 'App/Models/Draft'
 import Payment from 'App/Models/Payment'
@@ -23,34 +23,28 @@ export interface UploadRequest {
 
 export interface DeleteRequest {
   attachmentId: number
-  type: AttachmentsType
-  typeId: number
+  paymentId: number
 }
 
-const deleteAttachment = async (data: DeleteRequest) => {
+const deleteAttachment = async (attachmentId: number) => {
   const trx = await Database.transaction()
   try {
-    const attachment = await Attachment.find(data.attachmentId)
+    const attachment = await Attachment.find(attachmentId)
     if (!attachment) throw new NotFoundException('Attachment not found', 404, 'NOT_FOUND')
 
+    await attachment.useTransaction(trx).load('paymentInvoice')
+    await attachment.useTransaction(trx).load('paymentReceipt')
+
+    if (attachment.paymentInvoice.length)
+      await deletefromPayment(attachment.paymentInvoice[0].id, 'invoice', trx)
+
+    if (attachment.paymentReceipt.length)
+      await deletefromPayment(attachment.paymentReceipt[0].id, 'receipt', trx)
+
+    await attachment.related('drafts').detach()
+    await attachment.related('contracts').detach()
+
     await storage.deleteFile(attachment.url)
-
-    if (data.type === AttachmentsType.DRAFT) {
-      await attachment.related('drafts').detach()
-    }
-
-    if (data.type === AttachmentsType.CONTRACT) {
-      await attachment.related('contracts').detach()
-    }
-
-    if (data.type === AttachmentsType.RECEIPT || data.type === AttachmentsType.INVOICE) {
-      const payment = await Payment.find(data.typeId, { client: trx })
-      if (payment) {
-        payment[`${data.type}Id`] = null
-        await payment.useTransaction(trx).save()
-      }
-    }
-
     await attachment.useTransaction(trx).delete()
 
     return trx.commit()
@@ -109,6 +103,18 @@ const getAttachment = async (attachmentId: number): Promise<Attachment> => {
   if (!attachment) throw new NotFoundException('Attachment not found', 404, 'NOT_FOUND')
   attachment.url = storage.generateSasToken(attachment.url)
   return attachment
+}
+
+const deletefromPayment = async (
+  paymentId: number,
+  type: string,
+  trx: TransactionClientContract
+) => {
+  const payment = await Payment.find(paymentId, { client: trx })
+  if (payment) {
+    payment[`${type}Id`] = null
+    await payment.useTransaction(trx).save()
+  }
 }
 
 export default {
