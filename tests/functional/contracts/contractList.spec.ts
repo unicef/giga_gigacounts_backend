@@ -9,6 +9,7 @@ import DraftFactory from 'Database/factories/DraftFactory'
 import LtaFactory from 'Database/factories/LtaFactory'
 import MetricFactory from 'Database/factories/MetricFactory'
 import AttachmentFactory from 'Database/factories/AttachmentFactory'
+import MeasureFactory from 'Database/factories/MeasureFactory'
 
 import { ContractListDTO } from 'App/DTOs/Contract'
 
@@ -171,7 +172,7 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
 
   const attch = await AttachmentFactory.create()
 
-  await ContractFactory.merge([
+  const ctc1 = await ContractFactory.merge([
     {
       countryId: countryId,
       status: 3,
@@ -183,30 +184,9 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
     .with('currency')
     .with('frequency')
     .with('schools', 1, (school) => {
-      school
-        .merge({
-          countryId: countryId,
-        })
-        .with('measures', 4, (m) => {
-          m.merge([
-            {
-              metricId: metrics[0].id,
-              value: 100,
-            },
-            {
-              metricId: metrics[1].id,
-              value: 10,
-            },
-            {
-              metricId: metrics[2].id,
-              value: 3,
-            },
-            {
-              metricId: metrics[3].id,
-              value: 5,
-            },
-          ])
-        })
+      school.merge({
+        countryId: countryId,
+      })
     })
     .with('expectedMetrics', 4, (em) => {
       em.merge([
@@ -242,6 +222,33 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
     })
     .create()
 
+  await MeasureFactory.merge([
+    {
+      metricId: metrics[0].id,
+      value: 100,
+      schoolId: ctc1.schools[0].id,
+      contractId: ctc1.id,
+    },
+    {
+      metricId: metrics[1].id,
+      value: 10,
+      schoolId: ctc1.schools[0].id,
+      contractId: ctc1.id,
+    },
+    {
+      metricId: metrics[2].id,
+      value: 3,
+      schoolId: ctc1.schools[0].id,
+      contractId: ctc1.id,
+    },
+    {
+      metricId: metrics[3].id,
+      value: 5,
+      schoolId: ctc1.schools[0].id,
+      contractId: ctc1.id,
+    },
+  ]).createMany(4)
+
   await ContractFactory.merge([
     {
       countryId: countryId,
@@ -256,7 +263,7 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
     .with('schools', 1, (school) => school.merge({ countryId: countryId }))
     .create()
 
-  await ContractFactory.merge([
+  const ctc2 = await ContractFactory.merge([
     {
       countryId: otherCountry,
       status: 3,
@@ -265,62 +272,10 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
       ltaId: ltaTwo.id,
     },
   ])
-    .with('schools', 1, (school) => {
-      school
-        .merge({
-          countryId: otherCountry,
-        })
-        .with('measures', 4, (m) => {
-          m.merge([
-            {
-              metricId: metrics[0].id,
-              value: 100,
-            },
-            {
-              metricId: metrics[1].id,
-              value: 5,
-            },
-            {
-              metricId: metrics[2].id,
-              value: 1,
-            },
-            {
-              metricId: metrics[3].id,
-              value: 5,
-            },
-          ])
-        })
-    })
-    .with('schools', 1, (school) => {
+    .with('schools', 3, (school) => {
       school.merge({
         countryId: otherCountry,
       })
-    })
-    .with('schools', 1, (school) => {
-      school
-        .merge({
-          countryId: otherCountry,
-        })
-        .with('measures', 4, (m) => {
-          m.merge([
-            {
-              metricId: metrics[0].id,
-              value: 100,
-            },
-            {
-              metricId: metrics[1].id,
-              value: 10,
-            },
-            {
-              metricId: metrics[2].id,
-              value: 3,
-            },
-            {
-              metricId: metrics[3].id,
-              value: 5,
-            },
-          ])
-        })
     })
     .with('currency')
     .with('frequency')
@@ -345,4 +300,58 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
       ])
     })
     .create()
+
+  await MeasureFactory.merge([
+    {
+      metricId: metrics[0].id,
+      value: 100,
+      schoolId: ctc2.schools[0].id,
+      contractId: ctc2.id,
+    },
+    {
+      metricId: metrics[1].id,
+      value: 10,
+      schoolId: ctc2.schools[0].id,
+      contractId: ctc2.id,
+    },
+    {
+      metricId: metrics[2].id,
+      value: 1,
+      schoolId: ctc2.schools[0].id,
+      contractId: ctc2.id,
+    },
+    {
+      metricId: metrics[3].id,
+      value: 5,
+      schoolId: ctc2.schools[0].id,
+      contractId: ctc2.id,
+    },
+  ]).createMany(4)
+
+  await MeasureFactory.merge([
+    {
+      metricId: metrics[0].id,
+      value: 100,
+      schoolId: ctc2.schools[2].id,
+      contractId: ctc2.id,
+    },
+    {
+      metricId: metrics[1].id,
+      value: 10,
+      schoolId: ctc2.schools[2].id,
+      contractId: ctc2.id,
+    },
+    {
+      metricId: metrics[2].id,
+      value: 1,
+      schoolId: ctc2.schools[2].id,
+      contractId: ctc2.id,
+    },
+    {
+      metricId: metrics[3].id,
+      value: 5,
+      schoolId: ctc2.schools[2].id,
+      contractId: ctc2.id,
+    },
+  ]).createMany(4)
 }

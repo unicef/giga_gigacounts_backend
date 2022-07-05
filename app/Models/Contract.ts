@@ -20,6 +20,7 @@ import ExpectedMetric from 'App/Models/ExpectedMetric'
 import Attachment from 'App/Models/Attachment'
 import School from 'App/Models/School'
 import Payment from 'App/Models/Payment'
+import Measure from 'App/Models/Measure'
 
 export default class Contract extends BaseModel {
   @column({ isPrimary: true })
@@ -115,4 +116,7 @@ export default class Contract extends BaseModel {
 
   @hasMany(() => Payment)
   public payments: HasMany<typeof Payment>
+
+  @hasMany(() => Measure)
+  public measures: HasMany<typeof Measure>
 }

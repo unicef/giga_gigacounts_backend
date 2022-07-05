@@ -3,6 +3,7 @@ import { BaseModel, column, belongsTo, BelongsTo } from '@ioc:Adonis/Lucid/Orm'
 
 import Metric from 'App/Models/Metric'
 import School from 'App/Models/School'
+import Contract from 'App/Models/Contract'
 
 export default class Measure extends BaseModel {
   @column({ isPrimary: true })
@@ -16,6 +17,9 @@ export default class Measure extends BaseModel {
 
   @column()
   public schoolId: number
+
+  @column()
+  public contractId: number
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -32,4 +36,7 @@ export default class Measure extends BaseModel {
 
   @belongsTo(() => School)
   public school: BelongsTo<typeof School>
+
+  @belongsTo(() => Contract)
+  public contract: BelongsTo<typeof Contract>
 }

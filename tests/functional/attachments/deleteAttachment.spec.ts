@@ -17,7 +17,7 @@ import Payment from 'App/Models/Payment'
 
 const imagePng = `${__dirname}/image.png`
 
-test.group('Upload file attachments', (group) => {
+test.group('Delete Attachments', (group) => {
   group.each.setup(async () => {
     await Database.beginGlobalTransaction()
     return () => Database.rollbackGlobalTransaction()
