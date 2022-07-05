@@ -17,10 +17,10 @@ export default class Payment extends BaseModel {
   public paidDate: DateTime
 
   @column()
-  public invoiceId: number
+  public invoiceId: number | null
 
   @column()
-  public receiptId: number
+  public receiptId: number | null
 
   @column()
   public isVerified: boolean

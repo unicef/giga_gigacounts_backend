@@ -48,7 +48,6 @@ export interface GetDraftDTOResponse {
 
 const getDraftDTO = ({
   draft,
-  attachments,
   schools,
   expectedMetrics,
 }: GetDraftDtoParams): GetDraftDTOResponse => {
@@ -77,7 +76,7 @@ const getDraftDTO = ({
           lastName: draft?.user.lastName,
         }
       : null,
-    attachments,
+    attachments: draft?.attachments,
     schools,
     expectedMetrics,
   }

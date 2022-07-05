@@ -1,5 +1,5 @@
 import NotFoundException from 'App/Exceptions/NotFoundException'
-import Attachment from 'App/Models/Attachment'
+// import Attachment from 'App/Models/Attachment'
 import Draft from 'App/Models/Draft'
 import Metric from 'App/Models/Metric'
 import School from 'App/Models/School'
@@ -36,8 +36,8 @@ const getDraft = async (draftId: number) => {
   await draft.load('isp')
   await draft.load('lta')
   await draft.load('user')
+  await draft.load('attachments')
 
-  const attachments = await Attachment.findMany(destructDraftsArray(draft.attachments?.attachments))
   const schools = await School.findMany(destructDraftsArray(draft.schools?.schools))
 
   const expectedMetrics: { name?: string; value: number }[] = []
@@ -51,7 +51,7 @@ const getDraft = async (draftId: number) => {
     )
   }
 
-  return dto.getDraftDTO({ draft, attachments, schools, expectedMetrics })
+  return dto.getDraftDTO({ draft, schools, expectedMetrics })
 }
 
 const saveDraft = async (draftData: Draft): Promise<Draft> => {
@@ -82,7 +82,6 @@ const updateDraft = async (draftData: DraftData): Promise<Draft> => {
     : undefined
   draft.ispId = draftData?.ispId
   draft.createdBy = draftData?.createdBy
-  draft.attachments = draftData?.attachments
   draft.schools = draftData?.schools
   draft.expectedMetrics = draftData?.expectedMetrics
 

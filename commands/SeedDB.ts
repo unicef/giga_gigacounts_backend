@@ -23,6 +23,7 @@ export default class CreateUsers extends BaseCommand {
     const { default: Metric } = await import('App/Models/Metric')
     const { default: Draft } = await import('App/Models/Draft')
     const { default: Lta } = await import('App/Models/Lta')
+    const { default: SuggestedMetric } = await import('App/Models/SuggestedMetric')
     const { roles, permissions, ContractStatus } = await import('App/Helpers/constants')
     const { createContracts } = await import('App/Helpers/contractSchools')
     // Metrics
@@ -30,6 +31,24 @@ export default class CreateUsers extends BaseCommand {
     const latency = await Metric.firstOrCreate({ name: 'Latency' })
     const download = await Metric.firstOrCreate({ name: 'Download speed' })
     const upload = await Metric.firstOrCreate({ name: 'Upload speed' })
+    // Suggested values
+    await SuggestedMetric.firstOrCreate({ metricId: uptime.id, value: '100', unit: '%' })
+    await SuggestedMetric.firstOrCreate({ metricId: uptime.id, value: '98', unit: '%' })
+    await SuggestedMetric.firstOrCreate({ metricId: uptime.id, value: '96', unit: '%' })
+    await SuggestedMetric.firstOrCreate({ metricId: uptime.id, value: '94', unit: '%' })
+
+    await SuggestedMetric.firstOrCreate({ metricId: latency.id, value: '300', unit: 'ms' })
+    await SuggestedMetric.firstOrCreate({ metricId: latency.id, value: '200', unit: 'ms' })
+    await SuggestedMetric.firstOrCreate({ metricId: latency.id, value: '100', unit: 'ms' })
+    await SuggestedMetric.firstOrCreate({ metricId: latency.id, value: '50', unit: 'ms' })
+
+    await SuggestedMetric.firstOrCreate({ metricId: download.id, value: '50', unit: 'Mb/s' })
+    await SuggestedMetric.firstOrCreate({ metricId: download.id, value: '30', unit: 'Mb/s' })
+    await SuggestedMetric.firstOrCreate({ metricId: download.id, value: '20', unit: 'Mb/s' })
+
+    await SuggestedMetric.firstOrCreate({ metricId: upload.id, value: '30', unit: 'Mb/s' })
+    await SuggestedMetric.firstOrCreate({ metricId: upload.id, value: '20', unit: 'Mb/s' })
+    await SuggestedMetric.firstOrCreate({ metricId: upload.id, value: '10', unit: 'Mb/s' })
     // Frequency
     const frequency = await Frequency.firstOrCreate({ name: 'Monthly' })
     // Currencies
@@ -82,13 +101,19 @@ export default class CreateUsers extends BaseCommand {
     const contractRead = await Permission.firstOrCreate({ name: permissions.contractRead })
     const ispRead = await Permission.firstOrCreate({ name: permissions.ispRead })
     const schoolRead = await Permission.firstOrCreate({ name: permissions.schoolRead })
+    const ltaRead = await Permission.firstOrCreate({ name: permissions.ltaRead })
+    const metricRead = await Permission.firstOrCreate({ name: permissions.metricRead })
     // Roles
     const countryOffice = await Role.firstOrCreate({ name: roles.countryOffice }).then((role) => {
-      role.related('permissions').saveMany([countryRead, contractRead, ispRead, schoolRead])
+      role
+        .related('permissions')
+        .saveMany([countryRead, contractRead, ispRead, schoolRead, ltaRead, metricRead])
       return role
     })
     const government = await Role.firstOrCreate({ name: roles.government }).then((role) => {
-      role.related('permissions').saveMany([countryRead, contractRead, ispRead, schoolRead])
+      role
+        .related('permissions')
+        .saveMany([countryRead, contractRead, ispRead, schoolRead, ltaRead, metricRead])
       return role
     })
     const admin = await Role.firstOrCreate({ name: roles.gigaAdmin }).then((role) => {
@@ -102,11 +127,15 @@ export default class CreateUsers extends BaseCommand {
           contractWrite,
           attachmentWrite,
           attachmentRead,
+          ltaRead,
+          metricRead,
         ])
       return role
     })
     const isp = await Role.firstOrCreate({ name: roles.isp }).then((role) => {
-      role.related('permissions').saveMany([countryRead, contractRead, ispRead, schoolRead])
+      role
+        .related('permissions')
+        .saveMany([countryRead, contractRead, ispRead, schoolRead, ltaRead, metricRead])
       return role
     })
     // Isps

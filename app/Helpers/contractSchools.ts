@@ -27,7 +27,7 @@ export const createContracts = async (
   metricsId: number[],
   isp2Id: number
 ) => {
-  const attachment = await Attachment.create({ url: 'www.url.com ' })
+  const attachment = await Attachment.create({ url: 'www.url.com', name: 'Attachment' })
   await Contract.firstOrCreate(
     generateContracts(
       '43341171',

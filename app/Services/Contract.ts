@@ -32,7 +32,7 @@ export interface ContractCreation {
   endDate: DateTime
   ispId: number
   createdBy: number
-  attachments?: { attachments: { id: number }[] }
+  attachments?: { id: number }[]
   schools: { schools: { id: number }[] }
   expectedMetrics: { metrics: { metricId: number; value: number }[] }
 }
@@ -80,10 +80,9 @@ const createContract = async (data: ContractCreation): Promise<Contract> => {
       { client: trx }
     )
 
-    const attachments = data.attachments?.attachments || []
+    const attachments = data?.attachments || []
     const schools = data.schools.schools
     const expectedMetrics = data.expectedMetrics.metrics
-
     // ATTACHMENTS
     await contract.related('attachments').attach(utils.destructObjArrayWithId(attachments), trx)
     // SCHOOLS
@@ -93,8 +92,9 @@ const createContract = async (data: ContractCreation): Promise<Contract> => {
 
     if (data.draftId) {
       const draft = await Draft.findBy('id', data.draftId, { client: trx })
-
       if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
+
+      await draft.useTransaction(trx).related('attachments').detach()
 
       await StatusTransition.create(
         {

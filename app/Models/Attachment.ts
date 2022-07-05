@@ -3,6 +3,7 @@ import { BaseModel, column, HasMany, hasMany, manyToMany, ManyToMany } from '@io
 
 import Contract from 'App/Models/Contract'
 import Payment from './Payment'
+import Draft from './Draft'
 
 export default class Attachment extends BaseModel {
   @column({ isPrimary: true })
@@ -10,6 +11,9 @@ export default class Attachment extends BaseModel {
 
   @column()
   public url: string
+
+  @column()
+  public name: string
 
   @column()
   public ipfsUrl: string
@@ -35,7 +39,7 @@ export default class Attachment extends BaseModel {
 
   @hasMany(() => Payment, {
     localKey: 'id',
-    foreignKey: 'invoice_id',
+    foreignKey: 'invoiceId',
   })
   public paymentInvoice: HasMany<typeof Payment>
 
@@ -44,4 +48,13 @@ export default class Attachment extends BaseModel {
     foreignKey: 'receiptId',
   })
   public paymentReceipt: HasMany<typeof Payment>
+
+  @manyToMany(() => Draft, {
+    pivotTable: 'draft_attachments',
+    localKey: 'id',
+    pivotForeignKey: 'attachment_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'draft_id',
+  })
+  public drafts: ManyToMany<typeof Draft>
 }

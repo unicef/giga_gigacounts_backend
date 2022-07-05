@@ -8,7 +8,7 @@ export default class extends BaseSchema {
       table.bigIncrements('id')
       table.timestamp('due_date').notNullable()
       table.timestamp('paid_date')
-      table.bigInteger('invoice_id').notNullable().unsigned().references('attachments.id')
+      table.bigInteger('invoice_id').unsigned().references('attachments.id')
       table.bigInteger('receipt_id').unsigned().references('attachments.id')
       table.boolean('is_verified').defaultTo(false)
       table.bigInteger('contract_id').notNullable().unsigned().references('contracts.id')

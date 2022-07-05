@@ -14,6 +14,11 @@ import Metric from 'App/Models/Metric'
 import Contract from 'App/Models/Contract'
 import Draft from 'App/Models/Draft'
 import ExpectedMetric from 'App/Models/ExpectedMetric'
+import { ApiClient } from '@japa/api-client'
+import User from 'App/Models/User'
+import Attachment from 'App/Models/Attachment'
+
+import testUtils from '../../utils'
 import StatusTransition from 'App/Models/StatusTransition'
 import { ContractStatus } from 'App/Helpers/constants'
 
@@ -31,6 +36,8 @@ const requiredFields = [
   'schools',
   'expectedMetrics',
 ]
+
+const lower20Pdf = `${__dirname}/lower_20.pdf`
 
 test.group('Create Contract', (group) => {
   group.each.setup(async () => {
@@ -69,10 +76,13 @@ test.group('Create Contract', (group) => {
   })
   test('Successfully create a contract from a draft', async ({ client, expect }) => {
     const user = await UserFactory.with('roles', 1, (role) => {
-      role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
+      role.with('permissions', 2, (permission) =>
+        permission.merge([{ name: 'contract.write' }, { name: 'attachment.write' }])
+      )
     }).create()
     const { country, currency, frequency, isp, metrics, school } = await setupModels()
     const draft = await DraftFactory.create()
+    const attachment = await createAttachment(client, user, draft.id)
     const body = buildContract(
       'Contract 1',
       country.id,
@@ -82,7 +92,7 @@ test.group('Create Contract', (group) => {
       user.id,
       buildManyToMany([school.id], 'schools'),
       buildMetrics(metrics),
-      undefined,
+      [{ id: attachment.id }],
       draft.id
     )
     const response = await client.post('/contract').loginAs(user).json(body)
@@ -97,8 +107,11 @@ test.group('Create Contract', (group) => {
     const contract = await Contract.find(contractRes.id)
     await contract?.load('schools')
     await contract?.load('expectedMetrics')
+    await contract?.load('attachments')
     expect(contract?.$preloaded.schools[0].$attributes.name).toBe(school.name)
     expect((contract?.$preloaded.expectedMetrics as ExpectedMetric[]).length).toBe(4)
+    expect(contract?.attachments.length).toBe(1)
+    expect(contract?.attachments[0].id).toBe(attachment.id)
     const deletedDraft = await Draft.findBy('id', draft.id)
     expect(deletedDraft).toBe(null)
     const status = await StatusTransition.all()
@@ -107,6 +120,7 @@ test.group('Create Contract', (group) => {
     expect(status[0].contractId).toBe(contract?.id)
     expect(status[0].initialStatus).toBe(ContractStatus.Draft)
     expect(status[0].finalStatus).toBe(ContractStatus.Sent)
+    // @ts-ignore: Unreachable code error
     expect(status[0].data?.draftCreation).toBe(draft.createdAt?.toString())
   })
   test('Successfully rollback the transaction if a error occur', async ({
@@ -236,3 +250,13 @@ const buildManyToMany = (modelsId: number[], modelName: string) => ({
     })),
   },
 })
+
+const createAttachment = async (client: ApiClient, user: User, typeId: number) => {
+  const file = await testUtils.toBase64('data:application/pdf;base64,', lower20Pdf)
+  const response = await client
+    .post('/attachments/upload')
+    .loginAs(user)
+    .json({ file, type: 'draft', typeId, name: 'fake name' })
+  const attachment = response.body() as Attachment
+  return attachment
+}

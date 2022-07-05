@@ -31,26 +31,6 @@ test.group('Save Draft', (group) => {
     expect(JSON.parse(error.text).errors[0].field).toBe('name')
     expect(JSON.parse(error.text).errors[0].rule).toBe('required')
   })
-  test('Throw a validation error if attachment object is wrong', async ({ client, expect }) => {
-    const user = await UserFactory.with('roles', 1, (role) => {
-      role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
-    }).create()
-    const response = await client
-      .post('/contract/draft')
-      .loginAs(user)
-      .json({
-        name: 'Draft error',
-        attachments: {
-          attachments: [{ od: '1' }],
-        },
-      })
-    const error = response.error() as import('superagent').HTTPError
-    expect(error.status).toBe(422)
-    expect(JSON.parse(error.text).errors.length).toBe(1)
-    expect(JSON.parse(error.text).errors[0].message).toBe('required validation failed')
-    expect(JSON.parse(error.text).errors[0].field).toBe('attachments.attachments.0.id')
-    expect(JSON.parse(error.text).errors[0].rule).toBe('required')
-  })
   test('Throw a validation error if schools object is wrong', async ({ client, expect }) => {
     const user = await UserFactory.with('roles', 1, (role) => {
       role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))

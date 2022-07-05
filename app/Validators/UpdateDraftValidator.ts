@@ -17,9 +17,6 @@ export default class UpdateDraftValidator {
     endDate: schema.date.nullableAndOptional(),
     ispId: schema.number.nullableAndOptional(),
     createdBy: schema.number.nullableAndOptional(),
-    attachments: schema.object.optional().members({
-      attachments: schema.array().members(schema.object().members({ id: schema.number() })),
-    }),
     schools: schema.object.optional().members({
       schools: schema.array().members(schema.object().members({ id: schema.number() })),
     }),
