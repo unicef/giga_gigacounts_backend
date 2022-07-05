@@ -4,7 +4,6 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import IspFactory from 'Database/factories/IspFactory'
 import UserFactory from 'Database/factories/UserFactory'
 import CountryFactory from 'Database/factories/CountryFactory'
-import LtaFactory from 'Database/factories/LtaFactory'
 
 import Isp from 'App/Models/Isp'
 
