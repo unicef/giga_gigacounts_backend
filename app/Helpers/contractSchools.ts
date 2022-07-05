@@ -6,6 +6,17 @@ import School from 'App/Models/School'
 import Attachment from 'App/Models/Attachment'
 import Draft from 'App/Models/Draft'
 
+type GenerateMetric = (
+  schoolId: number,
+  metricsId: number[],
+  contractId: number
+) => {
+  metricId: number
+  value: number
+  schoolId: number
+  contractId: number
+}[]
+
 export const createContracts = async (
   countryId: number,
   currencyId: number,
@@ -13,7 +24,6 @@ export const createContracts = async (
   userId: number,
   ispId: number,
   ltas: number[],
-  schools: School[],
   metricsId: number[],
   isp2Id: number
 ) => {
@@ -29,8 +39,16 @@ export const createContracts = async (
       isp2Id,
       ltas[0]
     )
-  ).then((ctc) => {
-    ctc.related('schools').saveMany([schools[0], schools[1], schools[2], schools[3], schools[4]])
+  ).then(async (ctc) => {
+    ctc
+      .related('schools')
+      .saveMany([
+        await createSchool('School 1', countryId, metricsId, ctc.id, generateGreenMeasures),
+        await createSchool('School 2', countryId, metricsId, ctc.id, generateGreenMeasures),
+        await createSchool('School 3', countryId, metricsId, ctc.id, generateOrangeMeasures),
+        await createSchool('School 4', countryId, metricsId, ctc.id, generateOrangeMeasures),
+        await createSchool('School 5', countryId, metricsId, ctc.id),
+      ])
     ctc
       .related('payments')
       .create(generatePayments(500000, attachment.id, ctc.id, userId, currencyId))
@@ -48,8 +66,13 @@ export const createContracts = async (
       ispId,
       ltas[0]
     )
-  ).then((ctc) => {
-    ctc.related('schools').saveMany([schools[5], schools[6]])
+  ).then(async (ctc) => {
+    ctc
+      .related('schools')
+      .saveMany([
+        await createSchool('School 6', countryId, metricsId, ctc.id),
+        await createSchool('School 7', countryId, metricsId, ctc.id),
+      ])
     ctc.related('expectedMetrics').createMany(generateExpectedMetrics(ctc.id, metricsId))
     return ctc
   })
@@ -64,8 +87,8 @@ export const createContracts = async (
       ispId,
       ltas[0]
     )
-  ).then((ctc) => {
-    ctc.related('schools').saveMany([schools[7]])
+  ).then(async (ctc) => {
+    ctc.related('schools').saveMany([await createSchool('School 8', countryId, metricsId, ctc.id)])
     ctc.related('expectedMetrics').createMany(generateExpectedMetrics(ctc.id, metricsId))
     return ctc
   })
@@ -85,8 +108,13 @@ export const createContracts = async (
       ispId,
       ltas[1]
     )
-  ).then((ctc) => {
-    ctc.related('schools').saveMany([schools[8], schools[9]])
+  ).then(async (ctc) => {
+    ctc
+      .related('schools')
+      .saveMany([
+        await createSchool('School 9', countryId, metricsId, ctc.id, generateGreenMeasures),
+        await createSchool('School 10', countryId, metricsId, ctc.id, generateGreenMeasures),
+      ])
     ctc
       .related('payments')
       .create(generatePayments(1000000, attachment.id, ctc.id, userId, currencyId))
@@ -104,8 +132,12 @@ export const createContracts = async (
       ispId,
       ltas[1]
     )
-  ).then((ctc) => {
-    ctc.related('schools').saveMany([schools[10]])
+  ).then(async (ctc) => {
+    ctc
+      .related('schools')
+      .saveMany([
+        await createSchool('School 11', countryId, metricsId, ctc.id, generateGreenMeasures),
+      ])
     ctc
       .related('payments')
       .create(generatePayments(1000000, attachment.id, ctc.id, userId, currencyId))
@@ -123,8 +155,13 @@ export const createContracts = async (
       ContractStatus.Ongoing,
       ispId
     )
-  ).then((ctc) => {
-    ctc.related('schools').saveMany([schools[11], schools[12]])
+  ).then(async (ctc) => {
+    ctc
+      .related('schools')
+      .saveMany([
+        await createSchool('School 12', countryId, metricsId, ctc.id, generateGreenMeasures),
+        await createSchool('School 13', countryId, metricsId, ctc.id, generateOrangeMeasures),
+      ])
     ctc
       .related('payments')
       .create(generatePayments(1000, attachment.id, ctc.id, userId, currencyId))
@@ -141,105 +178,24 @@ export const createContracts = async (
       ContractStatus.Ongoing,
       ispId
     )
-  ).then((ctc) => {
-    ctc.related('schools').saveMany([schools[13], schools[14]])
+  ).then(async (ctc) => {
+    ctc
+      .related('schools')
+      .saveMany([
+        await createSchool('School 14', countryId, metricsId, ctc.id, generateOrangeMeasures),
+        await createSchool('School 15', countryId, metricsId, ctc.id),
+      ])
     ctc
       .related('payments')
       .create(generatePayments(900000, attachment.id, ctc.id, userId, currencyId))
     ctc.related('expectedMetrics').createMany(generateExpectedMetrics(ctc.id, metricsId))
     return ctc
   })
+  const school16 = await createSchool('School 16', countryId, metricsId)
   await Draft.firstOrCreate({
     name: '93315657',
-    schools: { schools: [{ id: schools[15].id }] },
+    schools: { schools: [{ id: school16.id }] },
   })
-}
-
-export const createSchools = async (countryId: number, metricsId: number[]) => {
-  const school1 = await School.firstOrCreate(generateSchool('School 1', countryId)).then(
-    (school) => {
-      school.related('measures').createMany(generateGreenMeasures(school.id, metricsId))
-      return school
-    }
-  )
-  const school2 = await School.firstOrCreate(generateSchool('School 2', countryId)).then(
-    (school) => {
-      school.related('measures').createMany(generateGreenMeasures(school.id, metricsId))
-      return school
-    }
-  )
-  const school3 = await School.firstOrCreate(generateSchool('School 3', countryId)).then(
-    (school) => {
-      school.related('measures').createMany(generateOrangeMeasures(school.id, metricsId))
-      return school
-    }
-  )
-  const school4 = await School.firstOrCreate(generateSchool('School 4', countryId)).then(
-    (school) => {
-      school.related('measures').createMany(generateOrangeMeasures(school.id, metricsId))
-      return school
-    }
-  )
-  const school5 = await School.firstOrCreate(generateSchool('School 5', countryId))
-  const school6 = await School.firstOrCreate(generateSchool('School 6', countryId))
-  const school7 = await School.firstOrCreate(generateSchool('School 7', countryId))
-  const school8 = await School.firstOrCreate(generateSchool('School 8', countryId))
-  const school9 = await School.firstOrCreate(generateSchool('School 9', countryId)).then(
-    (school) => {
-      school.related('measures').createMany(generateGreenMeasures(school.id, metricsId))
-      return school
-    }
-  )
-  const school10 = await School.firstOrCreate(generateSchool('School 10', countryId)).then(
-    (school) => {
-      school.related('measures').createMany(generateGreenMeasures(school.id, metricsId))
-      return school
-    }
-  )
-  const school11 = await School.firstOrCreate(generateSchool('School 11', countryId)).then(
-    (school) => {
-      school.related('measures').createMany(generateGreenMeasures(school.id, metricsId))
-      return school
-    }
-  )
-  const school12 = await School.firstOrCreate(generateSchool('School 12', countryId)).then(
-    (school) => {
-      school.related('measures').createMany(generateGreenMeasures(school.id, metricsId))
-      return school
-    }
-  )
-  const school13 = await School.firstOrCreate(generateSchool('School 13', countryId)).then(
-    (school) => {
-      school.related('measures').createMany(generateOrangeMeasures(school.id, metricsId))
-      return school
-    }
-  )
-  const school14 = await School.firstOrCreate(generateSchool('School 14', countryId)).then(
-    (school) => {
-      school.related('measures').createMany(generateOrangeMeasures(school.id, metricsId))
-      return school
-    }
-  )
-  const school15 = await School.firstOrCreate(generateSchool('School 15', countryId))
-  const school16 = await School.firstOrCreate(generateSchool('School 16', countryId))
-  return [
-    school1,
-    school2,
-    school3,
-    school4,
-    school5,
-    school6,
-    school7,
-    school8,
-    school9,
-    school10,
-    school11,
-    school12,
-    school13,
-    school14,
-    school15,
-    school16,
-  ]
 }
 
 const generateContracts = (
@@ -258,8 +214,8 @@ const generateContracts = (
   currencyId: currencyId,
   budget: '1000000',
   frequencyId: frequencyId,
-  startDate: DateTime.now(),
-  endDate: DateTime.now(),
+  startDate: DateTime.now().set({ hour: 0, minute: 0, second: 0 }),
+  endDate: DateTime.fromJSDate(new Date(new Date().valueOf() + 86400000)),
   ...(ispId ? { ispId: ispId } : {}),
   createdBy: userId,
   status,
@@ -323,52 +279,75 @@ const generateExpectedMetrics = (contractId: number, metricsId: number[]) => {
   ]
 }
 
-const generateGreenMeasures = (schoolId: number, metricsId: number[]) => {
+const generateGreenMeasures = (schoolId: number, metricsId: number[], contractId: number) => {
   return [
     {
       metricId: metricsId[0],
       value: 100,
       schoolId: schoolId,
+      contractId: contractId,
     },
     {
       metricId: metricsId[1],
       value: 5,
       schoolId: schoolId,
+      contractId: contractId,
     },
     {
       metricId: metricsId[2],
       value: 10,
       schoolId: schoolId,
+      contractId: contractId,
     },
     {
       metricId: metricsId[3],
       value: 5,
       schoolId: schoolId,
+      contractId: contractId,
     },
   ]
 }
 
-const generateOrangeMeasures = (schoolId: number, metricsId: number[]) => {
+const generateOrangeMeasures = (schoolId: number, metricsId: number[], contractId: number) => {
   return [
     {
       metricId: metricsId[0],
       value: 90,
       schoolId: schoolId,
+      contractId: contractId,
     },
     {
       metricId: metricsId[1],
       value: 5,
       schoolId: schoolId,
+      contractId: contractId,
     },
     {
       metricId: metricsId[2],
       value: 8,
       schoolId: schoolId,
+      contractId: contractId,
     },
     {
       metricId: metricsId[3],
       value: 5,
       schoolId: schoolId,
+      contractId: contractId,
     },
   ]
+}
+
+const createSchool = async (
+  name: string,
+  countryId: number,
+  metricsId: number[],
+  contractId?: number,
+  generateMetric?: GenerateMetric
+) => {
+  return School.firstOrCreate(generateSchool(name, countryId)).then((school) => {
+    if (generateMetric && contractId) {
+      school.related('measures').createMany(generateMetric(school.id, metricsId, contractId))
+    }
+    return school
+  })
 }

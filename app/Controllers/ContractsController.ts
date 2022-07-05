@@ -2,7 +2,7 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Draft from 'App/Models/Draft'
 
 import service, { ContractCreation } from 'App/Services/Contract'
-import draftService from 'App/Services/Draft'
+import draftService, { UpdateDraft } from 'App/Services/Draft'
 
 export default class ContractsController {
   public async countByStatus({ response, auth }: HttpContextContract) {
@@ -46,7 +46,7 @@ export default class ContractsController {
 
   public async updateDraft({ response, request }: HttpContextContract) {
     try {
-      const draftData = request.all() as Draft
+      const draftData = request.all() as UpdateDraft
       const draft = await draftService.updateDraft(draftData)
       response.ok(draft)
     } catch (error) {

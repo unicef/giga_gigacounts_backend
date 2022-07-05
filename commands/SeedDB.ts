@@ -24,7 +24,7 @@ export default class CreateUsers extends BaseCommand {
     const { default: Draft } = await import('App/Models/Draft')
     const { default: Lta } = await import('App/Models/Lta')
     const { roles, permissions, ContractStatus } = await import('App/Helpers/constants')
-    const { createContracts, createSchools } = await import('App/Helpers/contractSchools')
+    const { createContracts } = await import('App/Helpers/contractSchools')
     // Metrics
     const uptime = await Metric.firstOrCreate({ name: 'Uptime' })
     const latency = await Metric.firstOrCreate({ name: 'Latency' })
@@ -68,12 +68,12 @@ export default class CreateUsers extends BaseCommand {
       contactPerson: 'School Owner 2',
       countryId: botswana.id,
     })
-    const brazilSchools = await createSchools(brazil.id, [
-      uptime.id,
-      latency.id,
-      download.id,
-      upload.id,
-    ])
+    // const brazilSchools = await createSchools(brazil.id, [
+    //   uptime.id,
+    //   latency.id,
+    //   download.id,
+    //   upload.id,
+    // ])
     // Permissions
     const contractWrite = await Permission.create({ name: permissions.contractWrite })
     const attachmentWrite = await Permission.create({ name: permissions.attachmentWrite })
@@ -198,7 +198,6 @@ export default class CreateUsers extends BaseCommand {
       brUser.id,
       isp1.id,
       [ltaOne.id, ltaTwo.id],
-      brazilSchools,
       [uptime.id, latency.id, download.id, upload.id],
       isp3.id
     )
