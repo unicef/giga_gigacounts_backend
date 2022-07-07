@@ -16,7 +16,7 @@ export default class CreateContractValidator {
     budget: schema.string(),
     frequencyId: schema.number(),
     startDate: schema.date(),
-    endDate: schema.date(),
+    endDate: schema.date({}, [rules.afterOrEqualToField('startDate')]),
     ispId: schema.number(),
     createdBy: schema.number(),
     attachments: schema.array.optional().members(schema.object().members({ id: schema.string() })),

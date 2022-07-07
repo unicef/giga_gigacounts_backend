@@ -74,4 +74,24 @@ test.group('Save Draft', (group) => {
     expect(JSON.parse(error.text).errors[0].field).toBe('expectedMetrics.metrics.0.metricId')
     expect(JSON.parse(error.text).errors[0].rule).toBe('required')
   })
+  test('Throw a error when saving a draft with endDate smaller than startDate', async ({
+    client,
+    expect,
+  }) => {
+    const user = await UserFactory.with('roles', 1, (role) => {
+      role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
+    }).create()
+    const response = await client.post('/contract/draft').loginAs(user).json({
+      name: 'Draft error',
+      startDate: '2022-07-06',
+      endDate: '2022-07-05',
+    })
+    const error = response.error() as import('superagent').HTTPError
+    expect(error.status).toBe(422)
+    expect(JSON.parse(error.text).errors.length).toBe(1)
+    expect(JSON.parse(error.text).errors[0].message).toBe(
+      'after or equal to date validation failed'
+    )
+    expect(JSON.parse(error.text).errors[0].rule).toBe('afterOrEqualToField')
+  })
 })

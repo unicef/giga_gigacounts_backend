@@ -73,6 +73,25 @@ test.group('Update Draft', (group) => {
     assert.deepEqual(draft?.schools, { schools: [{ id: 1 }] })
     expect(draft?.budget).toBe('100')
   })
+  test('Throw a error when updating a draft with endDate smaller than startDate', async ({
+    client,
+    expect,
+  }) => {
+    const draft = await DraftFactory.create()
+    const user = await createUser()
+    const response = await client.put('/contract/draft').loginAs(user).json({
+      id: draft.id,
+      startDate: '2022-07-06',
+      endDate: '2022-07-05',
+    })
+    const error = response.error() as import('superagent').HTTPError
+    expect(error.status).toBe(422)
+    expect(JSON.parse(error.text).errors.length).toBe(1)
+    expect(JSON.parse(error.text).errors[0].message).toBe(
+      'after or equal to date validation failed'
+    )
+    expect(JSON.parse(error.text).errors[0].rule).toBe('afterOrEqualToField')
+  })
 })
 
 const createUser = () => {
