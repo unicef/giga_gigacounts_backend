@@ -192,6 +192,34 @@ test.group('Create Contract', (group) => {
     expect(error.status).toBe(404)
     expect(error.text).toBe('NOT_FOUND: Draft not found')
   })
+  test('Throw a error when creating a contract with endDate smaller than startDate', async ({
+    client,
+    expect,
+  }) => {
+    const user = await UserFactory.with('roles', 1, (role) => {
+      role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
+    }).create()
+    const { country, currency, frequency, isp, metrics } = await setupModels()
+    const body = buildContract(
+      'Contract 1',
+      country.id,
+      currency.id,
+      frequency.id,
+      isp.id,
+      user.id,
+      buildManyToMany([1123], 'schools'),
+      buildMetrics(metrics)
+    )
+    body.endDate = DateTime.now().set({ year: 1990 })
+    const response = await client.post('/contract').loginAs(user).json(body)
+    const error = response.error() as import('superagent').HTTPError
+    expect(error.status).toBe(422)
+    expect(JSON.parse(error.text).errors.length).toBe(1)
+    expect(JSON.parse(error.text).errors[0].message).toBe(
+      'after or equal to date validation failed'
+    )
+    expect(JSON.parse(error.text).errors[0].rule).toBe('afterOrEqualToField')
+  })
 })
 
 const setupModels = async () => {
@@ -225,7 +253,7 @@ const buildContract = (
   budget: '1000',
   frequencyId,
   startDate: DateTime.now(),
-  endDate: DateTime.now(),
+  endDate: DateTime.now().plus({ day: 1 }),
   ispId,
   createdBy,
   attachments,

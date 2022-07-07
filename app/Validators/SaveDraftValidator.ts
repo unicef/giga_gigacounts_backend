@@ -1,4 +1,4 @@
-import { schema, CustomMessages } from '@ioc:Adonis/Core/Validator'
+import { schema, CustomMessages, rules } from '@ioc:Adonis/Core/Validator'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 export default class SaveDraftValidator {
@@ -12,8 +12,15 @@ export default class SaveDraftValidator {
     currencyId: schema.number.nullableAndOptional(),
     budget: schema.string.nullableAndOptional(),
     frequencyId: schema.number.nullableAndOptional(),
-    startDate: schema.date.nullableAndOptional(),
-    endDate: schema.date.nullableAndOptional(),
+    startDate: schema.date.nullableAndOptional({
+      format: 'yyyy-MM-dd',
+    }),
+    endDate: schema.date.nullableAndOptional(
+      {
+        format: 'yyyy-MM-dd',
+      },
+      [rules.afterOrEqualToField('startDate')]
+    ),
     ispId: schema.number.nullableAndOptional(),
     createdBy: schema.number.nullableAndOptional(),
     schools: schema.object.optional().members({
