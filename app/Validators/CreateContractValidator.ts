@@ -6,7 +6,9 @@ export default class CreateContractValidator {
 
   public schema = schema.create({
     draftId: schema.number.nullableAndOptional(),
-    name: schema.string(),
+    name: schema.string({}, [
+      rules.unique({ table: 'contracts', column: 'name', caseInsensitive: true }),
+    ]),
     countryId: schema.number(),
     governmentBehalf: schema.boolean(),
     ltaId: schema.number.nullableAndOptional(),
@@ -28,5 +30,8 @@ export default class CreateContractValidator {
     }),
   })
 
-  public messages: CustomMessages = {}
+  public messages: CustomMessages = {
+    'name.unique':
+      'The contract name you have selected is already taken. Please choose a different one',
+  }
 }

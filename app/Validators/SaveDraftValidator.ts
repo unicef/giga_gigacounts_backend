@@ -5,7 +5,10 @@ export default class SaveDraftValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    name: schema.string(),
+    name: schema.string({}, [
+      rules.unique({ table: 'contracts', column: 'name', caseInsensitive: true }),
+      rules.unique({ table: 'drafts', column: 'name', caseInsensitive: true }),
+    ]),
     countryId: schema.number.nullableAndOptional(),
     governmentBehalf: schema.boolean.nullableAndOptional(),
     ltaId: schema.number.nullableAndOptional(),
@@ -33,5 +36,8 @@ export default class SaveDraftValidator {
     }),
   })
 
-  public messages: CustomMessages = {}
+  public messages: CustomMessages = {
+    'name.unique':
+      'The contract name you have selected is already taken. Please choose a different one',
+  }
 }

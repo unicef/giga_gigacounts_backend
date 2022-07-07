@@ -6,7 +6,10 @@ export default class UpdateDraftValidator {
 
   public schema = schema.create({
     id: schema.number(),
-    name: schema.string.optional(),
+    name: schema.string.optional({}, [
+      rules.unique({ table: 'contracts', column: 'name', caseInsensitive: true }),
+      rules.unique({ table: 'drafts', column: 'name', caseInsensitive: true }),
+    ]),
     countryId: schema.number.nullableAndOptional(),
     governmentBehalf: schema.boolean.nullableAndOptional(),
     ltaId: schema.number.nullableAndOptional(),
