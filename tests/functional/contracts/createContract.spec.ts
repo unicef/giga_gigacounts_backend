@@ -192,6 +192,41 @@ test.group('Create Contract', (group) => {
     expect(error.status).toBe(404)
     expect(error.text).toBe('NOT_FOUND: Draft not found')
   })
+  test('Throws a error when trying to create a contract with a already existing name', async ({
+    client,
+    expect,
+  }) => {
+    const user = await UserFactory.with('roles', 1, (role) => {
+      role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
+    }).create()
+    const { country, currency, frequency, isp, metrics, school } = await setupModels()
+    const body = buildContract(
+      'Contract 1',
+      country.id,
+      currency.id,
+      frequency.id,
+      isp.id,
+      user.id,
+      buildManyToMany([school.id], 'schools'),
+      buildMetrics(metrics)
+    )
+    let response = await client.post('/contract').loginAs(user).json(body)
+    const contractRes = response.body()
+    expect(contractRes.country_id).toBe(country.id)
+    expect(contractRes.currency_id).toBe(currency.id)
+    expect(contractRes.budget).toBe('1000')
+    expect(contractRes.frequency_id).toBe(frequency.id)
+    expect(contractRes.isp_id).toBe(isp.id)
+    expect(contractRes.created_by).toBe(user.id)
+    expect(contractRes.status).toBe(1)
+    response = await client.post('/contract').loginAs(user).json(body)
+    const error = response.error() as import('superagent').HTTPError
+    expect(error.status).toBe(422)
+    expect(JSON.parse(error.text).errors.length).toBe(1)
+    expect(JSON.parse(error.text).errors[0].message).toBe(
+      'The contract name you have selected is already taken. Please choose a different one'
+    )
+  })
 })
 
 const setupModels = async () => {
