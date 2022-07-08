@@ -15,10 +15,10 @@ const containerName = `${process.env.AZURE_CONTAINER_NAME}`
 const limitInBytes = 20971520 // 20 mb
 
 const getAccountName = () =>
-  AZURE_STORAGE_CONNECTION_STRING.split('AccountName=').pop()?.split(';')[1] || ''
+  AZURE_STORAGE_CONNECTION_STRING.split('AccountName=').pop()?.split(';')[0] || ''
 
 const getAccountKey = () =>
-  AZURE_STORAGE_CONNECTION_STRING.split('AccountKey=').pop()?.split(';')[2] || ''
+  AZURE_STORAGE_CONNECTION_STRING.split('AccountKey=').pop()?.split(';')[0] || ''
 
 const uploadFile = async (file: string): Promise<string> => {
   const matches = file.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/) || []
