@@ -37,6 +37,29 @@ export interface ContractCreation {
   expectedMetrics: { metrics: { metricId: number; value: number }[] }
 }
 
+const getContractDetails = async (contractId: number) => {
+  const contract = await Contract.query()
+    .where('id', contractId)
+    .preload('country')
+    .preload('lta')
+    .preload('isp')
+    .preload('expectedMetrics')
+    .preload('attachments')
+    .preload('schools')
+    .withCount('schools')
+
+  if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+
+  const schoolsMeasures = await getContractSchoolsMeasures(contract)
+
+  const connectionsMedian = await Database.rawQuery(
+    'SELECT contract_id, metric_id, Metrics.name as metric_name, Metrics.unit as unit,PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from Measures INNER JOIN Metrics ON Metrics.id=metric_id where contract_id = ? GROUP BY contract_id, metric_id, metric_name, unit',
+    [contract[0].id]
+  )
+
+  return dto.contractDeatilsDTO(contract[0], schoolsMeasures, connectionsMedian.rows)
+}
+
 const getContractList = async (user: User) => {
   const { query, draftQuery, ltaQuery } = await queryBuilder(user)
 
@@ -44,7 +67,7 @@ const getContractList = async (user: User) => {
     .preload('country')
     .preload('lta')
     .preload('isp')
-    .preload('expectedMetrics')
+    .preload('expectedMetrics', (qry) => qry.preload('metric'))
     .withAggregate('payments', (qry) => {
       qry.sum('amount').as('total_payments')
     })
@@ -219,9 +242,28 @@ const changeStatus = async (contractId: number, newStatus: ContractStatus, userI
   }
 }
 
+const getContractSchoolsMeasures = async (contracts: Contract[]) => {
+  const schoolsMeasures = {}
+
+  for (const contract of contracts) {
+    if (!contract.schools?.length) continue
+    for (const school of contract.schools) {
+      schoolsMeasures[school.name] = await Measure.query()
+        .avg('value')
+        .where('school_id', school.id)
+        .andWhere('contract_id', contract.id)
+        .select('metric_id')
+        .groupBy('metric_id')
+    }
+  }
+
+  return schoolsMeasures
+}
+
 export default {
   getContractsCountByStatus,
   createContract,
   getContractList,
   changeStatus,
+  getContractDetails,
 }

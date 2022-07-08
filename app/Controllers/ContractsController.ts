@@ -73,4 +73,14 @@ export default class ContractsController {
       return response.status(error.status).send(error.message)
     }
   }
+
+  public async getContractDetails({ response, request }: HttpContextContract) {
+    try {
+      const { contract_id } = request.params()
+      const contract = await service.getContractDetails(contract_id)
+      response.ok(contract)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
 }
