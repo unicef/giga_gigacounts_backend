@@ -179,7 +179,11 @@ const contractListDTO = (
 
     if (contract.schools.length) {
       contract.schools.map((school) => {
-        evaluateMeasures(schoolsMeasures[school.name], contract.expectedMetrics, schoolsConnection)
+        evaluateMeasures(
+          schoolsMeasures[contract.name][school.name],
+          contract.expectedMetrics,
+          schoolsConnection
+        )
       })
     }
 
@@ -247,7 +251,7 @@ const evaluateMeasures = (
     const index = schoolMeasures.findIndex(
       (sm) => sm.metricId.toString() === em.metricId.toString()
     )
-    if (schoolMeasures[index]?.$extras.avg < em.value) {
+    if (!schoolMeasures[index] || schoolMeasures[index]?.$extras.avg < em.value) {
       return (schoolsConnection.atLeastOneBellowAvg += 1)
     }
   }

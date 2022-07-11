@@ -82,8 +82,9 @@ const getContractList = async (user: User) => {
 
   for (const contract of contracts) {
     if (!contract.schools?.length) continue
+    schoolsMeasures[contract.name] = {}
     for (const school of contract.schools) {
-      schoolsMeasures[school.name] = await Measure.query()
+      schoolsMeasures[contract.name][school.name] = await Measure.query()
         .avg('value')
         .where('school_id', school.id)
         .andWhere('contract_id', contract.id)
