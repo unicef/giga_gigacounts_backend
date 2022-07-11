@@ -47,4 +47,4 @@ jobs:
         1. Download a file
         https://unicefgigastoragedev.blob.core.windows.net/$STORAGE_CONTAINER_NAME/<FILE_NAME>?$TOKEN
         2. Show all files (XML tree)
-        https://unicefgigastoragedev.blob.core.windows.net/$STORAGE_CONTAINER_NAME?$TOKEN&comp=list&restype=container"
+        https://unicefgigastoragedev.blob.core.windows.net/$STORAGE_CONTAINER_NAME?$TOKEN&comp=list&restype=container" | tr -d '"'
