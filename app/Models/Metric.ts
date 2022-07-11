@@ -19,6 +19,9 @@ export default class Metric extends BaseModel {
   @column()
   public name: string
 
+  @column()
+  public unit: string
+
   @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
 

@@ -8,6 +8,7 @@ import IspFactory from './IspFactory'
 import SchoolFactory from './SchoolFactory'
 import ExpectedMetricFactory from './ExpectedMetricFactory'
 import PaymentFactory from './PaymentFactory'
+import AttachmentFactory from './AttachmentFactory'
 
 import { DateTime } from 'luxon'
 
@@ -28,4 +29,5 @@ export default Factory.define(Contract, ({ faker }) => {
   .relation('isp', () => IspFactory)
   .relation('expectedMetrics', () => ExpectedMetricFactory)
   .relation('payments', () => PaymentFactory)
+  .relation('attachments', () => AttachmentFactory)
   .build()
