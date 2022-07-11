@@ -1,0 +1,50 @@
+# The workflow for generating a SAS token that allows to get/read files from Azure storage container
+
+name: Generate Azure SAS token
+
+on:
+  workflow_dispatch:
+    inputs:
+      container:
+        description: 'Blob container name'
+        required: true
+        default: 'attachments-dev'
+        type: choice
+        options:
+          - attachments-dev
+          - attachments-stage
+      ttl:
+        description: 'SAS token TTL'
+        required: true
+        default: '1 hour'
+        type: choice
+        options:
+          - 1 hour
+          - 12 hours
+          - 24 hours
+
+jobs:
+  generate:
+    runs-on: 'ubuntu-latest'
+    name: Generate SAS token
+    env:
+      STORAGE_CONTAINER_NAME: ${{ github.event.inputs.container }}
+      SAS_TOKEN_TTL: ${{ github.event.inputs.ttl }}
+
+    steps:
+    - uses: elstudio/action-install-azure-cli@v1
+      name: Install Azure CLI
+
+    - name: Generate SAS token
+      run: |
+        EXPIRY_DATE=`date -u -d "$SAS_TOKEN_TTL" '+%Y-%m-%dT%H:%MZ'`
+        TOKEN=`az storage container generate-sas --name $STORAGE_CONTAINER_NAME --expiry $EXPIRY_DATE --permissions lr --account-name unicefgigastoragedev --account-key ${{ secrets.AZURE_STORAGE_ACCESS_KEY }}`
+        echo "Here is your token:
+
+        $TOKEN
+
+        Usage examples:
+        1. Download a file
+        https://unicefgigastoragedev.blob.core.windows.net/$STORAGE_CONTAINER_NAME/<FILE_NAME>?$TOKEN
+        2. Show all files (XML tree)
+        https://unicefgigastoragedev.blob.core.windows.net/$STORAGE_CONTAINER_NAME?$TOKEN&comp=list&restype=container"
