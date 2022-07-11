@@ -72,6 +72,43 @@ export interface ContractDetails {
   connectionsMedian: ConnectionMedian[]
 }
 
+interface ConnectionEquation {
+  'value': number
+  'Uptime': number
+  'Latency': number
+  'Download speed': number
+  'Upload speed': number
+}
+
+export interface ContractSchoolsDetail {
+  id: number
+  name: string
+  locations: string
+  connection: ConnectionEquation
+}
+
+const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {}) => {
+  const schools: ContractSchoolsDetail[] = []
+  if (contract.schools.length) {
+    for (const school of contract.schools) {
+      const connection = await calculateSchoolsMeasure(
+        schoolsMeasures[contract.name][school.name],
+        contract.expectedMetrics
+      )
+      schools.push({
+        id: school.id,
+        name: school.name,
+        locations: utils.join(
+          [school?.location1, school?.location2, school?.location3, school?.location4],
+          ','
+        ),
+        connection,
+      })
+    }
+  }
+  return schools
+}
+
 const contractDeatilsDTO = (
   contract: Contract,
   schoolsMeasures: {},
@@ -85,7 +122,11 @@ const contractDeatilsDTO = (
 
   if (contract.schools.length) {
     contract.schools.forEach((school) => {
-      evaluateMeasures(schoolsMeasures[school.name], contract.expectedMetrics, schoolsConnection)
+      evaluateMeasures(
+        schoolsMeasures[contract.name][school.name],
+        contract.expectedMetrics,
+        schoolsConnection
+      )
     })
   }
 
@@ -258,8 +299,33 @@ const evaluateMeasures = (
   return (schoolsConnection.allEqualOrAboveAvg += 1)
 }
 
+const calculateSchoolsMeasure = async (
+  schoolMeasures: any[],
+  expectedMetrics: ExpectedMetric[]
+) => {
+  const connection: ConnectionEquation = {
+    'value': 0,
+    'Download speed': 0,
+    'Upload speed': 0,
+    'Uptime': 0,
+    'Latency': 0,
+  }
+  for (const em of expectedMetrics) {
+    const index = schoolMeasures.findIndex(
+      (sm) => sm.metricId.toString() === em.metricId.toString()
+    )
+    await em.load('metric')
+    const measure = schoolMeasures[index]?.$extras.avg || 0
+    connection[em.metric.name] = parseInt(measure)
+    const result = utils.getPercentage(em.value, measure)
+    connection.value += (em.metric.weight * result) / 100
+  }
+  return connection
+}
+
 export default {
   contractCountByStatusDTO,
   contractListDTO,
   contractDeatilsDTO,
+  contractSchoolsDetailDTO,
 }

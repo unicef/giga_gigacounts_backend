@@ -99,6 +99,11 @@ Route.get('/contract/:contract_id', 'ContractsController.getContractDetails').mi
   `acl:${permissions.contractRead}`,
 ])
 
+Route.get('/contract/schools/:contract_id', 'ContractsController.getContractSchools').middleware([
+  'auth:api',
+  `acl:${permissions.contractRead}`,
+])
+
 /**
  * ATTACHMENTS ROUTES
  */
