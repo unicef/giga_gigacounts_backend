@@ -3,9 +3,6 @@
 name: Generate Azure SAS token
 
 on:
-  push:
-    branches:
-      - sas_token
   workflow_dispatch:
     inputs:
       container:
