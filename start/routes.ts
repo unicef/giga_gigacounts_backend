@@ -94,7 +94,12 @@ Route.post('/contract/change-status', 'ContractsController.changeStatus').middle
   `acl:${permissions.contractWrite}`,
 ])
 
-Route.get('/contract/:contract_id', 'ContractsController.getContractDetails').middleware([
+Route.get('/contract/details/:contract_id', 'ContractsController.getContractDetails').middleware([
+  'auth:api',
+  `acl:${permissions.contractRead}`,
+])
+
+Route.get('/contract/:contract_id', 'ContractsController.getContract').middleware([
   'auth:api',
   `acl:${permissions.contractRead}`,
 ])

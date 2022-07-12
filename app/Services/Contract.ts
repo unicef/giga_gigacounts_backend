@@ -37,6 +37,21 @@ export interface ContractCreation {
   expectedMetrics: { metrics: { metricId: number; value: number }[] }
 }
 
+const getContract = async (contractId: number) => {
+  const contract = await Contract.query()
+    .where('id', contractId)
+    .preload('country')
+    .preload('lta')
+    .preload('isp')
+    .preload('expectedMetrics')
+    .preload('attachments')
+    .preload('schools')
+
+  if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+
+  return dto.getContractDTO(contract[0])
+}
+
 const getContractDetails = async (contractId: number) => {
   const contract = await Contract.query()
     .where('id', contractId)
@@ -267,4 +282,5 @@ export default {
   getContractList,
   changeStatus,
   getContractDetails,
+  getContract,
 }

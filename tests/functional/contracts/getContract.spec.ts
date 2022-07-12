@@ -9,35 +9,35 @@ import LtaFactory from 'Database/factories/LtaFactory'
 import MetricFactory from 'Database/factories/MetricFactory'
 import MeasureFactory from 'Database/factories/MeasureFactory'
 
-import { ContractDetails } from 'App/DTOs/Contract'
+import { ContractDTO } from 'App/DTOs/Contract'
 
-test.group('Contract Details', (group) => {
+test.group('Get Contract', (group) => {
   group.each.setup(async () => {
     await Database.beginGlobalTransaction()
     return () => Database.rollbackGlobalTransaction()
   })
-  test('Successfully return contract details', async ({ client, expect }) => {
+  test('Successfully return contract', async ({ client, expect, assert }) => {
     const user = await setupUser()
     const contract = await createContract(user.countryId, user.id)
-    const response = await client.get(`/contract/details/${contract.id}`).loginAs(user)
-    const contractDetails = response.body() as ContractDetails
-    expect(contractDetails.numberOfSchools).toBe('2')
-    expect(contractDetails.isp).toBe('Verizon')
-    expect(contractDetails.schoolsConnection?.withoutConnection).toBe(0)
-    expect(contractDetails.schoolsConnection?.atLeastOneBellowAvg).toBe(50)
-    expect(contractDetails.schoolsConnection?.allEqualOrAboveAvg).toBe(50)
-    expect(contractDetails.attachments?.length).toBe(1)
-    for (const connection of contractDetails.connectionsMedian) {
-      if (connection.metric_name === 'Uptime') expect(connection.median_value).toBe(95)
-      if (connection.metric_name === 'Latency') expect(connection.median_value).toBe(9)
-      if (connection.metric_name === 'Download speed') expect(connection.median_value).toBe(3)
-      if (connection.metric_name === 'Upload speed') expect(connection.median_value).toBe(5)
-    }
+    const response = await client.get(`/contract/${contract.id}`).loginAs(user)
+    const contractResponse = response.body() as ContractDTO
+    assert.isNotEmpty(contractResponse.id)
+    assert.isNotEmpty(contractResponse.name)
+    assert.isNotEmpty(contractResponse.isp)
+    assert.isNotEmpty(contractResponse.lta)
+    expect(contractResponse.attachments?.length).toBe(1)
+    assert.isNotEmpty(contractResponse.startDate)
+    assert.isNotEmpty(contractResponse.endDate)
+    assert.isNotEmpty(contractResponse.status)
+    expect(contractResponse.country?.name).toBe('Testland')
+    expect(contractResponse.expectedMetrics.length).toBe(4)
+    assert.isNotEmpty(contractResponse.budget)
+    expect(contractResponse.schools.length).toBe(2)
   })
   test('Throw an error if a contract doesnt exist', async ({ client, expect }) => {
     const user = await setupUser()
     await createContract(user.countryId, user.id)
-    const response = await client.get(`/contract/details/3001`).loginAs(user)
+    const response = await client.get(`/contract/3001`).loginAs(user)
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(404)
     expect(error.text).toBe('NOT_FOUND: Contract not found')
@@ -73,7 +73,6 @@ const createContract = async (countryId: number, userId: number) => {
       name: 'Upload speed',
     },
   ]).createMany(4)
-
   const contract = await ContractFactory.merge([
     {
       countryId: countryId,
