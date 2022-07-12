@@ -55,6 +55,21 @@ const getContractSchools = async (contractId: number) => {
   return dto.contractSchoolsDetailDTO(contract[0], schoolsMeasures)
 }
 
+const getContract = async (contractId: number) => {
+  const contract = await Contract.query()
+    .where('id', contractId)
+    .preload('country')
+    .preload('lta')
+    .preload('isp')
+    .preload('expectedMetrics')
+    .preload('attachments')
+    .preload('schools')
+
+  if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+
+  return dto.getContractDTO(contract[0])
+}
+
 const getContractDetails = async (contractId: number) => {
   const contract = await Contract.query()
     .where('id', contractId)
@@ -274,4 +289,5 @@ export default {
   changeStatus,
   getContractDetails,
   getContractSchools,
+  getContract,
 }

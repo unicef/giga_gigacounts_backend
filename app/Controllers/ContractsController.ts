@@ -91,6 +91,15 @@ export default class ContractsController {
       response.ok(contract)
     } catch (error) {
       console.log(error)
+    }
+  }
+
+  public async getContract({ response, request }: HttpContextContract) {
+    try {
+      const { contract_id } = request.params()
+      const contract = await service.getContract(contract_id)
+      response.ok(contract)
+    } catch (error) {
       return response.status(error.status).send(error.message)
     }
   }

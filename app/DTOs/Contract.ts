@@ -6,6 +6,7 @@ import Lta from 'App/Models/Lta'
 import { ContractStatus } from 'App/Helpers/constants'
 import utils from 'App/Helpers/utils'
 import { DateTime } from 'luxon'
+import School from 'App/Models/School'
 
 export interface ContractsStatusCount {
   counts: {
@@ -87,6 +88,35 @@ export interface ContractSchoolsDetail {
   connection: ConnectionEquation
 }
 
+export interface ContractDTO {
+  id: number
+  name: string
+  isp: string
+  lta: string
+  attachments?: {
+    id: number
+    url: string
+    ipfs_url?: string
+    name: string
+  }[]
+  startDate: DateTime
+  endDate: DateTime
+  status: string
+  country?: {
+    name: string
+    code: string
+    flagUrl: string
+  }
+  expectedMetrics: {
+    metricId: number
+    metricName: string
+    metricUnit: string
+    value: number
+  }[]
+  budget: string
+  schools: School[]
+}
+
 const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {}) => {
   const schools: ContractSchoolsDetail[] = []
   if (contract.schools.length) {
@@ -98,10 +128,6 @@ const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {})
       schools.push({
         id: school.id,
         name: school.name,
-        // locations: utils.join(
-        //   [school?.location1, school?.location2, school?.location3, school?.location4],
-        //   ','
-        // ),
         locations: [school?.location1, school?.location2, school?.location3, school?.location4]
           .filter((e) => e)
           .join(','),
@@ -110,6 +136,39 @@ const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {})
     }
   }
   return schools
+}
+
+const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
+  return {
+    id: contract.id,
+    name: contract.name,
+    isp: contract.isp.name,
+    lta: contract?.lta.name,
+    attachments: contract?.attachments,
+    startDate: contract.startDate,
+    endDate: contract.endDate,
+    status: ContractStatus[contract.status],
+    country: contract.country
+      ? {
+          name: contract.country.name,
+          flagUrl: contract.country.flagUrl,
+          code: contract.country.code,
+        }
+      : undefined,
+    expectedMetrics: await Promise.all(
+      contract.expectedMetrics.map(async (em) => {
+        await em.load('metric')
+        return {
+          metricId: em.metric.id,
+          metricName: em.metric.name,
+          metricUnit: em.metric.unit,
+          value: em.value,
+        }
+      })
+    ),
+    budget: contract.budget,
+    schools: contract?.schools,
+  }
 }
 
 const contractDeatilsDTO = (
@@ -331,4 +390,5 @@ export default {
   contractListDTO,
   contractDeatilsDTO,
   contractSchoolsDetailDTO,
+  getContractDTO,
 }
