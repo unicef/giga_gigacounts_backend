@@ -98,10 +98,13 @@ const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {})
       schools.push({
         id: school.id,
         name: school.name,
-        locations: utils.join(
-          [school?.location1, school?.location2, school?.location3, school?.location4],
-          ','
-        ),
+        // locations: utils.join(
+        //   [school?.location1, school?.location2, school?.location3, school?.location4],
+        //   ','
+        // ),
+        locations: [school?.location1, school?.location2, school?.location3, school?.location4]
+          .filter((e) => e)
+          .join(','),
         connection,
       })
     }
