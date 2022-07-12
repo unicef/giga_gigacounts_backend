@@ -8,4 +8,15 @@ export default class SchoolsController {
     const schools = await service.listSchoolByCountry(countryId)
     return response.ok(schools)
   }
+
+  public async getSchoolsMeasures({ response, request }: HttpContextContract) {
+    try {
+      const { schoolId, contractId, interval } = request.all()
+      const schools = await service.getSchoolsMeasures(schoolId, contractId, interval)
+      return response.ok(schools)
+    } catch (error) {
+      if (!error.status) return response.internalServerError(error.message)
+      return response.status(error.status).send(error.message)
+    }
+  }
 }

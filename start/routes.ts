@@ -39,6 +39,12 @@ Route.get('/school', 'SchoolsController.listSchoolByCountry').middleware([
   `acl:${permissions.schoolRead}`,
 ])
 
+Route.post('/school/measures', 'SchoolsController.getSchoolsMeasures').middleware([
+  'auth:api',
+  'validator:SchoolMeasuresValidator',
+  `acl:${permissions.schoolRead}`,
+])
+
 /**
  * CURRENCY ROUTES
  */
