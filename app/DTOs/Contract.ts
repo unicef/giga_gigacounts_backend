@@ -92,7 +92,7 @@ export interface ContractDTO {
   id: number
   name: string
   isp: string
-  lta: string
+  lta?: string
   attachments?: {
     id: number
     url: string
@@ -143,7 +143,7 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
     id: contract.id,
     name: contract.name,
     isp: contract.isp.name,
-    lta: contract?.lta.name,
+    lta: contract?.lta?.name,
     attachments: contract?.attachments,
     startDate: contract.startDate,
     endDate: contract.endDate,
@@ -196,7 +196,7 @@ const contractDeatilsDTO = (
     id: contract.id,
     name: contract.name,
     isp: contract.isp.name,
-    lta: contract?.lta.name,
+    lta: contract?.lta?.name,
     attachments: contract?.attachments,
     startDate: contract.startDate,
     endDate: contract.endDate,
