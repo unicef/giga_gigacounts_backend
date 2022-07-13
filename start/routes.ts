@@ -99,6 +99,11 @@ Route.get('/contract/details/:contract_id', 'ContractsController.getContractDeta
   `acl:${permissions.contractRead}`,
 ])
 
+Route.get('/contract/schools/:contract_id', 'ContractsController.getContractSchools').middleware([
+  'auth:api',
+  `acl:${permissions.contractRead}`,
+])
+
 Route.get('/contract/:contract_id', 'ContractsController.getContract').middleware([
   'auth:api',
   `acl:${permissions.contractRead}`,

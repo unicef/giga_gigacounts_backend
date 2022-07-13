@@ -84,6 +84,16 @@ export default class ContractsController {
     }
   }
 
+  public async getContractSchools({ response, request }: HttpContextContract) {
+    try {
+      const { contract_id } = request.params()
+      const contract = await service.getContractSchools(contract_id)
+      response.ok(contract)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   public async getContract({ response, request }: HttpContextContract) {
     try {
       const { contract_id } = request.params()

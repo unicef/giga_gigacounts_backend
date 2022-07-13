@@ -37,6 +37,24 @@ export interface ContractCreation {
   expectedMetrics: { metrics: { metricId: number; value: number }[] }
 }
 
+const getContractSchools = async (contractId: number) => {
+  const contract = await Contract.query()
+    .where('id', contractId)
+    .preload('country')
+    .preload('lta')
+    .preload('isp')
+    .preload('expectedMetrics')
+    .preload('attachments')
+    .preload('schools')
+    .withCount('schools')
+
+  if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+
+  const schoolsMeasures = await getContractSchoolsMeasures(contract)
+
+  return dto.contractSchoolsDetailDTO(contract[0], schoolsMeasures)
+}
+
 const getContract = async (contractId: number) => {
   const contract = await Contract.query()
     .where('id', contractId)
@@ -93,20 +111,7 @@ const getContractList = async (user: User) => {
 
   const ltas = await ltaQuery
 
-  const schoolsMeasures = {}
-
-  for (const contract of contracts) {
-    if (!contract.schools?.length) continue
-    schoolsMeasures[contract.name] = {}
-    for (const school of contract.schools) {
-      schoolsMeasures[contract.name][school.name] = await Measure.query()
-        .avg('value')
-        .where('school_id', school.id)
-        .andWhere('contract_id', contract.id)
-        .select('metric_id')
-        .groupBy('metric_id')
-    }
-  }
+  const schoolsMeasures = await getContractSchoolsMeasures(contracts)
 
   return dto.contractListDTO(contracts, drafts, ltas, schoolsMeasures)
 }
@@ -263,8 +268,9 @@ const getContractSchoolsMeasures = async (contracts: Contract[]) => {
 
   for (const contract of contracts) {
     if (!contract.schools?.length) continue
+    schoolsMeasures[contract.name] = {}
     for (const school of contract.schools) {
-      schoolsMeasures[school.name] = await Measure.query()
+      schoolsMeasures[contract.name][school.name] = await Measure.query()
         .avg('value')
         .where('school_id', school.id)
         .andWhere('contract_id', contract.id)
@@ -282,5 +288,6 @@ export default {
   getContractList,
   changeStatus,
   getContractDetails,
+  getContractSchools,
   getContract,
 }

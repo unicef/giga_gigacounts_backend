@@ -7,6 +7,7 @@ export default Factory.define(Metric, ({ faker }) => {
   return {
     name: faker.random.words(),
     unit: faker.random.word(),
+    weight: 10,
   }
 })
   .relation('suggestedMetrics', () => SuggestedMetricFactory)
