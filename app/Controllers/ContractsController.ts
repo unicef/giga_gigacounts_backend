@@ -80,7 +80,6 @@ export default class ContractsController {
       const contract = await service.getContractDetails(contract_id)
       response.ok(contract)
     } catch (error) {
-      console.log(error)
       return response.status(error.status).send(error.message)
     }
   }
@@ -91,7 +90,7 @@ export default class ContractsController {
       const contract = await service.getContractSchools(contract_id)
       response.ok(contract)
     } catch (error) {
-      console.log(error)
+      return response.status(error.status).send(error.message)
     }
   }
 
@@ -110,7 +109,6 @@ export default class ContractsController {
       const contracts = await service.contractStatusBatchUpdate()
       response.ok(contracts)
     } catch (error) {
-      console.log(error)
       return response.status(error.status).send(error.message)
     }
   }

@@ -37,7 +37,12 @@ export interface ContractCreation {
   expectedMetrics: { metrics: { metricId: number; value: number }[] }
 }
 
-const contractStatusBatchUpdate = async () => {
+export interface BatchUpdate {
+  confirmedContracts: number[]
+  ongoingContracts: number[]
+}
+
+const contractStatusBatchUpdate = async (): Promise<BatchUpdate> => {
   const today = DateTime.now()
   const confirmedContracts = await Contract.query()
     .where('status', ContractStatus.Confirmed)
