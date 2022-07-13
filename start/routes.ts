@@ -115,6 +115,10 @@ Route.get('/contract/:contract_id', 'ContractsController.getContract').middlewar
   `acl:${permissions.contractRead}`,
 ])
 
+Route.patch('/contract/status', 'ContractsController.contractStatusBatchUpdate').middleware([
+  'auth:api',
+])
+
 /**
  * ATTACHMENTS ROUTES
  */

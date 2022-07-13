@@ -80,6 +80,7 @@ export default class ContractsController {
       const contract = await service.getContractDetails(contract_id)
       response.ok(contract)
     } catch (error) {
+      console.log(error)
       return response.status(error.status).send(error.message)
     }
   }
@@ -100,6 +101,16 @@ export default class ContractsController {
       const contract = await service.getContract(contract_id)
       response.ok(contract)
     } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
+
+  public async contractStatusBatchUpdate({ response }: HttpContextContract) {
+    try {
+      const contracts = await service.contractStatusBatchUpdate()
+      response.ok(contracts)
+    } catch (error) {
+      console.log(error)
       return response.status(error.status).send(error.message)
     }
   }
