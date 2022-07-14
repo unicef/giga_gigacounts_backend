@@ -372,6 +372,11 @@ const calculateSchoolsMeasure = async (
     'Uptime': 0,
     'Latency': 0,
   }
+  if (!schoolMeasures.length) {
+    return Object.keys(connection).reduce((acc, key) => {
+      return { ...acc, [key]: -1 }
+    }, connection)
+  }
   for (const em of expectedMetrics) {
     const index = schoolMeasures.findIndex(
       (sm) => sm.metricId.toString() === em.metricId.toString()
