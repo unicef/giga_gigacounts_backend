@@ -19,11 +19,17 @@ test.group('Schools details by contract', (group) => {
   test('Successfully return schools details by contract with measures', async ({
     client,
     expect,
+    assert,
   }) => {
     const user = await setupUser()
     const contract = await createContract(user.countryId, user.id, [100, 10, 3, 5])
     const response = await client.get(`/contract/schools/${contract.id}`).loginAs(user)
     const schoolsDetails = response.body() as ContractSchoolsDetail[]
+    assert.isNotEmpty(schoolsDetails[0].connection)
+    assert.isNotEmpty(schoolsDetails[0].id)
+    assert.isNotEmpty(schoolsDetails[0].name)
+    assert.isNotEmpty(schoolsDetails[0].externalId)
+    assert.isNotEmpty(schoolsDetails[0].locations)
     expect(schoolsDetails[0].connection['Download speed']).toBe(3)
     expect(schoolsDetails[0].connection['Upload speed']).toBe(5)
     expect(schoolsDetails[0].connection.Uptime).toBe(100)
@@ -33,11 +39,17 @@ test.group('Schools details by contract', (group) => {
   test('Successfully return schools details by contract with some measures low than expected', async ({
     client,
     expect,
+    assert,
   }) => {
     const user = await setupUser()
     const contract = await createContract(user.countryId, user.id, [90, 8, 3, 5])
     const response = await client.get(`/contract/schools/${contract.id}`).loginAs(user)
     const schoolsDetails = response.body() as ContractSchoolsDetail[]
+    assert.isNotEmpty(schoolsDetails[0].connection)
+    assert.isNotEmpty(schoolsDetails[0].id)
+    assert.isNotEmpty(schoolsDetails[0].name)
+    assert.isNotEmpty(schoolsDetails[0].externalId)
+    assert.isNotEmpty(schoolsDetails[0].locations)
     expect(schoolsDetails[0].connection['Download speed']).toBe(3)
     expect(schoolsDetails[0].connection['Upload speed']).toBe(5)
     expect(schoolsDetails[0].connection.Uptime).toBe(90)
@@ -47,11 +59,17 @@ test.group('Schools details by contract', (group) => {
   test('Successfully return schools details by contract with no measures', async ({
     client,
     expect,
+    assert,
   }) => {
     const user = await setupUser()
     const contract = await createContract(user.countryId, user.id, [0, 0, 0, 0])
     const response = await client.get(`/contract/schools/${contract.id}`).loginAs(user)
     const schoolsDetails = response.body() as ContractSchoolsDetail[]
+    assert.isNotEmpty(schoolsDetails[0].connection)
+    assert.isNotEmpty(schoolsDetails[0].id)
+    assert.isNotEmpty(schoolsDetails[0].name)
+    assert.isNotEmpty(schoolsDetails[0].externalId)
+    assert.isNotEmpty(schoolsDetails[0].locations)
     expect(schoolsDetails[0].connection['Download speed']).toBe(0)
     expect(schoolsDetails[0].connection['Upload speed']).toBe(0)
     expect(schoolsDetails[0].connection.Uptime).toBe(0)

@@ -84,6 +84,7 @@ interface ConnectionEquation {
 export interface ContractSchoolsDetail {
   id: number
   name: string
+  externalId: number
   locations: string
   connection: ConnectionEquation
 }
@@ -128,6 +129,7 @@ const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {})
       schools.push({
         id: school.id,
         name: school.name,
+        externalId: school.externalId,
         locations: [school?.location1, school?.location2, school?.location3, school?.location4]
           .filter((e) => e)
           .join(','),
