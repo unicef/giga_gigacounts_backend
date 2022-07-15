@@ -37,6 +37,26 @@ export interface ContractCreation {
   expectedMetrics: { metrics: { metricId: number; value: number }[] }
 }
 
+export interface BatchUpdate {
+  confirmedContracts: number[]
+  ongoingContracts: number[]
+}
+
+const contractStatusBatchUpdate = async (): Promise<BatchUpdate> => {
+  const today = DateTime.now()
+  const confirmedContracts = await Contract.query()
+    .where('status', ContractStatus.Confirmed)
+    .andWhere('start_date', '<=', today.toString())
+    .update('status', ContractStatus.Ongoing)
+
+  const ongoingContracts = await Contract.query()
+    .where('status', ContractStatus.Ongoing)
+    .andWhere('end_date', '<=', today.toString())
+    .update('status', ContractStatus.Expired)
+
+  return { confirmedContracts, ongoingContracts }
+}
+
 const getContractSchools = async (contractId: number) => {
   const contract = await Contract.query()
     .where('id', contractId)
@@ -291,4 +311,5 @@ export default {
   getContractDetails,
   getContractSchools,
   getContract,
+  contractStatusBatchUpdate,
 }
