@@ -19,7 +19,7 @@ test.group('Schools Measures', (group) => {
   test('Successfully get all schools measures by day', async ({ client, expect }) => {
     const user = await setupUser()
     const contract = await createContract(user.countryId, user.id)
-    const response = await client.post(`/school/measures`).loginAs(user).json({
+    const response = await client.post('/school/measures').loginAs(user).json({
       schoolId: contract.schools[0].id,
       contractId: contract.id,
       interval: 'day',
@@ -54,7 +54,7 @@ test.group('Schools Measures', (group) => {
   test('Successfully get all schools measures by week', async ({ client, expect }) => {
     const user = await setupUser()
     const contract = await createContract(user.countryId, user.id)
-    const response = await client.post(`/school/measures`).loginAs(user).json({
+    const response = await client.post('/school/measures').loginAs(user).json({
       schoolId: contract.schools[0].id,
       contractId: contract.id,
       interval: 'week',
@@ -89,7 +89,7 @@ test.group('Schools Measures', (group) => {
   test('Successfully get all schools measures by month', async ({ client, expect }) => {
     const user = await setupUser()
     const contract = await createContract(user.countryId, user.id)
-    const response = await client.post(`/school/measures`).loginAs(user).json({
+    const response = await client.post('/school/measures').loginAs(user).json({
       schoolId: contract.schools[0].id,
       contractId: contract.id,
       interval: 'month',
@@ -118,7 +118,7 @@ test.group('Schools Measures', (group) => {
   test('Return empty array if school or contract doesnt exist', async ({ client, expect }) => {
     const user = await setupUser()
     await createContract(user.countryId, user.id)
-    const response = await client.post(`/school/measures`).loginAs(user).json({
+    const response = await client.post('/school/measures').loginAs(user).json({
       schoolId: 1000,
       contractId: 32333,
       interval: 'month',
@@ -129,7 +129,7 @@ test.group('Schools Measures', (group) => {
   test('Throw a validation error if the body is wrong', async ({ client, expect }) => {
     const user = await setupUser()
     const contract = await createContract(user.countryId, user.id)
-    const response = await client.post(`/school/measures`).loginAs(user).json({
+    const response = await client.post('/school/measures').loginAs(user).json({
       schoolId: contract.schools[0].id,
       contractId: contract.id,
       interval: 'weekly',

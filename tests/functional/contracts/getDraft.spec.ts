@@ -53,7 +53,7 @@ test.group('Get Draft', (group) => {
         role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.read' }))
       )
       .create()
-    const response = await client.get(`/contract/draft/2`).loginAs(user)
+    const response = await client.get('/contract/draft/2').loginAs(user)
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(404)
     expect(error.text).toBe('NOT_FOUND: Draft not found')
