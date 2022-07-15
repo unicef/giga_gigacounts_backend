@@ -66,7 +66,7 @@ const getFileType = (str: string) => str.substring(str.indexOf('/') + 1)
 
 const checkFileSize = (base64: string) => {
   let y = 1
-  if (base64.slice(-2) == '==') y = 2
+  if (base64.slice(-2) === '==') y = 2
   const sizeInBytes = base64.length * (3 / 4) - y
   if (sizeInBytes > limitInBytes) {
     throw new EntityTooLargeException('request entity too large', 413, 'E_REQUEST_ENTITY_TOO_LARGE')

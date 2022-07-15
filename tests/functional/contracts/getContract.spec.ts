@@ -37,7 +37,7 @@ test.group('Get Contract', (group) => {
   test('Throw an error if a contract doesnt exist', async ({ client, expect }) => {
     const user = await setupUser()
     await createContract(user.countryId, user.id)
-    const response = await client.get(`/contract/3001`).loginAs(user)
+    const response = await client.get('/contract/3001').loginAs(user)
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(404)
     expect(error.text).toBe('NOT_FOUND: Contract not found')

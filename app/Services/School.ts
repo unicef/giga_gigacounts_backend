@@ -17,6 +17,7 @@ const getSchoolsMeasures = async (
   interval: TimeInterval
 ): Promise<SchoolMeasure[]> => {
   const measures = await Database.rawQuery(
+    // eslint-disable-next-line max-len
     'SELECT date_trunc(?, measures.created_at) date, metrics.name as metric_name, metrics.unit as unit, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from measures INNER JOIN metrics ON metrics.id=metric_id where school_id = ? and contract_id = ? group by metric_id, date, metric_name, unit order by 1',
     [interval, schoolId, contractId]
   )

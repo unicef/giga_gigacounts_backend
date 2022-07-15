@@ -50,7 +50,7 @@ const deleteAttachment = async (attachmentId: number) => {
     return trx.commit()
   } catch (error) {
     await trx.rollback()
-    if (error?.status == 404) throw error
+    if (error?.status === 404) throw error
     throw new FailedDependencyException(
       'Some dependency failed while uploading attachment',
       424,
@@ -89,7 +89,7 @@ const uploadAttachment = async (data: UploadRequest): Promise<Attachment> => {
     return attachment
   } catch (error) {
     await trx.rollback()
-    if (error?.status == 404) throw error
+    if (error?.status === 404) throw error
     throw new FailedDependencyException(
       'Some dependency failed while uploading attachment',
       424,
