@@ -54,7 +54,7 @@ const deleteFile = async (url: string) => {
   const blobClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING)
   const container = blobClient.getContainerClient(containerName)
   const blockBlobClient = container.getBlockBlobClient(blobName)
-  return blockBlobClient.delete()
+  return blockBlobClient.deleteIfExists()
 }
 
 const getBlobName = (url: string) => url.substring(url.lastIndexOf('/') + 1)
