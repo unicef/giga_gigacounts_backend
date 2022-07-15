@@ -1,0 +1,15 @@
+{
+  "extends": ["plugin:adonis/typescriptPackage"],
+  "rules": {
+    "@typescript-eslint/space-before-function-paren": "off",
+    "curly": "off",
+    "@typescript-eslint/indent": "off",
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        "selector": "variable",
+        "format": ["camelCase", "UPPER_CASE", "PascalCase", "snake_case"]
+      }
+    ]
+  }
+}

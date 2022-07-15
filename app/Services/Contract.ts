@@ -86,6 +86,7 @@ const getContractDetails = async (contractId: number) => {
   const schoolsMeasures = await getContractSchoolsMeasures(contract)
 
   const connectionsMedian = await Database.rawQuery(
+    // eslint-disable-next-line max-len
     'SELECT contract_id, metric_id, Metrics.name as metric_name, Metrics.unit as unit,PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from Measures INNER JOIN Metrics ON Metrics.id=metric_id where contract_id = ? GROUP BY contract_id, metric_id, metric_name, unit',
     [contract[0].id]
   )

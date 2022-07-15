@@ -143,6 +143,7 @@ export default class CreateUsers extends BaseCommand {
     const isp2 = await Isp.firstOrCreate({ name: 'AT&T' })
     const isp3 = await Isp.firstOrCreate({ name: 'Verizon Communications' })
     // Users
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     const [brUser, _, bwUser] = await Promise.all([
       //  Office Brazil 1
       User.firstOrCreate({

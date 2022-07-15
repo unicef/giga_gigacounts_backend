@@ -132,7 +132,7 @@ test.group('Delete Attachments', (group) => {
     const user = await UserFactory.with('roles', 1, (role) =>
       role.with('permissions', 1, (permission) => permission.merge({ name: 'attachment.write' }))
     ).create()
-    const response = await client.delete(`/attachments/3333`).loginAs(user)
+    const response = await client.delete('/attachments/3333').loginAs(user)
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(404)
     expect(error.text).toBe('NOT_FOUND: Attachment not found')

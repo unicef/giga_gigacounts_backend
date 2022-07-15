@@ -7,6 +7,8 @@ on:
   push:
     branches:
       - dev
+    paths-ignore:
+      - '**/README.md'
   workflow_dispatch:
     inputs:
       target_env:
@@ -53,7 +55,7 @@ jobs:
         ENV_FILE_ENCODED: ${{ secrets[env.ENV_FILE_VAR_NAME] }}
       run: |
         echo $ENV_FILE_ENCODED | base64 --decode > .env
-        docker build --platform linux/amd64 -t unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-${{ github.sha }} .
+        docker build --platform linux/amd64 -t unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-${{ github.sha }} -t unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-latest .
 
     - name: Run DB migration
       run: |
@@ -62,6 +64,7 @@ jobs:
     - name: Push container image to registry
       run: |
         docker push unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-${{ github.sha }}
+        docker push unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -90,4 +93,4 @@ jobs:
       with:
         app-name: "unicef-giga-backend-${{ github.event.inputs.target_env || 'dev' }}"
         publish-profile: ${{ secrets[env.AZUREAPPSERVICE_PUBLISHPROFILE_VAR_NAME] }}
-        images: 'unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-${{ github.sha }}'
+        images: 'unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-latest'

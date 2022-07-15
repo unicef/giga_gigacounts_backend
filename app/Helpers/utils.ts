@@ -3,6 +3,7 @@ const destructObjArrayWithId = (object?: { id: number }[]) => {
 }
 
 const removeProperty = (object: any, propertyName: string) => {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   let { [propertyName]: _, ...rest } = object
   return rest
 }
