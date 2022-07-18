@@ -54,10 +54,12 @@ export default class ContractsController {
     }
   }
 
-  public async contractList({ response, auth }: HttpContextContract) {
+  public async contractList({ request, response, auth }: HttpContextContract) {
     try {
       if (!auth.user) return
-      const contracts = await service.getContractList(auth.user)
+      const { status } = request.qs()
+      const parsedStatus = isNaN(parseInt(status)) ? undefined : parseInt(status)
+      const contracts = await service.getContractList(auth.user, parsedStatus)
       return response.ok(contracts)
     } catch (error) {
       if (!error.status) return response.internalServerError(error.message)
