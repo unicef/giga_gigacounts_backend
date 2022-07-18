@@ -49,6 +49,34 @@ test.group('Schools details by contract', (group) => {
     expect,
   }) => {
     const user = await setupUser()
+    const contract = await createContract(user.countryId, user.id, [])
+    const response = await client.get(`/contract/schools/${contract.id}`).loginAs(user)
+    const schoolsDetails = response.body() as ContractSchoolsDetail[]
+    expect(schoolsDetails[0].connection['Download speed']).toBe(-1)
+    expect(schoolsDetails[0].connection['Upload speed']).toBe(-1)
+    expect(schoolsDetails[0].connection.Uptime).toBe(-1)
+    expect(schoolsDetails[0].connection.Latency).toBe(-1)
+    expect(schoolsDetails[0].connection.value).toBe(-1)
+  })
+  test('Successfully return schools details by contract with some of the measures on 0', async ({
+    client,
+    expect,
+  }) => {
+    const user = await setupUser()
+    const contract = await createContract(user.countryId, user.id, [90, 10, 0, 0])
+    const response = await client.get(`/contract/schools/${contract.id}`).loginAs(user)
+    const schoolsDetails = response.body() as ContractSchoolsDetail[]
+    expect(schoolsDetails[0].connection['Download speed']).toBe(0)
+    expect(schoolsDetails[0].connection['Upload speed']).toBe(0)
+    expect(schoolsDetails[0].connection.Uptime).toBe(90)
+    expect(schoolsDetails[0].connection.Latency).toBe(10)
+    expect(schoolsDetails[0].connection.value).toBe(46.5)
+  })
+  test('Successfully return schools details by contract with all measures on 0', async ({
+    client,
+    expect,
+  }) => {
+    const user = await setupUser()
     const contract = await createContract(user.countryId, user.id, [0, 0, 0, 0])
     const response = await client.get(`/contract/schools/${contract.id}`).loginAs(user)
     const schoolsDetails = response.body() as ContractSchoolsDetail[]
