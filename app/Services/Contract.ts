@@ -114,21 +114,18 @@ const getContractDetails = async (contractId: number) => {
   return dto.contractDeatilsDTO(contract[0], schoolsMeasures, connectionsMedian.rows)
 }
 
-const getContractList = async (user: User) => {
+const getContractList = async (user: User, status?: number) => {
   const { query, draftQuery, ltaQuery } = await queryBuilder(user)
+  let drafts: Draft[] = []
+  let contracts: Contract[] = []
 
-  const contracts = await query
-    .preload('country')
-    .preload('lta')
-    .preload('isp')
-    .preload('expectedMetrics', (qry) => qry.preload('metric'))
-    .withAggregate('payments', (qry) => {
-      qry.sum('amount').as('total_payments')
-    })
-    .preload('schools')
-    .withCount('schools')
+  if (status === undefined || status > 0) {
+    contracts = await fetchContractList(query, status)
+  }
 
-  const drafts = await draftQuery.preload('country').preload('lta').preload('isp')
+  if (status === undefined || status === 0) {
+    drafts = await getDraft(draftQuery)
+  }
 
   const ltas = await ltaQuery
 
@@ -301,6 +298,29 @@ const getContractSchoolsMeasures = async (contracts: Contract[]) => {
   }
 
   return schoolsMeasures
+}
+
+const getDraft = async (query: ModelQueryBuilderContract<typeof Draft, Draft>) => {
+  return query.preload('country').preload('lta').preload('isp')
+}
+
+const fetchContractList = async (
+  query: ModelQueryBuilderContract<typeof Contract, Contract>,
+  status?: number
+) => {
+  if (status) {
+    query.where('status', status)
+  }
+  return query
+    .preload('country')
+    .preload('lta')
+    .preload('isp')
+    .preload('expectedMetrics', (qry) => qry.preload('metric'))
+    .withAggregate('payments', (qry) => {
+      qry.sum('amount').as('total_payments')
+    })
+    .preload('schools')
+    .withCount('schools')
 }
 
 export default {
