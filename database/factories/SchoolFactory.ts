@@ -16,7 +16,7 @@ export default Factory.define(School, ({ faker }) => {
     geopoint: `${faker.address.latitude()},${faker.address.longitude()}`,
     phoneNumber: faker.phone.phoneNumber(),
     contactPerson: faker.name.firstName(),
-    externalId: 1001,
+    externalId: '1001',
   }
 })
   .relation('country', () => CountryFactory)

@@ -240,7 +240,7 @@ const generatePayments = (
 
 const generateSchool = (name: string, countryId: number) => ({
   name,
-  externalId: 1001,
+  externalId: '1001',
   address: 'None Street',
   location1: 'Location 1',
   location2: 'Location 2',

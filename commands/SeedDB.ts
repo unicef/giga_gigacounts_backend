@@ -74,7 +74,7 @@ export default class CreateUsers extends BaseCommand {
     // Schools
     const botSchool = await School.firstOrCreate({
       name: 'School Bot 1',
-      externalId: 1002,
+      externalId: '1002',
       address: 'None Street',
       location1: 'Location 1',
       location2: 'Location 2',

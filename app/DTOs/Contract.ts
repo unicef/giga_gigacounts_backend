@@ -84,7 +84,7 @@ interface ConnectionEquation {
 export interface ContractSchoolsDetail {
   id: number
   name: string
-  externalId: number
+  externalId: string
   locations: string
   connection: ConnectionEquation
 }
