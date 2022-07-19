@@ -59,7 +59,6 @@ test.group('Schools details by contract', (group) => {
   test('Successfully return schools details by contract with no measures', async ({
     client,
     expect,
-    assert,
   }) => {
     const user = await setupUser()
     const contract = await createContract(user.countryId, user.id, [])
@@ -88,6 +87,7 @@ test.group('Schools details by contract', (group) => {
   test('Successfully return schools details by contract with all measures on 0', async ({
     client,
     expect,
+    assert,
   }) => {
     const user = await setupUser()
     const contract = await createContract(user.countryId, user.id, [0, 0, 0, 0])
