@@ -134,11 +134,17 @@ const getContractList = async (user: User, status?: number) => {
   return dto.contractListDTO(contracts, drafts, ltas, schoolsMeasures)
 }
 
-const createContract = async (data: ContractCreation): Promise<Contract> => {
+const createContract = async (data: ContractCreation, user: User): Promise<Contract> => {
   const trx = await Database.transaction()
   try {
     const contract = await Contract.create(
-      { ...utils.removeProperty(data, 'draftId'), status: ContractStatus.Sent },
+      {
+        ...utils.removeProperty(data, 'draftId'),
+        status: ContractStatus.Sent,
+        governmentBehalf: userService.checkUserRole(user, [roles.government])
+          ? true
+          : data.governmentBehalf,
+      },
       { client: trx }
     )
 
