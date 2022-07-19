@@ -51,11 +51,11 @@ test.group('Create Contract', (group) => {
     const { country, currency, frequency, isp, metrics, school } = await setupModels()
     const body = buildContract(
       'Contract 1',
-      country.id,
-      currency.id,
-      frequency.id,
-      isp.id,
-      user.id,
+      country.id.toString(),
+      currency.id.toString(),
+      frequency.id.toString(),
+      isp.id.toString(),
+      user.id.toString(),
       buildManyToMany([school.id], 'schools'),
       buildMetrics(metrics)
     )
@@ -64,7 +64,7 @@ test.group('Create Contract', (group) => {
     expect(contractRes.country_id).toBe(country.id)
     expect(contractRes.currency_id).toBe(currency.id)
     expect(contractRes.budget).toBe('1000')
-    expect(contractRes.frequency_id).toBe(frequency.id)
+    expect(contractRes.frequency_id).toBe(frequency.id.toString())
     expect(contractRes.isp_id).toBe(isp.id)
     expect(contractRes.created_by).toBe(user.id)
     expect(contractRes.status).toBe(1)
@@ -85,22 +85,22 @@ test.group('Create Contract', (group) => {
     const attachment = await createAttachment(client, user, draft.id)
     const body = buildContract(
       'Contract 1',
-      country.id,
-      currency.id,
-      frequency.id,
-      isp.id,
-      user.id,
+      country.id.toString(),
+      currency.id.toString(),
+      frequency.id.toString(),
+      isp.id.toString(),
+      user.id.toString(),
       buildManyToMany([school.id], 'schools'),
       buildMetrics(metrics),
       [{ id: attachment.id }],
-      draft.id
+      draft.id.toString()
     )
     const response = await client.post('/contract').loginAs(user).json(body)
     const contractRes = response.body()
     expect(contractRes.country_id).toBe(country.id)
     expect(contractRes.currency_id).toBe(currency.id)
     expect(contractRes.budget).toBe('1000')
-    expect(contractRes.frequency_id).toBe(frequency.id)
+    expect(contractRes.frequency_id).toBe(frequency.id.toString())
     expect(contractRes.isp_id).toBe(isp.id)
     expect(contractRes.created_by).toBe(user.id)
     expect(contractRes.status).toBe(1)
@@ -135,15 +135,15 @@ test.group('Create Contract', (group) => {
     const draft = await DraftFactory.create()
     const body = buildContract(
       'Contract 1',
-      country.id,
-      currency.id,
-      frequency.id,
-      isp.id,
-      user.id,
+      country.id.toString(),
+      currency.id.toString(),
+      frequency.id.toString(),
+      isp.id.toString(),
+      user.id.toString(),
       buildManyToMany([1123], 'schools'),
       buildMetrics(metrics),
       undefined,
-      draft.id
+      draft.id.toString()
     )
     const response = await client.post('/contract').loginAs(user).json(body)
     const error = response.error() as import('superagent').HTTPError
@@ -177,15 +177,15 @@ test.group('Create Contract', (group) => {
     await DraftFactory.create()
     const body = buildContract(
       'Contract 1',
-      country.id,
-      currency.id,
-      frequency.id,
-      isp.id,
-      user.id,
+      country.id.toString(),
+      currency.id.toString(),
+      frequency.id.toString(),
+      isp.id.toString(),
+      user.id.toString(),
       buildManyToMany([school.id], 'schools'),
       buildMetrics(metrics),
       undefined,
-      100001
+      '100001'
     )
     const response = await client.post('/contract').loginAs(user).json(body)
     const error = response.error() as import('superagent').HTTPError
@@ -202,11 +202,11 @@ test.group('Create Contract', (group) => {
     const { country, currency, frequency, isp, metrics, school } = await setupModels()
     const body = buildContract(
       'Contract 1',
-      country.id,
-      currency.id,
-      frequency.id,
-      isp.id,
-      user.id,
+      country.id.toString(),
+      currency.id.toString(),
+      frequency.id.toString(),
+      isp.id.toString(),
+      user.id.toString(),
       buildManyToMany([school.id], 'schools'),
       buildMetrics(metrics)
     )
@@ -215,7 +215,7 @@ test.group('Create Contract', (group) => {
     expect(contractRes.country_id).toBe(country.id)
     expect(contractRes.currency_id).toBe(currency.id)
     expect(contractRes.budget).toBe('1000')
-    expect(contractRes.frequency_id).toBe(frequency.id)
+    expect(contractRes.frequency_id).toBe(frequency.id.toString())
     expect(contractRes.isp_id).toBe(isp.id)
     expect(contractRes.created_by).toBe(user.id)
     expect(contractRes.status).toBe(1)
@@ -237,11 +237,11 @@ test.group('Create Contract', (group) => {
     const { country, currency, frequency, isp, metrics } = await setupModels()
     const body = buildContract(
       'Contract 1',
-      country.id,
-      currency.id,
-      frequency.id,
-      isp.id,
-      user.id,
+      country.id.toString(),
+      currency.id.toString(),
+      frequency.id.toString(),
+      isp.id.toString(),
+      user.id.toString(),
       buildManyToMany([1123], 'schools'),
       buildMetrics(metrics)
     )
@@ -271,15 +271,15 @@ const setupModels = async () => {
 
 const buildContract = (
   name?: string,
-  countryId?: number,
-  currencyId?: number,
-  frequencyId?: number,
-  ispId?: number,
-  createdBy?: number,
+  countryId?: string,
+  currencyId?: string,
+  frequencyId?: string,
+  ispId?: string,
+  createdBy?: string,
   schools?: object,
   expectedMetrics?: object,
   attachments?: object,
-  draftId?: number
+  draftId?: string
 ) => ({
   name,
   governmentBehalf: false,

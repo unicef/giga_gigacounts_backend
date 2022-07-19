@@ -37,7 +37,7 @@ test.group('Update Draft', (group) => {
   test('Throw an error when a draft doesnt exist', async ({ client, expect }) => {
     const user = await createUser()
     const response = await client.put('/contract/draft').loginAs(user).json({
-      id: 1,
+      id: '1',
       name: 'Wrong Draft',
     })
     const error = response.error() as import('superagent').HTTPError

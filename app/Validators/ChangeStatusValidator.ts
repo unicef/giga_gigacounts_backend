@@ -5,7 +5,7 @@ export default class ChangeStatusValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    contract_id: schema.number(),
+    contract_id: schema.string(),
     status: schema.number(),
   })
 

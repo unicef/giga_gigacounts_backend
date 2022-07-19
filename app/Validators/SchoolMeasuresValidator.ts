@@ -5,8 +5,8 @@ export default class SchoolMeasuresValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    schoolId: schema.number(),
-    contractId: schema.number(),
+    schoolId: schema.string(),
+    contractId: schema.string(),
     interval: schema.enum(['day', 'week', 'month'] as const),
   })
 

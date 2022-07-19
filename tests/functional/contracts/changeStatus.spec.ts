@@ -20,7 +20,7 @@ test.group('Change status', (group) => {
     ).create()
     const contract = await createContract(1, user.id)
     expect(contract.status).toBe(1)
-    const response = await makeRequest(client, contract.id, user, 2)
+    const response = await makeRequest(client, contract.id.toString(), user, 2)
     const contractUpdated = response.body() as Contract
     expect(contractUpdated.status).toBe(2)
     const statusTransition = await StatusTransition.findBy('contract_id', contract.id)
@@ -35,7 +35,7 @@ test.group('Change status', (group) => {
     ).create()
     const contract = await createContract(2, user.id)
     expect(contract.status).toBe(2)
-    const response = await makeRequest(client, contract.id, user, 3)
+    const response = await makeRequest(client, contract.id.toString(), user, 3)
     const contractUpdated = response.body() as Contract
     expect(contractUpdated.status).toBe(3)
     const statusTransition = await StatusTransition.findBy('contract_id', contract.id)
@@ -50,7 +50,7 @@ test.group('Change status', (group) => {
     ).create()
     const contract = await createContract(3, user.id)
     expect(contract.status).toBe(3)
-    const response = await makeRequest(client, contract.id, user, 4)
+    const response = await makeRequest(client, contract.id.toString(), user, 4)
     const contractUpdated = response.body() as Contract
     expect(contractUpdated.status).toBe(4)
     const statusTransition = await StatusTransition.findBy('contract_id', contract.id)
@@ -65,7 +65,7 @@ test.group('Change status', (group) => {
     ).create()
     const contract = await createContract(4, user.id)
     expect(contract.status).toBe(4)
-    const response = await makeRequest(client, contract.id, user, 5)
+    const response = await makeRequest(client, contract.id.toString(), user, 5)
     const contractUpdated = response.body() as Contract
     expect(contractUpdated.status).toBe(5)
     const statusTransition = await StatusTransition.findBy('contract_id', contract.id)
@@ -79,7 +79,7 @@ test.group('Change status', (group) => {
       role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
     ).create()
     const contract = await createContract(1, user.id)
-    const response = await makeRequest(client, contract.id, user, 3)
+    const response = await makeRequest(client, contract.id.toString(), user, 3)
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(400)
     expect(error.text).toBe('INVALID_STATUS: Invalid status')
@@ -89,7 +89,7 @@ test.group('Change status', (group) => {
       role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
     ).create()
     await createContract(1, user.id)
-    const response = await makeRequest(client, 0, user, 2)
+    const response = await makeRequest(client, '0', user, 2)
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(404)
     expect(error.text).toBe('NOT_FOUND: Contract not found')
@@ -99,7 +99,7 @@ test.group('Change status', (group) => {
       role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
     ).create()
     const contract = await createContract(1, user.id)
-    const response = await makeRequest(client, contract.id, user, 10)
+    const response = await makeRequest(client, contract.id.toString(), user, 10)
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(400)
     expect(error.text).toBe('INVALID_STATUS: Invalid status')
@@ -119,7 +119,7 @@ const createContract = async (status: number, userId: number): Promise<Contract>
   return contract
 }
 
-const makeRequest = async (client: ApiClient, contractId: number, user: User, status: number) => {
+const makeRequest = async (client: ApiClient, contractId: string, user: User, status: number) => {
   const response = await client
     .post('/contract/change-status')
     .json({

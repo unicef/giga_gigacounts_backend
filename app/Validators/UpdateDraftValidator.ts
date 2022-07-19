@@ -5,17 +5,17 @@ export default class UpdateDraftValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    id: schema.number(),
+    id: schema.string(),
     name: schema.string.optional({}, [
       rules.unique({ table: 'contracts', column: 'name', caseInsensitive: true }),
       rules.unique({ table: 'drafts', column: 'name', caseInsensitive: true }),
     ]),
-    countryId: schema.number.nullableAndOptional(),
+    countryId: schema.string.nullableAndOptional(),
     governmentBehalf: schema.boolean.nullableAndOptional(),
-    ltaId: schema.number.nullableAndOptional(),
-    currencyId: schema.number.nullableAndOptional(),
+    ltaId: schema.string.nullableAndOptional(),
+    currencyId: schema.string.nullableAndOptional(),
     budget: schema.string.nullableAndOptional(),
-    frequencyId: schema.number.nullableAndOptional(),
+    frequencyId: schema.string.nullableAndOptional(),
     startDate: schema.date.nullableAndOptional({
       format: 'yyyy-MM-dd',
     }),
@@ -25,8 +25,8 @@ export default class UpdateDraftValidator {
       },
       [rules.afterOrEqualToField('startDate')]
     ),
-    ispId: schema.number.nullableAndOptional(),
-    createdBy: schema.number.nullableAndOptional(),
+    ispId: schema.string.nullableAndOptional(),
+    createdBy: schema.string.nullableAndOptional(),
     schools: schema.object.optional().members({
       schools: schema.array().members(schema.object().members({ id: schema.number() })),
     }),
