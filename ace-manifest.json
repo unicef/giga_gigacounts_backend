@@ -1,5 +1,16 @@
 {
   "commands": {
+    "load:models": {
+      "settings": {
+        "loadApp": true
+      },
+      "commandPath": "./commands/LoadModels",
+      "commandName": "load:models",
+      "description": "Fetchs a couple of models from the unicef api to our database",
+      "args": [],
+      "aliases": [],
+      "flags": []
+    },
     "seed:db": {
       "settings": {
         "loadApp": true
