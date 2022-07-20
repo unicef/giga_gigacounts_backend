@@ -23,7 +23,7 @@ export const createContracts = async (
   ltas: Lta[],
   isps: Isp[],
   countryId: number,
-  otherCountryId: number,
+  // otherCountryId: number,
   currencyId: number,
   frequencyId: number,
   budget: string,
