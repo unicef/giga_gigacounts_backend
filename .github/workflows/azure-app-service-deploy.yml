@@ -93,4 +93,4 @@ jobs:
       with:
         app-name: "unicef-giga-backend-${{ github.event.inputs.target_env || 'dev' }}"
         publish-profile: ${{ secrets[env.AZUREAPPSERVICE_PUBLISHPROFILE_VAR_NAME] }}
-        images: 'unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-latest'
+        images: 'unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-${{ github.sha }}'
