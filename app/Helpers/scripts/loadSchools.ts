@@ -63,11 +63,13 @@ const fetchSchools = async (instance: AxiosInstance, countryGigaId: number, coun
         size,
       },
     })
-    if (result.data?.data?.length > 0) {
-      console.log({
-        length: result.data?.data?.length,
-        page,
-      })
+    if (result.data.data.length > 0) {
+      /* LOG FOR WHEN RUNNING */
+      // console.log({
+      //   length: result.data?.data?.length,
+      //   page,
+      //   country: countryId,
+      // })
       await Promise.all(
         result.data?.data.map((school: UnicefSchool) => createSchool(school, countryId))
       )
@@ -77,17 +79,22 @@ const fetchSchools = async (instance: AxiosInstance, countryGigaId: number, coun
   }
 }
 
-const createSchool = (school: UnicefSchool, countryId: number) =>
-  School.firstOrCreate({
-    externalId: school.school_id,
-    name: school.name,
-    address: school.address,
-    location1: school.admin_1_name,
-    location2: school.admin_2_name,
-    location3: school.admin_3_name,
-    location4: school.admin_4_name,
-    educationLevel: school.education_level,
-    email: school.email,
-    gigaIdSchool: school.giga_id_school,
-    countryId,
-  })
+const createSchool = (school: UnicefSchool, countryId: number) => {
+  const externalId = school.school_id || school.id.toString()
+  return School.firstOrCreate(
+    { externalId },
+    {
+      externalId,
+      name: school.name,
+      address: school.address,
+      location1: school.admin_1_name,
+      location2: school.admin_2_name,
+      location3: school.admin_3_name,
+      location4: school.admin_4_name,
+      educationLevel: school.education_level,
+      email: school.email,
+      gigaIdSchool: school.giga_id_school,
+      countryId,
+    }
+  )
+}

@@ -12,7 +12,7 @@ export default class LoadModels extends BaseCommand {
   public async run() {
     const { loadCountries } = await import('App/Helpers/scripts/loadCountries')
     const { loadSchools } = await import('App/Helpers/scripts/loadSchools')
-    // await loadCountries()
+    await loadCountries()
     await loadSchools()
   }
 }
