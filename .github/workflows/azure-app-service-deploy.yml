@@ -93,4 +93,16 @@ jobs:
       with:
         app-name: "unicef-giga-backend-${{ github.event.inputs.target_env || 'dev' }}"
         publish-profile: ${{ secrets[env.AZUREAPPSERVICE_PUBLISHPROFILE_VAR_NAME] }}
-        images: 'unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-${{ github.sha }}'
+        images: 'unicefgiga.azurecr.io/backend:${{ env.DEPLOY_TARGET_ENV }}-latest'
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_SP_CREDENTIALS }}
+
+    - name: Restart Azure Web App
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.30.0
+        inlineScript: |
+          az webapp restart --name unicef-giga-backend-${{ github.event.inputs.target_env || 'dev' }} --resource-group Unicef-GIGA
