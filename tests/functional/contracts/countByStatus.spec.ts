@@ -28,12 +28,12 @@ test.group('Contract count by status', (group) => {
     const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
     expect(statusCount.totalCount).toBe(3)
-    expect(statusCount.counts[2].status).toBe('Draft')
-    expect(statusCount.counts[2].count).toBe('1')
-    expect(statusCount.counts[0].status).toBe('Sent')
+    expect(statusCount.counts[0].status).toBe('Draft')
     expect(statusCount.counts[0].count).toBe('1')
-    expect(statusCount.counts[1].status).toBe('Ongoing')
+    expect(statusCount.counts[1].status).toBe('Sent')
     expect(statusCount.counts[1].count).toBe('1')
+    expect(statusCount.counts[3].status).toBe('Ongoing')
+    expect(statusCount.counts[3].count).toBe('1')
   })
   test('Successfully counts all contracts if the user is admin', async ({ client, expect }) => {
     const [country1, country2] = await setupCountries()
@@ -93,8 +93,8 @@ test.group('Contract count by status', (group) => {
     const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
     expect(statusCount.totalCount).toBe(1)
-    expect(statusCount.counts[0].status).toBe('Ongoing')
-    expect(statusCount.counts[0].count).toBe('1')
+    expect(statusCount.counts[3].status).toBe('Ongoing')
+    expect(statusCount.counts[3].count).toBe('1')
   })
 })
 
