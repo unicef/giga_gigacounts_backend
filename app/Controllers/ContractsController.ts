@@ -114,4 +114,14 @@ export default class ContractsController {
       return response.status(error.status).send(error.message)
     }
   }
+
+  public async deleteDraft({ response, request }: HttpContextContract) {
+    try {
+      const { draft_id } = request.params()
+      const result = await draftService.deleteDraft(draft_id)
+      response.ok(result)
+    } catch (error) {
+      return response.status(error?.status || error.statusCode).send(error.message)
+    }
+  }
 }
