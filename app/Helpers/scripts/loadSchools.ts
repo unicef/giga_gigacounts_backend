@@ -1,11 +1,16 @@
 import School from 'App/Models/School'
 import axios from 'App/Helpers/axios'
-import { AxiosInstance, AxiosRequestHeaders } from 'axios'
+import { AxiosRequestHeaders } from 'axios'
 
 import Country from 'App/Models/Country'
 
 const UNICEF_API = process.env.UNICEF_API || ''
 const UNICEF_API_TOKEN = process.env.UNICEF_API_TOKEN || ''
+
+const headers: AxiosRequestHeaders = {
+  Authorization: `Bearer ${UNICEF_API_TOKEN}`,
+}
+const instance = axios.createInstance(UNICEF_API, headers)
 
 const brazilId = 144
 const botswanaId = 201
@@ -34,24 +39,17 @@ const returnGetSchoolsUrl = (countryId: number) => `/v1/schools/country/${countr
 
 export const loadSchools = async () => {
   try {
-    const headers: AxiosRequestHeaders = {
-      Authorization: `Bearer ${UNICEF_API_TOKEN}`,
-    }
-    const instance = axios.createInstance(UNICEF_API, headers)
     const brazil = await Country.findBy('name', 'Brazil')
     const botswana = await Country.findBy('name', 'Botswana')
     if (brazil && botswana) {
-      await Promise.all([
-        fetchSchools(instance, brazilId, brazil.id),
-        fetchSchools(instance, botswanaId, botswana.id),
-      ])
+      await Promise.all([fetchSchools(brazilId, brazil.id), fetchSchools(botswanaId, botswana.id)])
     }
   } catch (error) {
     console.log(error)
   }
 }
 
-const fetchSchools = async (instance: AxiosInstance, countryGigaId: number, countryId: number) => {
+const fetchSchools = async (countryGigaId: number, countryId: number) => {
   const condition = true
   let page = 0
   const size = 50
