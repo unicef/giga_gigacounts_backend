@@ -1,9 +1,12 @@
 import Database from '@ioc:Adonis/Lucid/Database'
 import { DateTime } from 'luxon'
+import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
 
 import Contract from 'App/Models/Contract'
 import User from 'App/Models/User'
 import StatusTransition from 'App/Models/StatusTransition'
+import Measure from 'App/Models/Measure'
+import Lta from 'App/Models/Lta'
 
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
 import NotFoundException from 'App/Exceptions/NotFoundException'
@@ -15,9 +18,7 @@ import metricService from 'App/Services/Metric'
 import dto, { ContractsStatusCount } from 'App/DTOs/Contract'
 import utils from 'App/Helpers/utils'
 import Draft from 'App/Models/Draft'
-import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
-import Measure from 'App/Models/Measure'
-import Lta from 'App/Models/Lta'
+import schoolService from 'App/Services/School'
 
 export interface ContractCreation {
   draftId?: number
@@ -42,12 +43,20 @@ export interface BatchUpdate {
   ongoingContracts: number[]
 }
 
+type LoadMeasuresType = 'daily' | 'historic'
+
+interface ContractsMap {
+  id: string
+}
+
 const contractStatusBatchUpdate = async (): Promise<BatchUpdate> => {
   const today = DateTime.now()
   const confirmedContracts = await Contract.query()
     .where('status', ContractStatus.Confirmed)
     .andWhere('start_date', '<=', today.toString())
-    .update('status', ContractStatus.Ongoing)
+    .update('status', ContractStatus.Ongoing, ['id'])
+
+  loadContractsMeasures(confirmedContracts, 'historic')
 
   const ongoingContracts = await Contract.query()
     .where('status', ContractStatus.Ongoing)
@@ -321,6 +330,36 @@ const fetchContractList = async (
     })
     .preload('schools')
     .withCount('schools')
+}
+
+const loadContractsMeasures = async (contractIds: ContractsMap[], type: LoadMeasuresType) => {
+  let startDate: string
+  const endDate = DateTime.now().toFormat('yyyy-MM-dd').toString()
+
+  if (type === 'daily') {
+    startDate = DateTime.now().toFormat('yyyy-MM-dd').toString()
+  }
+
+  return Promise.all(
+    contractIds.map(({ id }) => {
+      loadContractMeasures(parseInt(id), endDate, startDate)
+    })
+  )
+}
+
+const loadContractMeasures = async (contractId: number, endDate: string, startDate?: string) => {
+  const contract = await Contract.find(contractId)
+  if (!contract) return
+  await contract.load('country')
+  await contract.load('schools')
+  const schoolsIds = contract.schools.map(({ id }) => id)
+  return schoolService.loadSchoolsMeasures(
+    schoolsIds,
+    contract.id,
+    contract.country.code,
+    startDate || contract.startDate.toFormat('yyyy-MM-dd').toString(),
+    endDate
+  )
 }
 
 export default {

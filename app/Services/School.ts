@@ -1,6 +1,9 @@
 import Database from '@ioc:Adonis/Lucid/Database'
 
 import School from 'App/Models/School'
+import unicefApi from 'App/Helpers/unicefApi'
+import Metric from 'App/Models/Metric'
+import measureService from 'App/Services/Measure'
 
 export type TimeInterval = 'day' | 'week' | 'month'
 
@@ -9,6 +12,15 @@ export interface SchoolMeasure {
   metric_name: string
   unit: string
   median_value: number
+}
+
+interface LoadSchoolsMeasuresData {
+  contractId: number
+  schoolId: number
+  startDate: string
+  endDate: string
+  metrics: Metric[]
+  countryCode: string
 }
 
 const getSchoolsMeasures = async (
@@ -31,7 +43,46 @@ const listSchoolByCountry = async (countryId?: number): Promise<School[]> => {
   return query
 }
 
+const loadSchoolsMeasures = async (
+  schoolIds: number[],
+  contractId: number,
+  countryCode: string,
+  startDate: string,
+  endDate: string
+) => {
+  const metrics = await Metric.all()
+
+  return Promise.all(
+    schoolIds.map((schoolId) =>
+      loadSchoolMeasure({ schoolId, contractId, startDate, endDate, metrics, countryCode })
+    )
+  )
+}
+
+const loadSchoolMeasure = async ({
+  schoolId,
+  contractId,
+  startDate,
+  endDate,
+  metrics,
+  countryCode,
+}: LoadSchoolsMeasuresData) => {
+  const school = await School.find(schoolId)
+  if (!school || !school.externalId) return
+
+  const measures = await unicefApi.allMeasurementsBySchool({
+    country_code: countryCode,
+    school_id: school.externalId,
+    start_date: startDate,
+    end_date: endDate,
+    size: 50,
+  })
+
+  return measureService.saveMeasuresFromUnicef(measures, contractId, school.id, metrics)
+}
+
 export default {
   listSchoolByCountry,
   getSchoolsMeasures,
+  loadSchoolsMeasures,
 }
