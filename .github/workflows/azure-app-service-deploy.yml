@@ -9,6 +9,7 @@ on:
       - dev
     paths-ignore:
       - '**/README.md'
+      - '.env.example'
   workflow_dispatch:
     inputs:
       target_env:
