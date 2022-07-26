@@ -25,7 +25,7 @@ export default class CreateUsers extends BaseCommand {
     const { default: Lta } = await import('App/Models/Lta')
     const { default: SuggestedMetric } = await import('App/Models/SuggestedMetric')
     const { roles, permissions, ContractStatus } = await import('App/Helpers/constants')
-    const { createContracts } = await import('App/Helpers/contractSchools')
+    const { createContracts } = await import('App/Helpers/scripts/contractSchools')
     // Metrics
     const uptime = await Metric.firstOrCreate({ name: 'Uptime' })
     const latency = await Metric.firstOrCreate({ name: 'Latency' })
