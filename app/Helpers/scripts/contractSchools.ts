@@ -3,13 +3,15 @@ import { DateTime } from 'luxon'
 import { ContractStatus } from 'App/Helpers/constants'
 import Contract from 'App/Models/Contract'
 import School from 'App/Models/School'
-import Attachment from 'App/Models/Attachment'
 import Draft from 'App/Models/Draft'
+import Isp from 'App/Models/Isp'
+import Lta from 'App/Models/Lta'
 
 type GenerateMetric = (
   schoolId: number,
   metricsId: number[],
-  contractId: number
+  contractId: number,
+  values: number[]
 ) => {
   metricId: number
   value: number
@@ -18,234 +20,1466 @@ type GenerateMetric = (
 }[]
 
 export const createContracts = async (
+  ltas: Lta[],
+  isps: Isp[],
   countryId: number,
+  // otherCountryId: number,
   currencyId: number,
   frequencyId: number,
-  userId: number,
-  ispId: number,
-  ltas: number[],
-  metricsId: number[],
-  isp2Id: number
+  budget: string,
+  createdBy: number,
+  metricsId: number[]
 ) => {
-  const attachment = await Attachment.create({ url: 'www.url.com', name: 'Attachment' })
-  await Contract.firstOrCreate(
-    generateContracts(
-      '43341171',
-      countryId,
-      currencyId,
-      frequencyId,
-      userId,
-      ContractStatus.Ongoing,
-      isp2Id,
-      ltas[0]
-    )
-  ).then(async (ctc) => {
-    ctc
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: true,
+    ltaId: ltas[0].id,
+    name: '8412140',
+    status: ContractStatus.Ongoing,
+    startDate: DateTime.now().set({ day: 10, month: 5, year: 2022 }),
+    endDate: DateTime.now().set({ day: 20, month: 8, year: 2022 }),
+    ispId: isps[2].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [92, 30, 10, 10]))
+    await ctc
       .related('schools')
       .saveMany([
-        await createSchool('School 1', countryId, metricsId, ctc.id, generateGreenMeasures),
-        await createSchool('School 2', countryId, metricsId, ctc.id, generateGreenMeasures),
-        await createSchool('School 3', countryId, metricsId, ctc.id, generateOrangeMeasures),
-        await createSchool('School 4', countryId, metricsId, ctc.id, generateOrangeMeasures),
-        await createSchool('School 5', countryId, metricsId, ctc.id),
+        await createSchool(
+          'Ramón Rosa',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [92, 30, 10, 10]
+        ),
+        await createSchool(
+          'Instituto Oficial Satuye',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [92, 30, 10, 10]
+        ),
+        await createSchool(
+          'La Libertad',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [92, 20, 5, 10]
+        ),
+        await createSchool(
+          'Medardo Mejía',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [0, 0, 0, 0]
+        ),
       ])
-    ctc
-      .related('payments')
-      .create(generatePayments(500000, attachment.id, ctc.id, userId, currencyId))
-    ctc.related('expectedMetrics').createMany(generateExpectedMetrics(ctc.id, metricsId))
-    return ctc
   })
-  await Contract.firstOrCreate(
-    generateContracts(
-      '23315657',
-      countryId,
-      currencyId,
-      frequencyId,
-      userId,
-      ContractStatus.Sent,
-      ispId,
-      ltas[0]
-    )
-  ).then(async (ctc) => {
-    ctc
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: true,
+    ltaId: ltas[0].id,
+    name: '8412141',
+    status: ContractStatus.Completed,
+    startDate: DateTime.now().set({ day: 9, month: 3, year: 2021 }),
+    endDate: DateTime.now().set({ day: 6, month: 9, year: 2021 }),
+    ispId: isps[2].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [100, 100, 30, 50]))
+    await ctc
       .related('schools')
       .saveMany([
-        await createSchool('School 6', countryId, metricsId, ctc.id),
-        await createSchool('School 7', countryId, metricsId, ctc.id),
+        await createSchool(
+          'David Hércules Navarro',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 100, 30, 50]
+        ),
+        await createSchool(
+          'Rafael Pineda Ponce',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 100, 30, 50]
+        ),
+        await createSchool(
+          'Marlon Lara Orellana',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 100, 30, 50]
+        ),
+        await createSchool(
+          'Francisco Varela',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 100, 30, 50]
+        ),
       ])
-    ctc.related('expectedMetrics').createMany(generateExpectedMetrics(ctc.id, metricsId))
-    return ctc
   })
-  await Contract.firstOrCreate(
-    generateContracts(
-      '33315657',
-      countryId,
-      currencyId,
-      frequencyId,
-      userId,
-      ContractStatus.Confirmed,
-      ispId,
-      ltas[0]
-    )
-  ).then(async (ctc) => {
-    ctc.related('schools').saveMany([await createSchool('School 8', countryId, metricsId, ctc.id)])
-    ctc.related('expectedMetrics').createMany(generateExpectedMetrics(ctc.id, metricsId))
-    return ctc
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: true,
+    ltaId: ltas[0].id,
+    name: '8412142',
+    status: ContractStatus.Completed,
+    startDate: DateTime.now().set({ day: 11, month: 3, year: 2020 }),
+    endDate: DateTime.now().set({ day: 13, month: 10, year: 2020 }),
+    ispId: isps[2].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [95, 200, 10, 20]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Andrés Abelino Martínez',
+          countryId,
+          180700364,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [95, 200, 10, 20]
+        ),
+      ])
   })
-  // //
   await Draft.firstOrCreate({
-    name: '43316557',
-    ltaId: ltas[1],
+    name: '7287573',
+    countryId: countryId,
+    governmentBehalf: false,
+    ltaId: ltas[1].id,
+    startDate: DateTime.now().set({ day: 11, month: 9, year: 2022 }),
+    endDate: DateTime.now().set({ day: 30, month: 3, year: 2023 }),
+    ispId: isps[7].id,
   })
-  await Contract.firstOrCreate(
-    generateContracts(
-      '53315657',
-      countryId,
-      currencyId,
-      frequencyId,
-      userId,
-      ContractStatus.Expired,
-      ispId,
-      ltas[1]
-    )
-  ).then(async (ctc) => {
-    ctc
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: false,
+    ltaId: ltas[1].id,
+    name: '7287574',
+    status: ContractStatus.Completed,
+    startDate: DateTime.now().set({ day: 1, month: 3, year: 2021 }),
+    endDate: DateTime.now().set({ day: 30, month: 9, year: 2021 }),
+    ispId: isps[7].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [96, 50, 30, 50]))
+    await ctc
       .related('schools')
       .saveMany([
-        await createSchool('School 9', countryId, metricsId, ctc.id, generateGreenMeasures),
-        await createSchool('School 10', countryId, metricsId, ctc.id, generateGreenMeasures),
+        await createSchool(
+          'Adelina Martínez Ávila',
+          countryId,
+          180700371,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [96, 50, 30, 50]
+        ),
       ])
-    ctc
-      .related('payments')
-      .create(generatePayments(1000000, attachment.id, ctc.id, userId, currencyId))
-    ctc.related('expectedMetrics').createMany(generateExpectedMetrics(ctc.id, metricsId))
-    return ctc
   })
-  await Contract.firstOrCreate(
-    generateContracts(
-      '63315657',
-      countryId,
-      currencyId,
-      frequencyId,
-      userId,
-      ContractStatus.Completed,
-      ispId,
-      ltas[1]
-    )
-  ).then(async (ctc) => {
-    ctc
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: false,
+    ltaId: ltas[1].id,
+    name: '7287575',
+    status: ContractStatus.Completed,
+    startDate: DateTime.now().set({ day: 2, month: 3, year: 2020 }),
+    endDate: DateTime.now().set({ day: 23, month: 10, year: 2020 }),
+    ispId: isps[7].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [92, 100, 10, 20]))
+    await ctc
       .related('schools')
       .saveMany([
-        await createSchool('School 11', countryId, metricsId, ctc.id, generateGreenMeasures),
+        await createSchool(
+          'Miguel Rafael Madrid',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [92, 100, 10, 20]
+        ),
+        await createSchool(
+          'Pedro Nufio',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [92, 100, 10, 20]
+        ),
+        await createSchool(
+          'Hercules Elementary',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [92, 100, 10, 20]
+        ),
+        await createSchool(
+          'Whale Gulch High School',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [92, 80, 10, 5]
+        ),
       ])
-    ctc
-      .related('payments')
-      .create(generatePayments(1000000, attachment.id, ctc.id, userId, currencyId))
-    ctc.related('expectedMetrics').createMany(generateExpectedMetrics(ctc.id, metricsId))
-    return ctc
   })
-  //
-  await Contract.firstOrCreate(
-    generateContracts(
-      '73315657',
-      countryId,
-      currencyId,
-      frequencyId,
-      userId,
-      ContractStatus.Ongoing,
-      ispId
-    )
-  ).then(async (ctc) => {
-    ctc
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: false,
+    ltaId: ltas[1].id,
+    name: '7287576',
+    status: ContractStatus.Completed,
+    startDate: DateTime.now().set({ day: 25, month: 10, year: 2019 }),
+    endDate: DateTime.now().set({ day: 10, month: 7, year: 2020 }),
+    ispId: isps[7].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [92, 100, 10, 20]))
+    await ctc
       .related('schools')
       .saveMany([
-        await createSchool('School 12', countryId, metricsId, ctc.id, generateGreenMeasures),
-        await createSchool('School 13', countryId, metricsId, ctc.id, generateOrangeMeasures),
+        await createSchool(
+          'Northview School for Girls',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [92, 100, 10, 20]
+        ),
+        await createSchool(
+          'Pleasant Valley Conservatory',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [92, 100, 10, 20]
+        ),
+        await createSchool(
+          'Panorama High',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [92, 100, 10, 20]
+        ),
+        await createSchool(
+          'Sandalwood School',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [92, 100, 10, 20]
+        ),
+        await createSchool(
+          'Riverview School',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [92, 80, 5, 20]
+        ),
       ])
-    ctc
-      .related('payments')
-      .create(generatePayments(1000, attachment.id, ctc.id, userId, currencyId))
-    ctc.related('expectedMetrics').createMany(generateExpectedMetrics(ctc.id, metricsId))
-    return ctc
   })
-  await Contract.firstOrCreate(
-    generateContracts(
-      '83315657',
-      countryId,
-      currencyId,
-      frequencyId,
-      userId,
-      ContractStatus.Ongoing,
-      ispId
-    )
-  ).then(async (ctc) => {
-    ctc
-      .related('schools')
-      .saveMany([
-        await createSchool('School 14', countryId, metricsId, ctc.id, generateOrangeMeasures),
-        await createSchool('School 15', countryId, metricsId, ctc.id),
-      ])
-    ctc
-      .related('payments')
-      .create(generatePayments(900000, attachment.id, ctc.id, userId, currencyId))
-    ctc.related('expectedMetrics').createMany(generateExpectedMetrics(ctc.id, metricsId))
-    return ctc
-  })
-  const school16 = await createSchool('School 16', countryId, metricsId)
   await Draft.firstOrCreate({
-    name: '93315657',
-    schools: { schools: [{ id: school16.id }] },
+    name: '8818229',
+    countryId: countryId,
+    governmentBehalf: false,
+    startDate: DateTime.now().set({ day: 30, month: 9, year: 2022 }),
+    endDate: DateTime.now().set({ day: 20, month: 4, year: 2023 }),
+    ispId: isps[6].id,
+  })
+  await Draft.firstOrCreate({
+    name: '9393487',
+    countryId: countryId,
+    governmentBehalf: true,
+    startDate: DateTime.now().set({ day: 16, month: 11, year: 2022 }),
+    endDate: DateTime.now().set({ day: 24, month: 5, year: 2023 }),
+    ispId: isps[3].id,
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: false,
+    name: '4949780',
+    status: ContractStatus.Sent,
+    startDate: DateTime.now().set({ day: 13, month: 11, year: 2022 }),
+    endDate: DateTime.now().set({ day: 12, month: 7, year: 2023 }),
+    ispId: isps[1].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [92, 100, 10, 20]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Green Valley Grammar School',
+          countryId,
+          180700371,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId
+        ),
+      ])
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: false,
+    name: '5079401',
+    status: ContractStatus.Confirmed,
+    startDate: DateTime.now().set({ day: 16, month: 11, year: 2022 }),
+    endDate: DateTime.now().set({ day: 5, month: 7, year: 2023 }),
+    ispId: isps[1].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [92, 100, 10, 20]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Green Valley School for Boys',
+          countryId,
+          180700448,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId
+        ),
+      ])
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: false,
+    name: '6934334',
+    status: ContractStatus.Ongoing,
+    startDate: DateTime.now().set({ day: 13, month: 4, year: 2022 }),
+    endDate: DateTime.now().set({ day: 20, month: 8, year: 2022 }),
+    ispId: isps[9].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [100, 100, 30, 50]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Northview School for Girls',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 100, 30, 50]
+        ),
+        await createSchool(
+          'Pleasant Valley Conservatory',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [5, 5, 5, 5]
+        ),
+        await createSchool(
+          'Panorama High',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 4, 30, 4]
+        ),
+        await createSchool(
+          'Sandalwood School',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [90, 100, 10, 50]
+        ),
+        await createSchool(
+          'Seacoast Elementary',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [0, 0, 0, 0]
+        ),
+      ])
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: true,
+    name: '9020161',
+    status: ContractStatus.Ongoing,
+    startDate: DateTime.now().set({ day: 9, month: 4, year: 2022 }),
+    endDate: DateTime.now().set({ day: 10, month: 11, year: 2022 }),
+    ispId: isps[10].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [62, 50, 10, 10]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Northview School for Girls',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [62, 50, 10, 10]
+        ),
+        await createSchool(
+          'Pleasant Valley Conservatory',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [62, 4, 4, 4]
+        ),
+        await createSchool(
+          'Panorama High',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [0, 0, 0, 0]
+        ),
+        await createSchool(
+          'Sandalwood School',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [0, 0, 0, 0]
+        ),
+        await createSchool(
+          'Seacoast Elementary',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [0, 0, 0, 0]
+        ),
+      ])
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: false,
+    name: '5631506',
+    status: ContractStatus.Ongoing,
+    startDate: DateTime.now().set({ day: 15, month: 6, year: 2022 }),
+    endDate: DateTime.now().set({ day: 12, month: 10, year: 2022 }),
+    ispId: isps[5].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [96, 30, 30, 50]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Northview School for Girls',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [96, 30, 30, 50]
+        ),
+        await createSchool(
+          'Pleasant Valley Conservatory',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [96, 30, 30, 50]
+        ),
+        await createSchool(
+          'Panorama High',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [96, 30, 30, 50]
+        ),
+        await createSchool(
+          'Sandalwood School',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [96, 5, 10, 5]
+        ),
+        await createSchool(
+          'Seacoast Elementary',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [0, 0, 0, 0]
+        ),
+      ])
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: false,
+    name: '2526207',
+    status: ContractStatus.Ongoing,
+    startDate: DateTime.now().set({ day: 1, month: 10, year: 2022 }),
+    endDate: DateTime.now().set({ day: 18, month: 1, year: 2023 }),
+    ispId: isps[1].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [82, 100, 10, 20]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Northview School for Girls',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [82, 100, 10, 20]
+        ),
+        await createSchool(
+          'Pleasant Valley Conservatory',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [82, 2, 2, 2]
+        ),
+        await createSchool(
+          'Panorama High',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [0, 0, 0, 0]
+        ),
+        await createSchool(
+          'Sandalwood School',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [0, 0, 0, 0]
+        ),
+        await createSchool(
+          'Seacoast Elementary',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [0, 0, 0, 0]
+        ),
+      ])
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: true,
+    name: '2154531',
+    status: ContractStatus.Expired,
+    startDate: DateTime.now().set({ day: 16, month: 12, year: 2021 }),
+    endDate: DateTime.now().set({ day: 1, month: 7, year: 2022 }),
+    ispId: isps[4].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [80, 200, 10, 10]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Northview School for Girls',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [80, 200, 10, 10]
+        ),
+        await createSchool(
+          'Pleasant Valley Conservatory',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [80, 200, 10, 10]
+        ),
+        await createSchool(
+          'Panorama High',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [80, 200, 10, 10]
+        ),
+        await createSchool(
+          'Sandalwood School',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [80, 200, 10, 10]
+        ),
+        await createSchool(
+          'Seacoast Elementary',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [0, 0, 0, 0]
+        ),
+      ])
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: false,
+    name: '6483012',
+    status: ContractStatus.Expired,
+    startDate: DateTime.now().set({ day: 31, month: 12, year: 2021 }),
+    endDate: DateTime.now().set({ day: 14, month: 3, year: 2022 }),
+    ispId: isps[8].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [96, 200, 10, 10]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Northview School for Girls',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [96, 200, 10, 10]
+        ),
+        await createSchool(
+          'Pleasant Valley Conservatory',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [96, 200, 10, 10]
+        ),
+        await createSchool(
+          'Panorama High',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [96, 200, 10, 10]
+        ),
+        await createSchool(
+          'Sandalwood School',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [96, 200, 10, 10]
+        ),
+        await createSchool(
+          'Seacoast Elementary',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [96, 2, 10, 2]
+        ),
+      ])
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: true,
+    name: '2364146',
+    status: ContractStatus.Completed,
+    startDate: DateTime.now().set({ day: 4, month: 4, year: 2021 }),
+    endDate: DateTime.now().set({ day: 6, month: 9, year: 2021 }),
+    ispId: isps[7].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [100, 30, 30, 50]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Northview School for Girls',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 30, 30, 50]
+        ),
+        await createSchool(
+          'Pleasant Valley Conservatory',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 30, 30, 50]
+        ),
+        await createSchool(
+          'Panorama High',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 30, 30, 50]
+        ),
+        await createSchool(
+          'Sandalwood School',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 30, 30, 50]
+        ),
+        await createSchool(
+          'Seacoast Elementary',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 30, 30, 50]
+        ),
+      ])
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: true,
+    name: '1089794',
+    status: ContractStatus.Completed,
+    startDate: DateTime.now().set({ day: 27, month: 3, year: 2020 }),
+    endDate: DateTime.now().set({ day: 13, month: 10, year: 2020 }),
+    ispId: isps[10].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [96, 100, 20, 50]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Northview School for Girls',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [96, 100, 20, 50]
+        ),
+      ])
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: false,
+    name: '5804450',
+    status: ContractStatus.Completed,
+    startDate: DateTime.now().set({ day: 22, month: 4, year: 2021 }),
+    endDate: DateTime.now().set({ day: 30, month: 7, year: 2021 }),
+    ispId: isps[11].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [94, 30, 10, 30]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Northview School for Girls',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [94, 30, 10, 30]
+        ),
+        await createSchool(
+          'Pleasant Valley Conservatory',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [94, 30, 10, 30]
+        ),
+        await createSchool(
+          'Panorama High',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [94, 30, 10, 30]
+        ),
+        await createSchool(
+          'Sandalwood School',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [94, 30, 10, 30]
+        ),
+        await createSchool(
+          'Seacoast Elementary',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [94, 1, 1, 30]
+        ),
+      ])
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: false,
+    name: '5950765',
+    status: ContractStatus.Completed,
+    startDate: DateTime.now().set({ day: 7, month: 3, year: 2020 }),
+    endDate: DateTime.now().set({ day: 23, month: 10, year: 2020 }),
+    ispId: isps[3].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [100, 30, 20, 50]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Northview School for Girls',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 30, 20, 50]
+        ),
+        await createSchool(
+          'Pleasant Valley Conservatory',
+          countryId,
+          180700315,
+          'Rio de Janeiro',
+          'Rio de Janeiro',
+          'Rua Herena',
+          '268',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 30, 20, 50]
+        ),
+        await createSchool(
+          'Panorama High',
+          countryId,
+          180700322,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 30, 20, 50]
+        ),
+        await createSchool(
+          'Sandalwood School',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 30, 20, 50]
+        ),
+        await createSchool(
+          'Seacoast Elementary',
+          countryId,
+          180700329,
+          'Goiás',
+          'Goiás',
+          'Rua VM B 7',
+          '840',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [100, 5, 5, 50]
+        ),
+      ])
+  })
+  await Contract.firstOrCreate({
+    countryId: countryId,
+    governmentBehalf: false,
+    name: '3625312',
+    status: ContractStatus.Completed,
+    startDate: DateTime.now().set({ day: 2, month: 1, year: 2020 }),
+    endDate: DateTime.now().set({ day: 10, month: 7, year: 2020 }),
+    ispId: isps[0].id,
+    currencyId,
+    frequencyId,
+    budget,
+    createdBy,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [98, 100, 10, 10]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Northview School for Girls',
+          countryId,
+          180700308,
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [98, 100, 10, 10]
+        ),
+      ])
   })
 }
 
-const generateContracts = (
+export const createIsps = (countryId: number, otherCountryId: number) => {
+  return Isp.createMany([
+    {
+      name: 'Anylink',
+      countryId: countryId,
+    },
+    {
+      name: 'AT&T Brazil',
+      countryId: countryId,
+    },
+    {
+      name: 'Brisanet Telecommunications',
+      countryId: countryId,
+    },
+    {
+      name: 'Claro Brazil',
+      countryId: countryId,
+    },
+    {
+      name: 'iO',
+      countryId: countryId,
+    },
+    {
+      name: 'Skymax Brazil', // 5
+      countryId: countryId,
+    },
+    {
+      name: 'Starlink SpaceX',
+      countryId: countryId,
+    },
+    {
+      name: 'T-Mobile Brazil',
+      countryId: countryId,
+    },
+    {
+      name: 'TIM',
+      countryId: countryId,
+    },
+    {
+      name: 'Verzion Communications', // 9
+      countryId: countryId,
+    },
+    {
+      name: 'Vivo',
+      countryId: countryId,
+    },
+    {
+      name: 'Vodafone',
+      countryId: countryId,
+    },
+    // Botswana
+    {
+      name: 'Reliance JIO',
+      countryId: otherCountryId,
+    },
+    {
+      name: 'KDDI',
+      countryId: otherCountryId,
+    },
+    {
+      name: 'AT&T Botswana',
+      countryId: otherCountryId,
+    },
+    {
+      name: 'Claro Botswana',
+      countryId: otherCountryId,
+    },
+    {
+      name: 'Skymax Botswana',
+      countryId: otherCountryId,
+    },
+    {
+      name: 'T-Mobile Botswana',
+      countryId: otherCountryId,
+    },
+  ])
+}
+
+export const createLtas = (countryId: number, otherCountryId: number) => {
+  return Lta.createMany([
+    {
+      countryId: countryId,
+      name: 'LLTS-42416339',
+    },
+    {
+      countryId: countryId,
+      name: 'LLTS-62428355',
+    },
+    {
+      countryId: countryId,
+      name: 'LLTS-18070030',
+    },
+    {
+      countryId: otherCountryId,
+      name: 'LLTS-45685455',
+    },
+  ])
+}
+
+const generateExpectedMetrics = (contractId: number, metricsId: number[], values: number[]) => {
+  return [
+    {
+      metricId: metricsId[0],
+      value: values[0],
+      contractId,
+    },
+    {
+      metricId: metricsId[1],
+      value: values[1],
+      contractId,
+    },
+    {
+      metricId: metricsId[2],
+      value: values[2],
+      contractId,
+    },
+    {
+      metricId: metricsId[3],
+      value: values[3],
+      contractId,
+    },
+  ]
+}
+
+const generateSchool = (
   name: string,
   countryId: number,
-  currencyId: number,
-  frequencyId: number,
-  userId: number,
-  status: ContractStatus,
-  ispId?: number,
-  ltaId?: number
+  externalId: number,
+  location1: string,
+  location2: string,
+  location3: string,
+  location4: string
 ) => ({
-  countryId,
-  governmentBehalf: false,
   name,
-  currencyId: currencyId,
-  budget: '1000000',
-  frequencyId: frequencyId,
-  startDate: DateTime.now().set({ hour: 0, minute: 0, second: 0 }),
-  endDate: DateTime.fromJSDate(new Date(new Date().valueOf() + 86400000)),
-  ...(ispId ? { ispId: ispId } : {}),
-  createdBy: userId,
-  status,
-  ...(ltaId ? { ltaId: ltaId } : {}),
-})
-
-const generatePayments = (
-  amount: number,
-  invoiceId: number,
-  contractId: number,
-  userId: number,
-  currencyId: number
-) => ({
-  dueDate: DateTime.now(),
-  paidDate: DateTime.now(),
-  invoiceId,
-  contractId,
-  paidBy: userId,
-  amount,
-  currencyId,
-})
-
-const generateSchool = (name: string, countryId: number) => ({
-  name,
-  externalId: 1001,
-  address: 'None Street',
-  location1: 'Location 1',
-  location2: 'Location 2',
-  location3: 'Location 3',
-  location4: 'Location 4',
+  externalId,
+  address: `${location1}, ${location2}, ${location3}, ${location4},`,
+  location1,
+  location2,
+  location3,
+  location4,
   educationLevel: 'High school',
   geopoint: '10.32424, 5.84978',
   email: 'school1@school.com',
@@ -254,100 +1488,61 @@ const generateSchool = (name: string, countryId: number) => ({
   countryId,
 })
 
-const generateExpectedMetrics = (contractId: number, metricsId: number[]) => {
-  return [
-    {
-      metricId: metricsId[0],
-      value: 100,
-      contractId,
-    },
-    {
-      metricId: metricsId[1],
-      value: 5,
-      contractId,
-    },
-    {
-      metricId: metricsId[2],
-      value: 10,
-      contractId,
-    },
-    {
-      metricId: metricsId[3],
-      value: 5,
-      contractId,
-    },
-  ]
-}
-
-const generateGreenMeasures = (schoolId: number, metricsId: number[], contractId: number) => {
-  return [
-    {
-      metricId: metricsId[0],
-      value: 100,
-      schoolId: schoolId,
-      contractId: contractId,
-    },
-    {
-      metricId: metricsId[1],
-      value: 5,
-      schoolId: schoolId,
-      contractId: contractId,
-    },
-    {
-      metricId: metricsId[2],
-      value: 10,
-      schoolId: schoolId,
-      contractId: contractId,
-    },
-    {
-      metricId: metricsId[3],
-      value: 5,
-      schoolId: schoolId,
-      contractId: contractId,
-    },
-  ]
-}
-
-const generateOrangeMeasures = (schoolId: number, metricsId: number[], contractId: number) => {
-  return [
-    {
-      metricId: metricsId[0],
-      value: 90,
-      schoolId: schoolId,
-      contractId: contractId,
-    },
-    {
-      metricId: metricsId[1],
-      value: 5,
-      schoolId: schoolId,
-      contractId: contractId,
-    },
-    {
-      metricId: metricsId[2],
-      value: 8,
-      schoolId: schoolId,
-      contractId: contractId,
-    },
-    {
-      metricId: metricsId[3],
-      value: 5,
-      schoolId: schoolId,
-      contractId: contractId,
-    },
-  ]
-}
-
 const createSchool = async (
   name: string,
   countryId: number,
+  externalId: number,
+  location1: string,
+  location2: string,
+  location3: string,
+  location4: string,
   metricsId: number[],
   contractId?: number,
-  generateMetric?: GenerateMetric
+  generateMetric?: GenerateMetric,
+  values?: number[]
 ) => {
-  return School.firstOrCreate(generateSchool(name, countryId)).then((school) => {
-    if (generateMetric && contractId) {
-      school.related('measures').createMany(generateMetric(school.id, metricsId, contractId))
+  return School.create(
+    generateSchool(name, countryId, externalId, location1, location2, location3, location4)
+  ).then((school) => {
+    if (generateMetric && contractId && values) {
+      school
+        .related('measures')
+        .createMany(generateMetric(school.id, metricsId, contractId, values))
     }
     return school
   })
+}
+
+const generateMetric = (
+  schoolId: number,
+  metricsId: number[],
+  contractId: number,
+  values: number[]
+) => {
+  return [
+    {
+      metricId: metricsId[0],
+      value: values[0],
+      schoolId: schoolId,
+      contractId: contractId,
+    },
+    {
+      metricId: metricsId[1],
+      value: values[1],
+      schoolId: schoolId,
+      contractId: contractId,
+    },
+    {
+      metricId: metricsId[2],
+      value: values[2],
+      schoolId: schoolId,
+      contractId: contractId,
+    },
+    {
+      metricId: metricsId[3],
+      value: values[3],
+      schoolId: schoolId,
+      contractId: contractId,
+    },
+  ]
 }
