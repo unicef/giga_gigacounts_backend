@@ -53,8 +53,8 @@ export default class CreateUsers extends BaseCommand {
     const frequency = await Frequency.firstOrCreate({ name: 'Monthly' })
     await Frequency.firstOrCreate({ name: 'Daily' })
     // Currencies
-    const brl = await Currency.firstOrCreate({ name: 'Brazilian Real' })
-    const usd = await Currency.firstOrCreate({ name: 'US Dollar' })
+    const brl = await Currency.firstOrCreate({ name: 'Brazilian Real', code: 'BRL' })
+    const usd = await Currency.firstOrCreate({ name: 'US Dollar', code: 'USD' })
     // Countries
     const brazil = await Country.firstOrCreate({
       name: 'Brazil',
