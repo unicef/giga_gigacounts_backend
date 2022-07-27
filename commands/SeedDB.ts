@@ -212,17 +212,12 @@ export default class CreateUsers extends BaseCommand {
       }).then((user) => user.related('roles').save(isp)),
     ])
     // Contracts
-    await createContracts(
-      ltas,
-      isps,
-      brazil.id,
-      botswana.id,
-      brl.id,
-      frequency.id,
-      '1000000',
-      brUser.id,
-      [uptime.id, latency.id, upload.id, download.id]
-    )
+    await createContracts(ltas, isps, brazil.id, brl.id, frequency.id, '1000000', brUser.id, [
+      uptime.id,
+      latency.id,
+      upload.id,
+      download.id,
+    ])
     await Contract.firstOrCreate({
       countryId: botswana.id,
       governmentBehalf: true,
