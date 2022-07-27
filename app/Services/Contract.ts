@@ -7,6 +7,7 @@ import User from 'App/Models/User'
 import StatusTransition from 'App/Models/StatusTransition'
 import Measure from 'App/Models/Measure'
 import Lta from 'App/Models/Lta'
+import Metric from 'App/Models/Metric'
 
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
 import NotFoundException from 'App/Exceptions/NotFoundException'
@@ -39,14 +40,20 @@ export interface ContractCreation {
 }
 
 export interface BatchUpdate {
-  confirmedContracts: number[]
+  confirmedContracts: ContractsMap[]
   ongoingContracts: number[]
 }
 
-type LoadMeasuresType = 'daily' | 'historic'
+export type LoadMeasuresType = 'daily' | 'historic'
 
 interface ContractsMap {
   id: string
+}
+
+const loadContractsDailyMeasures = async () => {
+  const contracts = await Contract.query().where('status', ContractStatus.Ongoing).select('id')
+  const contractsId: ContractsMap[] = contracts.map(({ id }) => ({ id: id.toString() }))
+  loadContractsMeasures(contractsId, 'daily')
 }
 
 const contractStatusBatchUpdate = async (): Promise<BatchUpdate> => {
@@ -56,12 +63,12 @@ const contractStatusBatchUpdate = async (): Promise<BatchUpdate> => {
     .andWhere('start_date', '<=', today.toString())
     .update('status', ContractStatus.Ongoing, ['id'])
 
-  loadContractsMeasures(confirmedContracts, 'historic')
-
   const ongoingContracts = await Contract.query()
     .where('status', ContractStatus.Ongoing)
     .andWhere('end_date', '<=', today.toString())
     .update('status', ContractStatus.Expired)
+
+  if (confirmedContracts.length > 0) loadContractsMeasures(confirmedContracts, 'historic')
 
   return { confirmedContracts, ongoingContracts }
 }
@@ -332,34 +339,47 @@ const fetchContractList = async (
     .withCount('schools')
 }
 
-const loadContractsMeasures = async (contractIds: ContractsMap[], type: LoadMeasuresType) => {
-  let startDate: string
-  const endDate = DateTime.now().toFormat('yyyy-MM-dd').toString()
-
-  if (type === 'daily') {
-    startDate = DateTime.now().toFormat('yyyy-MM-dd').toString()
-  }
-
+export const loadContractsMeasures = async (
+  contractIds: ContractsMap[],
+  type: LoadMeasuresType
+) => {
+  const startDate = type === 'daily' ? DateTime.now().startOf('month') : undefined
   return Promise.all(
     contractIds.map(({ id }) => {
-      loadContractMeasures(parseInt(id), endDate, startDate)
+      loadContractMeasures(parseInt(id), type, startDate)
     })
   )
 }
 
-const loadContractMeasures = async (contractId: number, endDate: string, startDate?: string) => {
+const loadContractMeasures = async (
+  contractId: number,
+  type: LoadMeasuresType,
+  startDate?: DateTime
+) => {
   const contract = await Contract.find(contractId)
   if (!contract) return
-  await contract.load('country')
-  await contract.load('schools')
+  let metrics: Metric[]
+  await Promise.all([
+    contract.load('country'),
+    contract.load('schools'),
+    (metrics = await Metric.all()),
+  ])
   const schoolsIds = contract.schools.map(({ id }) => id)
   return schoolService.loadSchoolsMeasures(
     schoolsIds,
     contract.id,
     contract.country.code,
-    startDate || contract.startDate.toFormat('yyyy-MM-dd').toString(),
-    endDate
+    startDate || contract.startDate,
+    defineMeasuresEndDate(contract.endDate),
+    metrics,
+    type
   )
+}
+
+const defineMeasuresEndDate = (contactEndDate: DateTime) => {
+  const today = utils.setDateToBeginOfDay(DateTime.now())
+  const endDate = utils.setDateToBeginOfDay(contactEndDate)
+  return endDate > today ? today : endDate
 }
 
 export default {
@@ -371,4 +391,5 @@ export default {
   getContractSchools,
   getContract,
   contractStatusBatchUpdate,
+  loadContractsDailyMeasures,
 }

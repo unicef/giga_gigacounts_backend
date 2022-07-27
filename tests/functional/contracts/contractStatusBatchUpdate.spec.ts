@@ -7,6 +7,8 @@ import UserFactory from 'Database/factories/UserFactory'
 import CountryFactory from 'Database/factories/CountryFactory'
 import IspFactory from 'Database/factories/IspFactory'
 
+import testUtils from '../../utils'
+
 import { BatchUpdate } from 'App/Services/Contract'
 
 test.group('Contract Status Batch Update', (group) => {
@@ -20,10 +22,12 @@ test.group('Contract Status Batch Update', (group) => {
   }) => {
     const user = await setupUser()
     await createContracts(user.countryId, user.id)
+    await user.load('country')
     const response = await client.patch('/contract/batch').loginAs(user)
     const batchBody = response.body() as BatchUpdate
-    expect(batchBody.confirmedContracts[0]).toBe(2)
+    expect(batchBody.confirmedContracts.length).toBe(2)
     expect(batchBody.ongoingContracts[0]).toBe(2)
+    expect(testUtils.checkAllMocksCalled()).toBe(true)
   })
   test('Successfully update the status of contracts that the start and end date has passed only once', async ({
     client,
@@ -33,20 +37,22 @@ test.group('Contract Status Batch Update', (group) => {
     await createContracts(user.countryId, user.id)
     let response = await client.patch('/contract/batch').loginAs(user)
     let batchBody = response.body() as BatchUpdate
-    expect(batchBody.confirmedContracts[0]).toBe(2)
+    expect(batchBody.confirmedContracts.length).toBe(2)
     expect(batchBody.ongoingContracts[0]).toBe(2)
     response = await client.patch('/contract/batch').loginAs(user)
     batchBody = response.body() as BatchUpdate
-    expect(batchBody.confirmedContracts[0]).toBe(0)
+    expect(batchBody.confirmedContracts.length).toBe(0)
     expect(batchBody.ongoingContracts[0]).toBe(0)
   })
 })
 
 const setupUser = async () => {
-  const country = await CountryFactory.create()
+  const country = await CountryFactory.apply('random').create()
   return UserFactory.merge({ countryId: country.id })
     .with('roles', 1, (role) =>
-      role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
+      role
+        .apply('random')
+        .with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
     )
     .create()
 }

@@ -31,7 +31,6 @@ const allMeasurementsBySchool = async (
   const condition = true
   const measures: MeasurementsData[] = []
   let page = 0
-
   while (condition) {
     page++
     const result = await instance.get(`/v1/all_measurements/${data.country_code}`, {
@@ -56,6 +55,13 @@ const allMeasurementsBySchool = async (
   return measures
 }
 
+const getCountries = async () => instance.get('/v1/countries')
+
+const getSchools = async (countryId: number, page: number, size: number) =>
+  instance.get(`/v1/schools/country/${countryId}`, { params: { page, size } })
+
 export default {
   allMeasurementsBySchool,
+  getCountries,
+  getSchools,
 }

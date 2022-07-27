@@ -1,9 +1,13 @@
 import Database from '@ioc:Adonis/Lucid/Database'
+import { DateTime } from 'luxon'
 
 import School from 'App/Models/School'
 import unicefApi from 'App/Helpers/unicefApi'
 import Metric from 'App/Models/Metric'
 import measureService from 'App/Services/Measure'
+
+import utils from 'App/Helpers/utils'
+import { LoadMeasuresType } from './Contract'
 
 export type TimeInterval = 'day' | 'week' | 'month'
 
@@ -17,10 +21,11 @@ export interface SchoolMeasure {
 interface LoadSchoolsMeasuresData {
   contractId: number
   schoolId: number
-  startDate: string
-  endDate: string
+  startDate: DateTime
+  endDate: DateTime
   metrics: Metric[]
   countryCode: string
+  type: LoadMeasuresType
 }
 
 const getSchoolsMeasures = async (
@@ -47,16 +52,19 @@ const loadSchoolsMeasures = async (
   schoolIds: number[],
   contractId: number,
   countryCode: string,
-  startDate: string,
-  endDate: string
+  startDate: DateTime,
+  endDate: DateTime,
+  metrics: Metric[],
+  type: LoadMeasuresType
 ) => {
-  const metrics = await Metric.all()
-
-  return Promise.all(
-    schoolIds.map((schoolId) =>
-      loadSchoolMeasure({ schoolId, contractId, startDate, endDate, metrics, countryCode })
+  const chunks = utils.splitIntoChunks(schoolIds, 50) as number[][]
+  for (const chunk of chunks) {
+    await Promise.all(
+      chunk.map((schoolId) =>
+        loadSchoolMeasure({ schoolId, contractId, startDate, endDate, metrics, countryCode, type })
+      )
     )
-  )
+  }
 }
 
 const loadSchoolMeasure = async ({
@@ -66,19 +74,58 @@ const loadSchoolMeasure = async ({
   endDate,
   metrics,
   countryCode,
+  type,
 }: LoadSchoolsMeasuresData) => {
   const school = await School.find(schoolId)
   if (!school || !school.externalId) return
 
+  const diffMonths = utils.diffOfMonths(endDate, startDate) || { months: 0 }
+
+  if (diffMonths.months >= 1) {
+    let condition = true
+    let monthDate = startDate
+
+    while (condition) {
+      if (monthDate <= endDate) {
+        const { firstDay, lastDay } = utils.getFirstAndLastDaysMonth(monthDate)
+        await loadAndSaveMeasures(school, countryCode, firstDay, lastDay, metrics, contractId, type)
+        monthDate = monthDate.plus({ month: 1 })
+      } else {
+        condition = false
+      }
+    }
+    return
+  }
+
+  return loadAndSaveMeasures(school, countryCode, startDate, endDate, metrics, contractId, type)
+}
+
+const loadAndSaveMeasures = async (
+  school: School,
+  countryCode: string,
+  startDate: DateTime,
+  endDate: DateTime,
+  metrics: Metric[],
+  contractId: number,
+  type: LoadMeasuresType
+) => {
   const measures = await unicefApi.allMeasurementsBySchool({
     country_code: countryCode,
     school_id: school.externalId,
-    start_date: startDate,
-    end_date: endDate,
+    start_date: startDate.toFormat('yyyy-MM-dd').toString(),
+    end_date: endDate.toFormat('yyyy-MM-dd').toString(),
     size: 50,
   })
 
-  return measureService.saveMeasuresFromUnicef(measures, contractId, school.id, metrics)
+  return measureService.saveMeasuresFromUnicef(
+    measures,
+    contractId,
+    school.id,
+    metrics,
+    startDate,
+    endDate,
+    type
+  )
 }
 
 export default {

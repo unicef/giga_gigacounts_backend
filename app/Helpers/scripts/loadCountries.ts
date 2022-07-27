@@ -1,12 +1,7 @@
 import Country from 'App/Models/Country'
-import axios from 'App/Helpers/axios'
-import { AxiosRequestHeaders } from 'axios'
+import unicefApi from 'App/Helpers//unicefApi'
 
 import utils from 'App/Helpers/utils'
-
-const getCountriesUrl = '/v1/countries'
-const UNICEF_API = process.env.UNICEF_API || ''
-const UNICEF_API_TOKEN = process.env.UNICEF_API_TOKEN || ''
 
 interface UnicefCountry {
   id: number
@@ -20,11 +15,7 @@ const createCountry = (country: UnicefCountry) =>
 
 export const loadCountries = async () => {
   try {
-    const headers: AxiosRequestHeaders = {
-      Authorization: `Bearer ${UNICEF_API_TOKEN}`,
-    }
-    const instance = axios.createInstance(UNICEF_API, headers)
-    const result = await instance.get(getCountriesUrl)
+    const result = await unicefApi.getCountries()
     if (result.data?.data) {
       const chunks = utils.splitIntoChunks(result.data.data, 50) as UnicefCountry[][]
       for (const chunk of chunks) {

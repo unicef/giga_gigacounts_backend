@@ -114,4 +114,12 @@ export default class ContractsController {
       return response.status(error.status).send(error.message)
     }
   }
+
+  public async loadContractsDailyMeasures({ response }: HttpContextContract) {
+    try {
+      await service.loadContractsDailyMeasures()
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
 }
