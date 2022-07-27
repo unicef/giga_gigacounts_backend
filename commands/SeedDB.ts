@@ -14,7 +14,6 @@ export default class CreateUsers extends BaseCommand {
     const { default: User } = await import('App/Models/User')
     const { default: Country } = await import('App/Models/Country')
     const { default: Role } = await import('App/Models/Role')
-    const { default: Isp } = await import('App/Models/Isp')
     const { default: Permission } = await import('App/Models/Permission')
     const { default: Frequency } = await import('App/Models/Frequency')
     const { default: Currency } = await import('App/Models/Currency')
@@ -22,15 +21,16 @@ export default class CreateUsers extends BaseCommand {
     const { default: Contract } = await import('App/Models/Contract')
     const { default: Metric } = await import('App/Models/Metric')
     const { default: Draft } = await import('App/Models/Draft')
-    const { default: Lta } = await import('App/Models/Lta')
     const { default: SuggestedMetric } = await import('App/Models/SuggestedMetric')
     const { roles, permissions, ContractStatus } = await import('App/Helpers/constants')
-    const { createContracts } = await import('App/Helpers/scripts/contractSchools')
+    const { createContracts, createLtas, createIsps } = await import(
+      'App/Helpers/scripts/contractSchools'
+    )
     // Metrics
-    const uptime = await Metric.firstOrCreate({ name: 'Uptime' })
-    const latency = await Metric.firstOrCreate({ name: 'Latency' })
-    const download = await Metric.firstOrCreate({ name: 'Download speed' })
-    const upload = await Metric.firstOrCreate({ name: 'Upload speed' })
+    const uptime = await Metric.firstOrCreate({ name: 'Uptime', weight: 35 })
+    const latency = await Metric.firstOrCreate({ name: 'Latency', weight: 15 })
+    const download = await Metric.firstOrCreate({ name: 'Download speed', weight: 30 })
+    const upload = await Metric.firstOrCreate({ name: 'Upload speed', weight: 20 })
     // Suggested values
     await SuggestedMetric.firstOrCreate({ metricId: uptime.id, value: '100', unit: '%' })
     await SuggestedMetric.firstOrCreate({ metricId: uptime.id, value: '98', unit: '%' })
@@ -51,6 +51,7 @@ export default class CreateUsers extends BaseCommand {
     await SuggestedMetric.firstOrCreate({ metricId: upload.id, value: '10', unit: 'Mb/s' })
     // Frequency
     const frequency = await Frequency.firstOrCreate({ name: 'Monthly' })
+    await Frequency.firstOrCreate({ name: 'Daily' })
     // Currencies
     const brl = await Currency.firstOrCreate({ name: 'Brazilian Real' })
     const usd = await Currency.firstOrCreate({ name: 'US Dollar' })
@@ -68,9 +69,7 @@ export default class CreateUsers extends BaseCommand {
         'https://sauniconnectweb.blob.core.windows.net/uniconnectweb/images/a526f447-623a-4d61-a22b-5e959c6fe553.png',
     })
     // Ltas
-    const ltaOne = await Lta.firstOrCreate({ name: 'LLTS-1234', countryId: brazil.id })
-    const ltaTwo = await Lta.firstOrCreate({ name: 'LLTS-5678', countryId: brazil.id })
-    const ltaThree = await Lta.firstOrCreate({ name: 'LLTS-7890', countryId: botswana.id })
+    const ltas = await createLtas(brazil.id, botswana.id)
     // Schools
     const botSchool = await School.firstOrCreate({
       name: 'School Bot 1',
@@ -87,12 +86,6 @@ export default class CreateUsers extends BaseCommand {
       contactPerson: 'School Owner 2',
       countryId: botswana.id,
     })
-    // const brazilSchools = await createSchools(brazil.id, [
-    //   uptime.id,
-    //   latency.id,
-    //   download.id,
-    //   upload.id,
-    // ])
     // Permissions
     const contractWrite = await Permission.create({ name: permissions.contractWrite })
     const attachmentWrite = await Permission.create({ name: permissions.attachmentWrite })
@@ -139,9 +132,7 @@ export default class CreateUsers extends BaseCommand {
       return role
     })
     // Isps
-    const isp1 = await Isp.firstOrCreate({ name: 'Vivo' })
-    const isp2 = await Isp.firstOrCreate({ name: 'AT&T' })
-    const isp3 = await Isp.firstOrCreate({ name: 'Verizon Communications' })
+    const isps = await createIsps(brazil.id, botswana.id)
     // Users
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const [brUser, _, bwUser] = await Promise.all([
@@ -221,29 +212,25 @@ export default class CreateUsers extends BaseCommand {
       }).then((user) => user.related('roles').save(isp)),
     ])
     // Contracts
-    await createContracts(
-      brazil.id,
-      brl.id,
-      frequency.id,
-      brUser.id,
-      isp1.id,
-      [ltaOne.id, ltaTwo.id],
-      [uptime.id, latency.id, download.id, upload.id],
-      isp3.id
-    )
+    await createContracts(ltas, isps, brazil.id, brl.id, frequency.id, '1000000', brUser.id, [
+      uptime.id,
+      latency.id,
+      upload.id,
+      download.id,
+    ])
     await Contract.firstOrCreate({
       countryId: botswana.id,
       governmentBehalf: true,
-      name: 'Contract Botswana 1',
+      name: '9655154',
       currencyId: usd.id,
       budget: '2000000',
       frequencyId: frequency.id,
       startDate: DateTime.now(),
       endDate: DateTime.now(),
-      ispId: isp2.id,
+      ispId: isps[17].id,
       createdBy: bwUser.id,
       status: ContractStatus.Ongoing,
-      ltaId: ltaThree.id,
+      ltaId: ltas[3].id,
     }).then((ctc) => {
       ctc.related('schools').save(botSchool)
       return ctc
@@ -251,7 +238,7 @@ export default class CreateUsers extends BaseCommand {
     await Draft.firstOrCreate({
       countryId: botswana.id,
       governmentBehalf: true,
-      name: 'Draft Botswana 1',
+      name: '9114097',
       currencyId: usd.id,
       frequencyId: frequency.id,
       createdBy: bwUser.id,

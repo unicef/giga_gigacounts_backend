@@ -14,10 +14,11 @@ export default class ContractsController {
     }
   }
 
-  public async createContract({ response, request }: HttpContextContract) {
+  public async createContract({ response, request, auth }: HttpContextContract) {
     try {
+      if (!auth.user) return
       const data = request.all() as ContractCreation
-      const contract = await service.createContract(data)
+      const contract = await service.createContract(data, auth.user)
       return response.ok(contract)
     } catch (error) {
       return response.status(error.status).send(error.message)
@@ -112,6 +113,16 @@ export default class ContractsController {
       response.ok(contracts)
     } catch (error) {
       return response.status(error.status).send(error.message)
+    }
+  }
+
+  public async deleteDraft({ response, request }: HttpContextContract) {
+    try {
+      const { draft_id } = request.params()
+      const result = await draftService.deleteDraft(draft_id)
+      response.ok(result)
+    } catch (error) {
+      return response.status(error?.status || error.statusCode).send(error.message)
     }
   }
 }

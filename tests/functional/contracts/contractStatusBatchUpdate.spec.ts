@@ -8,6 +8,7 @@ import CountryFactory from 'Database/factories/CountryFactory'
 import IspFactory from 'Database/factories/IspFactory'
 
 import { BatchUpdate } from 'App/Services/Contract'
+import Contract from 'App/Models/Contract'
 
 test.group('Contract Status Batch Update', (group) => {
   group.each.setup(async () => {
@@ -39,6 +40,44 @@ test.group('Contract Status Batch Update', (group) => {
     batchBody = response.body() as BatchUpdate
     expect(batchBody.confirmedContracts[0]).toBe(0)
     expect(batchBody.ongoingContracts[0]).toBe(0)
+  })
+  test('Successfully update all sent contracts to confirmed', async ({ client, expect }) => {
+    const user = await setupUser()
+    await createContracts(user.countryId, user.id)
+    const response = await client.patch('/contract/batch').loginAs(user)
+    const batchBody = response.body() as BatchUpdate
+    expect(batchBody.confirmedContracts[0]).toBe(2)
+    expect(batchBody.ongoingContracts[0]).toBe(2)
+    expect(batchBody.sentContracts[0]).toBe(1)
+  })
+  test('Successfully update a sent contract to confirmed and ongoing if the start date has passed', async ({
+    client,
+    expect,
+  }) => {
+    const user = await setupUser()
+    await createContracts(user.countryId, user.id)
+    const contract = await ContractFactory.merge({
+      countryId: user.countryId,
+      status: 1,
+      createdBy: user.id,
+      startDate: DateTime.now()
+        .set({ hour: 0, millisecond: 0, minute: 0, second: 0 })
+        .minus({ days: 2 }),
+      endDate: DateTime.now()
+        .set({ hour: 0, millisecond: 0, minute: 0, second: 0 })
+        .plus({ days: 10 }),
+    })
+      .with('currency')
+      .with('frequency')
+      .with('isp')
+      .create()
+    const response = await client.patch('/contract/batch').loginAs(user)
+    const batchBody = response.body() as BatchUpdate
+    expect(batchBody.confirmedContracts[0]).toBe(3)
+    expect(batchBody.ongoingContracts[0]).toBe(2)
+    expect(batchBody.sentContracts[0]).toBe(2)
+    const fetchedContract = await Contract.find(contract.id)
+    expect(fetchedContract?.status).toBe(3)
   })
 })
 
@@ -121,8 +160,20 @@ const createContracts = async (countryId: number, userId: number) => {
         .set({ hour: 0, millisecond: 0, minute: 0, second: 0 })
         .plus({ days: 10 }),
     },
+    {
+      countryId: countryId,
+      status: 1,
+      createdBy: userId,
+      ispId: isp.id,
+      startDate: DateTime.now()
+        .set({ hour: 0, millisecond: 0, minute: 0, second: 0 })
+        .plus({ days: 2 }),
+      endDate: DateTime.now()
+        .set({ hour: 0, millisecond: 0, minute: 0, second: 0 })
+        .plus({ days: 10 }),
+    },
   ])
     .with('currency')
     .with('frequency')
-    .createMany(6)
+    .createMany(7)
 }
