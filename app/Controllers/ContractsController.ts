@@ -25,10 +25,11 @@ export default class ContractsController {
     }
   }
 
-  public async saveDraft({ response, request }: HttpContextContract) {
+  public async saveDraft({ response, request, auth }: HttpContextContract) {
     try {
+      if (!auth.user) return
       const draftData = request.all() as Draft
-      const draft = await draftService.saveDraft(draftData)
+      const draft = await draftService.saveDraft(draftData, auth.user)
       response.ok(draft)
     } catch (error) {
       return response.status(error.status).send(error.message)
@@ -45,10 +46,11 @@ export default class ContractsController {
     }
   }
 
-  public async updateDraft({ response, request }: HttpContextContract) {
+  public async updateDraft({ response, request, auth }: HttpContextContract) {
     try {
+      if (!auth.user) return
       const draftData = request.all() as DraftData
-      const draft = await draftService.updateDraft(draftData)
+      const draft = await draftService.updateDraft(draftData, auth.user)
       response.ok(draft)
     } catch (error) {
       return response.status(error.status).send(error.message)
