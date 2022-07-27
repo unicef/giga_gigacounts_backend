@@ -1,8 +1,11 @@
+import Database from '@ioc:Adonis/Lucid/Database'
+
 import NotFoundException from 'App/Exceptions/NotFoundException'
-// import Attachment from 'App/Models/Attachment'
+import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
 import Draft from 'App/Models/Draft'
 import Metric from 'App/Models/Metric'
 import School from 'App/Models/School'
+import Attachment from 'App/Models/Attachment'
 import { DateTime } from 'luxon'
 
 import dto from 'App/DTOs/Draft'
@@ -88,8 +91,38 @@ const updateDraft = async (draftData: DraftData): Promise<Draft> => {
   return draft.save()
 }
 
+const deleteDraft = async (draftId: number) => {
+  const trx = await Database.transaction()
+  try {
+    const draft = await Draft.find(draftId, { client: trx })
+    if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
+
+    await draft.useTransaction(trx).load('attachments')
+    await draft.useTransaction(trx).related('attachments').detach()
+
+    for (const attachment of draft.attachments) {
+      await Attachment.find(attachment.id, { client: trx }).then((attach) =>
+        attach?.useTransaction(trx).delete()
+      )
+    }
+
+    await draft.useTransaction(trx).delete()
+
+    return trx.commit()
+  } catch (error) {
+    await trx.rollback()
+    if (error?.status === 404) throw error
+    throw new FailedDependencyException(
+      'Some dependency failed while uploading attachment',
+      424,
+      'FAILED_DEPENDENCY'
+    )
+  }
+}
+
 export default {
   saveDraft,
   getDraft,
   updateDraft,
+  deleteDraft,
 }
