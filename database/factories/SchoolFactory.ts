@@ -4,6 +4,8 @@ import CountryFactory from './CountryFactory'
 import MeasureFactory from './MeasureFactory'
 import ContractFactory from './ContractFactory'
 
+import { v1 } from 'uuid'
+
 export default Factory.define(School, ({ faker }) => {
   return {
     name: faker.company.companyName(),
@@ -16,7 +18,7 @@ export default Factory.define(School, ({ faker }) => {
     geopoint: `${faker.address.latitude()},${faker.address.longitude()}`,
     phoneNumber: faker.phone.phoneNumber(),
     contactPerson: faker.name.firstName(),
-    externalId: 1001,
+    externalId: v1(),
   }
 })
   .relation('country', () => CountryFactory)

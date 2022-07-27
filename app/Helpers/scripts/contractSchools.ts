@@ -53,7 +53,7 @@ export const createContracts = async (
         await createSchool(
           'Ramón Rosa',
           countryId,
-          180700308,
+          '1807003088',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -66,7 +66,7 @@ export const createContracts = async (
         await createSchool(
           'Instituto Oficial Satuye',
           countryId,
-          180700315,
+          '18070031501',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -79,7 +79,7 @@ export const createContracts = async (
         await createSchool(
           'La Libertad',
           countryId,
-          180700322,
+          '18070032201',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -92,7 +92,7 @@ export const createContracts = async (
         await createSchool(
           'Medardo Mejía',
           countryId,
-          180700329,
+          '18070032924',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -127,7 +127,7 @@ export const createContracts = async (
         await createSchool(
           'David Hércules Navarro',
           countryId,
-          180700308,
+          '1807003089',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -140,7 +140,7 @@ export const createContracts = async (
         await createSchool(
           'Rafael Pineda Ponce',
           countryId,
-          180700315,
+          '18070031502',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -153,7 +153,7 @@ export const createContracts = async (
         await createSchool(
           'Marlon Lara Orellana',
           countryId,
-          180700322,
+          '18070032202',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -166,7 +166,7 @@ export const createContracts = async (
         await createSchool(
           'Francisco Varela',
           countryId,
-          180700329,
+          '18070032925',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -201,7 +201,7 @@ export const createContracts = async (
         await createSchool(
           'Andrés Abelino Martínez',
           countryId,
-          180700364,
+          '180700364',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -245,7 +245,7 @@ export const createContracts = async (
         await createSchool(
           'Adelina Martínez Ávila',
           countryId,
-          180700371,
+          '180700371',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -280,7 +280,7 @@ export const createContracts = async (
         await createSchool(
           'Miguel Rafael Madrid',
           countryId,
-          180700308,
+          '18070030800',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -293,7 +293,7 @@ export const createContracts = async (
         await createSchool(
           'Pedro Nufio',
           countryId,
-          180700315,
+          '18070031503',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -306,7 +306,7 @@ export const createContracts = async (
         await createSchool(
           'Hercules Elementary',
           countryId,
-          180700322,
+          '18070032203',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -319,7 +319,7 @@ export const createContracts = async (
         await createSchool(
           'Whale Gulch High School',
           countryId,
-          180700329,
+          '18070032926',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -354,7 +354,7 @@ export const createContracts = async (
         await createSchool(
           'Northview School for Girls',
           countryId,
-          180700308,
+          '18070030801',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -367,7 +367,7 @@ export const createContracts = async (
         await createSchool(
           'Pleasant Valley Conservatory',
           countryId,
-          180700315,
+          '18070031504',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -380,7 +380,7 @@ export const createContracts = async (
         await createSchool(
           'Panorama High',
           countryId,
-          180700322,
+          '18070032204',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -393,7 +393,7 @@ export const createContracts = async (
         await createSchool(
           'Sandalwood School',
           countryId,
-          180700329,
+          '18070032927',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -406,7 +406,7 @@ export const createContracts = async (
         await createSchool(
           'Riverview School',
           countryId,
-          180700329,
+          '18070032928',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -456,7 +456,7 @@ export const createContracts = async (
         await createSchool(
           'Green Valley Grammar School',
           countryId,
-          180700371,
+          '180700371',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -487,7 +487,7 @@ export const createContracts = async (
         await createSchool(
           'Green Valley School for Boys',
           countryId,
-          180700448,
+          '180700448',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -518,7 +518,7 @@ export const createContracts = async (
         await createSchool(
           'Northview School for Girls',
           countryId,
-          180700308,
+          '18070030802',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -531,7 +531,7 @@ export const createContracts = async (
         await createSchool(
           'Pleasant Valley Conservatory',
           countryId,
-          180700315,
+          '18070031505',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -544,7 +544,7 @@ export const createContracts = async (
         await createSchool(
           'Panorama High',
           countryId,
-          180700322,
+          '18070032205',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -557,7 +557,7 @@ export const createContracts = async (
         await createSchool(
           'Sandalwood School',
           countryId,
-          180700329,
+          '18070032929',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -570,7 +570,7 @@ export const createContracts = async (
         await createSchool(
           'Seacoast Elementary',
           countryId,
-          180700329,
+          '18070032930',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -604,7 +604,7 @@ export const createContracts = async (
         await createSchool(
           'Northview School for Girls',
           countryId,
-          180700308,
+          '18070030803',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -617,7 +617,7 @@ export const createContracts = async (
         await createSchool(
           'Pleasant Valley Conservatory',
           countryId,
-          180700315,
+          '18070031506',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -630,7 +630,7 @@ export const createContracts = async (
         await createSchool(
           'Panorama High',
           countryId,
-          180700322,
+          '18070032206',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -643,7 +643,7 @@ export const createContracts = async (
         await createSchool(
           'Sandalwood School',
           countryId,
-          180700329,
+          '18070032931',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -656,7 +656,7 @@ export const createContracts = async (
         await createSchool(
           'Seacoast Elementary',
           countryId,
-          180700329,
+          '18070032932',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -690,7 +690,7 @@ export const createContracts = async (
         await createSchool(
           'Northview School for Girls',
           countryId,
-          180700308,
+          '18070030804',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -703,7 +703,7 @@ export const createContracts = async (
         await createSchool(
           'Pleasant Valley Conservatory',
           countryId,
-          180700315,
+          '18070031507',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -716,7 +716,7 @@ export const createContracts = async (
         await createSchool(
           'Panorama High',
           countryId,
-          180700322,
+          '18070032207',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -729,7 +729,7 @@ export const createContracts = async (
         await createSchool(
           'Sandalwood School',
           countryId,
-          180700329,
+          '18070032910',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -742,7 +742,7 @@ export const createContracts = async (
         await createSchool(
           'Seacoast Elementary',
           countryId,
-          180700329,
+          '18070032911',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -776,7 +776,7 @@ export const createContracts = async (
         await createSchool(
           'Northview School for Girls',
           countryId,
-          180700308,
+          '18070030805',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -789,7 +789,7 @@ export const createContracts = async (
         await createSchool(
           'Pleasant Valley Conservatory',
           countryId,
-          180700315,
+          '18070031508',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -802,7 +802,7 @@ export const createContracts = async (
         await createSchool(
           'Panorama High',
           countryId,
-          180700322,
+          '18070032208',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -815,7 +815,7 @@ export const createContracts = async (
         await createSchool(
           'Sandalwood School',
           countryId,
-          180700329,
+          '18070032912',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -828,7 +828,7 @@ export const createContracts = async (
         await createSchool(
           'Seacoast Elementary',
           countryId,
-          180700329,
+          '18070032913',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -862,7 +862,7 @@ export const createContracts = async (
         await createSchool(
           'Northview School for Girls',
           countryId,
-          180700308,
+          '18070030806',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -875,7 +875,7 @@ export const createContracts = async (
         await createSchool(
           'Pleasant Valley Conservatory',
           countryId,
-          180700315,
+          '18070031509',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -888,7 +888,7 @@ export const createContracts = async (
         await createSchool(
           'Panorama High',
           countryId,
-          180700322,
+          '18070032209',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -901,7 +901,7 @@ export const createContracts = async (
         await createSchool(
           'Sandalwood School',
           countryId,
-          180700329,
+          '18070032914',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -914,7 +914,7 @@ export const createContracts = async (
         await createSchool(
           'Seacoast Elementary',
           countryId,
-          180700329,
+          '18070032915',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -948,7 +948,7 @@ export const createContracts = async (
         await createSchool(
           'Northview School for Girls',
           countryId,
-          180700308,
+          '18070030807',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -961,7 +961,7 @@ export const createContracts = async (
         await createSchool(
           'Pleasant Valley Conservatory',
           countryId,
-          180700315,
+          '18070031510',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -974,7 +974,7 @@ export const createContracts = async (
         await createSchool(
           'Panorama High',
           countryId,
-          180700322,
+          '18070032210',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -987,7 +987,7 @@ export const createContracts = async (
         await createSchool(
           'Sandalwood School',
           countryId,
-          180700329,
+          '18070032916',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -1000,7 +1000,7 @@ export const createContracts = async (
         await createSchool(
           'Seacoast Elementary',
           countryId,
-          180700329,
+          '18070032917',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -1034,7 +1034,7 @@ export const createContracts = async (
         await createSchool(
           'Northview School for Girls',
           countryId,
-          180700308,
+          '18070030808',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -1047,7 +1047,7 @@ export const createContracts = async (
         await createSchool(
           'Pleasant Valley Conservatory',
           countryId,
-          180700315,
+          '18070031511',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -1060,7 +1060,7 @@ export const createContracts = async (
         await createSchool(
           'Panorama High',
           countryId,
-          180700322,
+          '18070032211',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -1073,7 +1073,7 @@ export const createContracts = async (
         await createSchool(
           'Sandalwood School',
           countryId,
-          180700329,
+          '18070032918',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -1086,7 +1086,7 @@ export const createContracts = async (
         await createSchool(
           'Seacoast Elementary',
           countryId,
-          180700329,
+          '18070032919',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -1120,7 +1120,7 @@ export const createContracts = async (
         await createSchool(
           'Northview School for Girls',
           countryId,
-          180700308,
+          '18070030809',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -1154,7 +1154,7 @@ export const createContracts = async (
         await createSchool(
           'Northview School for Girls',
           countryId,
-          180700308,
+          '18070030810',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -1167,7 +1167,7 @@ export const createContracts = async (
         await createSchool(
           'Pleasant Valley Conservatory',
           countryId,
-          180700315,
+          '18070031512',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -1180,7 +1180,7 @@ export const createContracts = async (
         await createSchool(
           'Panorama High',
           countryId,
-          180700322,
+          '18070032212',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -1193,7 +1193,7 @@ export const createContracts = async (
         await createSchool(
           'Sandalwood School',
           countryId,
-          180700329,
+          '18070032920',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -1206,7 +1206,7 @@ export const createContracts = async (
         await createSchool(
           'Seacoast Elementary',
           countryId,
-          180700329,
+          '18070032921',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -1240,7 +1240,7 @@ export const createContracts = async (
         await createSchool(
           'Northview School for Girls',
           countryId,
-          180700308,
+          '18070030811',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -1253,7 +1253,7 @@ export const createContracts = async (
         await createSchool(
           'Pleasant Valley Conservatory',
           countryId,
-          180700315,
+          '18070031513',
           'Rio de Janeiro',
           'Rio de Janeiro',
           'Rua Herena',
@@ -1266,7 +1266,7 @@ export const createContracts = async (
         await createSchool(
           'Panorama High',
           countryId,
-          180700322,
+          '18070032213',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -1279,7 +1279,7 @@ export const createContracts = async (
         await createSchool(
           'Sandalwood School',
           countryId,
-          180700329,
+          '18070032922',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -1292,7 +1292,7 @@ export const createContracts = async (
         await createSchool(
           'Seacoast Elementary',
           countryId,
-          180700329,
+          '18070032923',
           'Goiás',
           'Goiás',
           'Rua VM B 7',
@@ -1326,7 +1326,7 @@ export const createContracts = async (
         await createSchool(
           'Northview School for Girls',
           countryId,
-          180700308,
+          '18070030812',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -1467,7 +1467,7 @@ const generateExpectedMetrics = (contractId: number, metricsId: number[], values
 const generateSchool = (
   name: string,
   countryId: number,
-  externalId: number,
+  externalId: string,
   location1: string,
   location2: string,
   location3: string,
@@ -1491,7 +1491,7 @@ const generateSchool = (
 const createSchool = async (
   name: string,
   countryId: number,
-  externalId: number,
+  externalId: string,
   location1: string,
   location2: string,
   location3: string,
