@@ -42,6 +42,7 @@ export interface ContractCreation {
 export interface BatchUpdate {
   confirmedContracts: ContractsMap[]
   ongoingContracts: number[]
+  sentContracts: number[]
 }
 
 export type LoadMeasuresType = 'daily' | 'historic'
@@ -58,6 +59,11 @@ const loadContractsDailyMeasures = async () => {
 
 const contractStatusBatchUpdate = async (): Promise<BatchUpdate> => {
   const today = DateTime.now()
+
+  const sentContracts = await Contract.query()
+    .where('status', ContractStatus.Sent)
+    .update('status', ContractStatus.Confirmed)
+
   const confirmedContracts = await Contract.query()
     .where('status', ContractStatus.Confirmed)
     .andWhere('start_date', '<=', today.toString())
@@ -70,7 +76,7 @@ const contractStatusBatchUpdate = async (): Promise<BatchUpdate> => {
 
   if (confirmedContracts.length > 0) loadContractsMeasures(confirmedContracts, 'historic')
 
-  return { confirmedContracts, ongoingContracts }
+  return { sentContracts, confirmedContracts, ongoingContracts }
 }
 
 const getContractSchools = async (contractId: number) => {
@@ -150,11 +156,17 @@ const getContractList = async (user: User, status?: number) => {
   return dto.contractListDTO(contracts, drafts, ltas, schoolsMeasures)
 }
 
-const createContract = async (data: ContractCreation): Promise<Contract> => {
+const createContract = async (data: ContractCreation, user: User): Promise<Contract> => {
   const trx = await Database.transaction()
   try {
     const contract = await Contract.create(
-      { ...utils.removeProperty(data, 'draftId'), status: ContractStatus.Sent },
+      {
+        ...utils.removeProperty(data, 'draftId'),
+        status: ContractStatus.Sent,
+        governmentBehalf: userService.checkUserRole(user, [roles.government])
+          ? true
+          : data.governmentBehalf,
+      },
       { client: trx }
     )
 
