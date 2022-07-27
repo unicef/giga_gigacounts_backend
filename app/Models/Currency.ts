@@ -10,6 +10,9 @@ export default class Currency extends BaseModel {
   @column()
   public name: string
 
+  @column()
+  public code: string
+
   @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
 

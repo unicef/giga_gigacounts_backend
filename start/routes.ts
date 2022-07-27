@@ -125,6 +125,11 @@ Route.get('/contract/daily/measures', 'ContractsController.loadContractsDailyMea
   `acl:${permissions.contractWrite}`,
 ])
 
+Route.delete('/contract/draft/:draft_id', 'ContractsController.deleteDraft').middleware([
+  'auth:api',
+  `acl:${permissions.contractWrite}`,
+])
+
 /**
  * ATTACHMENTS ROUTES
  */

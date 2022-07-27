@@ -1,5 +1,5 @@
 import School from 'App/Models/School'
-import unicefApi from 'App/Helpers//unicefApi'
+import unicefApi from 'App/Helpers/unicefApi'
 
 import Country from 'App/Models/Country'
 

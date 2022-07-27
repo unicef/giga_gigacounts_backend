@@ -9,6 +9,7 @@ export default Factory.define(Currency, ({ faker }) => {
   fake = faker
   return {
     name: 'US Dollar',
+    code: 'USD',
   }
 })
   .state('random', (currency) => (currency.name = fake.name.firstName()))
