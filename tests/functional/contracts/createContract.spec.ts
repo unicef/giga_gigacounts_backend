@@ -269,11 +269,11 @@ test.group('Create Contract', (group) => {
     const { country, currency, frequency, isp, metrics, school } = await setupModels()
     const body = buildContract(
       'Contract 1',
-      country.id,
-      currency.id,
-      frequency.id,
-      isp.id,
-      user.id,
+      country.id.toString(),
+      currency.id.toString(),
+      frequency.id.toString(),
+      isp.id.toString(),
+      user.id.toString(),
       buildManyToMany([school.id], 'schools'),
       buildMetrics(metrics)
     )
@@ -282,7 +282,7 @@ test.group('Create Contract', (group) => {
     expect(contractRes.country_id).toBe(country.id)
     expect(contractRes.currency_id).toBe(currency.id)
     expect(contractRes.budget).toBe('1000')
-    expect(contractRes.frequency_id).toBe(frequency.id)
+    expect(contractRes.frequency_id).toBe(frequency.id.toString())
     expect(contractRes.isp_id).toBe(isp.id)
     expect(contractRes.created_by).toBe(user.id)
     expect(contractRes.status).toBe(1)
