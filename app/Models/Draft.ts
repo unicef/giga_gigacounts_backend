@@ -54,10 +54,10 @@ export default class Draft extends BaseModel {
   public createdBy?: number
 
   @column()
-  public schools?: { schools: { id: number }[] }
+  public schools?: { schools: { id: string }[] }
 
   @column()
-  public expectedMetrics?: { metrics: { metricId: number; value: number }[] }
+  public expectedMetrics?: { metrics: { metricId: string; value: number }[] }
 
   @column.dateTime({ autoCreate: true })
   public createdAt?: DateTime

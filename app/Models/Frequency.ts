@@ -4,7 +4,12 @@ import { BaseModel, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm'
 import Contract from 'App/Models/Contract'
 
 export default class Frequency extends BaseModel {
-  @column({ isPrimary: true })
+  @column({
+    isPrimary: true,
+    serialize: (value: number) => {
+      return value.toString()
+    },
+  })
   public id: number
 
   @column()

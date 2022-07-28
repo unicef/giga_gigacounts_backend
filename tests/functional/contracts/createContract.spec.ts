@@ -140,7 +140,7 @@ test.group('Create Contract', (group) => {
       frequency.id.toString(),
       isp.id.toString(),
       user.id.toString(),
-      buildManyToMany([1123], 'schools'),
+      buildManyToMany(['1123'], 'schools'),
       buildMetrics(metrics),
       undefined,
       draft.id.toString()
@@ -242,7 +242,7 @@ test.group('Create Contract', (group) => {
       frequency.id.toString(),
       isp.id.toString(),
       user.id.toString(),
-      buildManyToMany([1123], 'schools'),
+      buildManyToMany(['1123'], 'schools'),
       buildMetrics(metrics)
     )
     body.endDate = DateTime.now().set({ year: 1990 })
@@ -338,13 +338,13 @@ const buildContract = (
 const buildMetrics = (metrics: Metric[]) => ({
   expectedMetrics: {
     metrics: metrics.map((m) => ({
-      metricId: m.id,
+      metricId: m.id.toString(),
       value: 1,
     })),
   },
 })
 
-const buildManyToMany = (modelsId: number[], modelName: string) => ({
+const buildManyToMany = (modelsId: string[], modelName: string) => ({
   [modelName]: {
     [modelName]: modelsId.map((id) => ({
       id,

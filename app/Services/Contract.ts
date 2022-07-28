@@ -32,9 +32,9 @@ export interface ContractCreation {
   endDate: DateTime
   ispId: number
   createdBy: number
-  attachments?: { id: number }[]
-  schools: { schools: { id: number }[] }
-  expectedMetrics: { metrics: { metricId: number; value: number }[] }
+  attachments?: { id: string }[]
+  schools: { schools: { id: string }[] }
+  expectedMetrics: { metrics: { metricId: string; value: number }[] }
 }
 
 export interface BatchUpdate {

@@ -21,12 +21,12 @@ export default class CreateContractValidator {
     createdBy: schema.string(),
     attachments: schema.array.optional().members(schema.object().members({ id: schema.string() })),
     schools: schema.object().members({
-      schools: schema.array().members(schema.object().members({ id: schema.number() })),
+      schools: schema.array().members(schema.object().members({ id: schema.string() })),
     }),
     expectedMetrics: schema.object().members({
       metrics: schema
         .array()
-        .members(schema.object().members({ metricId: schema.number(), value: schema.number() })),
+        .members(schema.object().members({ metricId: schema.string(), value: schema.number() })),
     }),
   })
 

@@ -13,7 +13,12 @@ import ExpectedMetric from 'App/Models/ExpectedMetric'
 import SuggestedMetric from 'App/Models/SuggestedMetric'
 
 export default class Metric extends BaseModel {
-  @column({ isPrimary: true })
+  @column({
+    isPrimary: true,
+    serialize: (value: number) => {
+      return value.toString()
+    },
+  })
   public id: number
 
   @column()

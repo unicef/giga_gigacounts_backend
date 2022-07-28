@@ -1,4 +1,4 @@
-const destructObjArrayWithId = (object?: { id: number }[]) => {
+const destructObjArrayWithId = (object?: { id: string }[]) => {
   return (object || []).map((x) => x.id)
 }
 

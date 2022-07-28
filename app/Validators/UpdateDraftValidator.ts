@@ -28,12 +28,12 @@ export default class UpdateDraftValidator {
     ispId: schema.string.nullableAndOptional(),
     createdBy: schema.string.nullableAndOptional(),
     schools: schema.object.optional().members({
-      schools: schema.array().members(schema.object().members({ id: schema.number() })),
+      schools: schema.array().members(schema.object().members({ id: schema.string() })),
     }),
     expectedMetrics: schema.object.optional().members({
       metrics: schema
         .array()
-        .members(schema.object().members({ metricId: schema.number(), value: schema.number() })),
+        .members(schema.object().members({ metricId: schema.string(), value: schema.number() })),
     }),
   })
 

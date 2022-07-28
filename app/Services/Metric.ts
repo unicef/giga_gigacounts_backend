@@ -13,13 +13,16 @@ const listMetricsSuggestedValues = async () => {
 }
 
 const createExpectedMetrics = async (
-  metrics: { metricId: number; value: number }[],
+  metrics: { metricId: string; value: number }[],
   contractId: number,
   trx: TransactionClientContract
 ): Promise<ExpectedMetric[]> => {
   return Promise.all(
     metrics.map(async (m) =>
-      ExpectedMetric.create({ metricId: m.metricId, contractId, value: m.value }, { client: trx })
+      ExpectedMetric.create(
+        { metricId: parseInt(m.metricId), contractId, value: m.value },
+        { client: trx }
+      )
     )
   )
 }
