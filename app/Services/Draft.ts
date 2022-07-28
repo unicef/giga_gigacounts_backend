@@ -57,8 +57,26 @@ const getDraft = async (draftId: number) => {
   return dto.getDraftDTO({ draft, schools, expectedMetrics })
 }
 
-const saveDraft = async (draftData: Draft): Promise<Draft> => {
-  return Draft.create(draftData)
+const saveDraft = async (draftData: DraftData): Promise<Draft> => {
+  return Draft.create({
+    ...draftData,
+    startDate: draftData.startDate
+      ? DateTime.fromFormat(draftData?.startDate, 'yyyy-MM-dd').set({
+          hour: 0,
+          minute: 0,
+          second: 0,
+          millisecond: 0,
+        })
+      : undefined,
+    endDate: draftData.endDate
+      ? DateTime.fromFormat(draftData?.endDate, 'yyyy-MM-dd').set({
+          hour: 23,
+          minute: 59,
+          second: 59,
+          millisecond: 0,
+        })
+      : undefined,
+  })
 }
 
 const destructDraftsArray = (object?: { id: number }[]) => {
@@ -78,10 +96,20 @@ const updateDraft = async (draftData: DraftData): Promise<Draft> => {
   draft.budget = draftData?.budget
   draft.frequencyId = draftData?.frequencyId
   draft.startDate = draftData.startDate
-    ? DateTime.fromFormat(draftData.startDate, 'yyyy-MM-dd')
+    ? DateTime.fromFormat(draftData.startDate, 'yyyy-MM-dd').set({
+        hour: 0,
+        minute: 0,
+        second: 0,
+        millisecond: 0,
+      })
     : undefined
   draft.endDate = draftData.endDate
-    ? DateTime.fromFormat(draftData.endDate, 'yyyy-MM-dd').set({ hour: 23, minute: 59, second: 59 })
+    ? DateTime.fromFormat(draftData.endDate, 'yyyy-MM-dd').set({
+        hour: 23,
+        minute: 59,
+        second: 59,
+        millisecond: 0,
+      })
     : undefined
   draft.ispId = draftData?.ispId
   draft.createdBy = draftData?.createdBy

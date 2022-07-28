@@ -92,6 +92,31 @@ test.group('Update Draft', (group) => {
     )
     expect(JSON.parse(error.text).errors[0].rule).toBe('afterOrEqualToField')
   })
+  test('Successfully update a draft with start and end dates', async ({ client, expect }) => {
+    const country = await CountryFactory.create()
+    const draft = await DraftFactory.create()
+    const user = await createUser()
+    const response = await client.put('/contract/draft').loginAs(user).json({
+      id: draft.id,
+      countryId: country.id,
+      budget: '100000',
+      startDate: '2022-07-27',
+      endDate: '2022-10-31',
+    })
+    const body = response.body() as Draft
+    const draftUpdated = await Draft.find(body.id)
+    expect(draftUpdated?.name).toBe(draft.name)
+    expect(draftUpdated?.countryId).toBe(country.id)
+    expect(draftUpdated?.budget).toBe('100000')
+    expect(draftUpdated?.ltaId).toBeNull()
+    expect(draftUpdated?.currencyId).toBeNull()
+    expect(draftUpdated?.frequencyId).toBeNull()
+    expect(draftUpdated?.createdBy).toBeNull()
+    expect(draftUpdated?.schools).toBeNull()
+    expect(draftUpdated?.expectedMetrics).toBeNull()
+    expect(draftUpdated?.startDate?.toString()).toBe('2022-07-27T00:00:00.000-03:00')
+    expect(draftUpdated?.endDate?.toString()).toBe('2022-10-31T23:59:59.000-03:00')
+  })
 })
 
 const createUser = () => {
