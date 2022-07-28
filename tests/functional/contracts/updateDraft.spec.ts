@@ -114,8 +114,8 @@ test.group('Update Draft', (group) => {
     expect(draftUpdated?.createdBy).toBeNull()
     expect(draftUpdated?.schools).toBeNull()
     expect(draftUpdated?.expectedMetrics).toBeNull()
-    expect(draftUpdated?.startDate?.toString()).toBe('2022-07-27T00:00:00.000-03:00')
-    expect(draftUpdated?.endDate?.toString()).toBe('2022-10-31T23:59:59.000-03:00')
+    expect(draftUpdated?.startDate?.toString()).toContain('2022-07-27T00:00:00.000')
+    expect(draftUpdated?.endDate?.toString()).toContain('2022-10-31T23:59:59.000')
   })
 })
 
