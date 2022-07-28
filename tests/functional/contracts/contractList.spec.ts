@@ -123,6 +123,43 @@ test.group('Contract List', (group) => {
     expect(contractList.contracts[2].numberOfSchools).toBe('1')
     expect(contractList.contracts[2].totalSpent).toBe(15)
   })
+  test('Successfully filter contract list by status ongoing', async ({ client, expect }) => {
+    const [country1, country2] = await setupCountries()
+    const user = await UserFactory.with('roles', 1, (role) => {
+      role
+        .merge({
+          name: 'Giga Admin',
+        })
+        .with('permissions', 1, (permission) => permission.merge({ name: 'contract.read' }))
+    }).create()
+    await setupModels(country1.id, country2.id, user.id)
+    const response = await client.get('/contract?status=3').loginAs(user)
+    const contractList = response.body() as ContractListDTO
+    expect(contractList.contracts.length).toBe(1)
+    for (const lta of Object.values(contractList.ltas)) {
+      if (lta[0]) expect(lta[0].status).toBe('Ongoing')
+    }
+    for (const contract of contractList.contracts) {
+      expect(contract.status).toBe('Ongoing')
+    }
+  })
+  test('Successfully filter contract list by status draft', async ({ client, expect }) => {
+    const [country1, country2] = await setupCountries()
+    const user = await UserFactory.with('roles', 1, (role) => {
+      role
+        .merge({
+          name: 'Giga Admin',
+        })
+        .with('permissions', 1, (permission) => permission.merge({ name: 'contract.read' }))
+    }).create()
+    await setupModels(country1.id, country2.id, user.id)
+    const response = await client.get('/contract?status=0').loginAs(user)
+    const contractList = response.body() as ContractListDTO
+    expect(contractList.contracts.length).toBe(2)
+    for (const contract of contractList.contracts) {
+      expect(contract.status).toBe('Draft')
+    }
+  })
 })
 
 const setupCountries = async () => {

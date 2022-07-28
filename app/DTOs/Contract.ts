@@ -8,11 +8,13 @@ import utils from 'App/Helpers/utils'
 import { DateTime } from 'luxon'
 import School from 'App/Models/School'
 
+interface StatusCount {
+  status: string
+  count: any
+}
+
 export interface ContractsStatusCount {
-  counts: {
-    status: string
-    count: any
-  }[]
+  counts: StatusCount[]
   totalCount: number
 }
 
@@ -84,7 +86,7 @@ interface ConnectionEquation {
 export interface ContractSchoolsDetail {
   id: number
   name: string
-  externalId: number
+  externalId: string
   locations: string
   connection: ConnectionEquation
 }
@@ -226,14 +228,29 @@ const contractCountByStatusDTO = (
   totalCount: string,
   draftsCount: string
 ): ContractsStatusCount => {
-  const counts = contracts.map((c) => ({
-    status: ContractStatus[c.$attributes.status],
-    count: c.$extras.count,
-  }))
-  counts[counts.length] = {
+  const counts = Object.values(ContractStatus)
+    .map((value) => {
+      if (typeof value === 'string') {
+        return {
+          status: value,
+          count: 0,
+        }
+      }
+    })
+    .filter((value) => value) as StatusCount[]
+
+  for (const contract of contracts) {
+    counts[contract.$attributes.status] = {
+      status: ContractStatus[contract.$attributes.status],
+      count: contract.$extras.count,
+    }
+  }
+
+  counts[0] = {
     status: ContractStatus[0],
     count: draftsCount,
   }
+
   return {
     counts,
     totalCount: parseInt(totalCount) + parseInt(draftsCount),

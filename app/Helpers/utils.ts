@@ -10,16 +10,16 @@ const removeProperty = (object: any, propertyName: string) => {
 
 const getPercentage = (baseValue: number, value: number) => (value / baseValue) * 100
 
-const join = (arr: string[], separator: string) =>
-  arr.reduce((str, a) => {
-    if (a && !str) return a
-    if (a) return str + separator + a
-    return str
-  })
+const splitIntoChunks = (array: any[], chunkSize: number) => {
+  if (chunkSize === 0) return array
+  if (array.length === 0) return []
+  const otherChunks = splitIntoChunks(array.slice(chunkSize), chunkSize)
+  return [array.slice(0, chunkSize), ...otherChunks]
+}
 
 export default {
   destructObjArrayWithId,
   removeProperty,
   getPercentage,
-  join,
+  splitIntoChunks,
 }

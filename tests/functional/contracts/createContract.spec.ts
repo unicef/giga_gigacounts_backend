@@ -255,6 +255,44 @@ test.group('Create Contract', (group) => {
     )
     expect(JSON.parse(error.text).errors[0].rule).toBe('afterOrEqualToField')
   })
+  test('Successfully create a contract with governmentBehalf true if the user is government', async ({
+    client,
+    expect,
+  }) => {
+    const user = await UserFactory.with('roles', 1, (role) => {
+      role
+        .merge({
+          name: 'Government',
+        })
+        .with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
+    }).create()
+    const { country, currency, frequency, isp, metrics, school } = await setupModels()
+    const body = buildContract(
+      'Contract 1',
+      country.id,
+      currency.id,
+      frequency.id,
+      isp.id,
+      user.id,
+      buildManyToMany([school.id], 'schools'),
+      buildMetrics(metrics)
+    )
+    const response = await client.post('/contract').loginAs(user).json(body)
+    const contractRes = response.body()
+    expect(contractRes.country_id).toBe(country.id)
+    expect(contractRes.currency_id).toBe(currency.id)
+    expect(contractRes.budget).toBe('1000')
+    expect(contractRes.frequency_id).toBe(frequency.id)
+    expect(contractRes.isp_id).toBe(isp.id)
+    expect(contractRes.created_by).toBe(user.id)
+    expect(contractRes.status).toBe(1)
+    expect(contractRes.government_behalf).toBe(true)
+    const contract = await Contract.find(contractRes.id)
+    await contract?.load('schools')
+    await contract?.load('expectedMetrics')
+    expect(contract?.$preloaded.schools[0].$attributes.name).toBe(school.name)
+    expect((contract?.$preloaded.expectedMetrics as ExpectedMetric[]).length).toBe(4)
+  })
 })
 
 const setupModels = async () => {

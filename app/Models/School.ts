@@ -19,7 +19,7 @@ export default class School extends BaseModel {
   public id: number
 
   @column()
-  public externalId: number
+  public externalId: string
 
   @column()
   public name: string
@@ -56,6 +56,9 @@ export default class School extends BaseModel {
 
   @column()
   public countryId: number
+
+  @column()
+  public gigaIdSchool: string
 
   @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
