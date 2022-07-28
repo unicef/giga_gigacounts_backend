@@ -63,11 +63,7 @@ const fetchSchools = async (countryGigaId: number, countryId: number) => {
     })
     if (result.data.data.length > 0) {
       /* LOG FOR WHEN RUNNING */
-      // console.log({
-      //   length: result.data?.data?.length,
-      //   page,
-      //   country: countryId,
-      // })
+      // console.log({ length: result.data?.data?.length, page, country: countryId })
       await Promise.all(
         result.data?.data.map((school: UnicefSchool) => createSchool(school, countryId))
       )
@@ -79,6 +75,7 @@ const fetchSchools = async (countryGigaId: number, countryId: number) => {
 
 const createSchool = (school: UnicefSchool, countryId: number) => {
   const externalId = school.school_id || school.id.toString()
+  const gigaIdSchool = school.giga_id_school === '' ? undefined : school.giga_id_school
   return School.firstOrCreate(
     { externalId },
     {
@@ -91,7 +88,7 @@ const createSchool = (school: UnicefSchool, countryId: number) => {
       location4: school.admin_4_name,
       educationLevel: school.education_level,
       email: school.email,
-      gigaIdSchool: school.giga_id_school,
+      gigaIdSchool: gigaIdSchool,
       countryId,
     }
   )
