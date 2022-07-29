@@ -1,0 +1,50 @@
+name: Cron Job
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - '.github/workflows/cron.yml'
+  schedule:
+    - cron: '1 0 * * *'
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: 'Target ENV'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - stage
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+    name: Build Job
+    env:
+      CRON_TARGET_ENV: ${{ github.event.inputs.target_env || 'dev' }}
+
+    steps:
+
+    - name: Set credentials for DEV
+      if: env.CRON_TARGET_ENV == 'dev'
+      run: |
+        echo "USERNAME_FILE_VAR_NAME=DEV_BACKEND_USERNAME" >> $GITHUB_ENV
+        echo "PASSWORD_FILE_VAR_NAME=DEV_BACKEND_PASSWORD" >> $GITHUB_ENV
+
+    - name: Set credentials for STAGE
+      if: env.CRON_TARGET_ENV == 'stage'
+      run: |
+        echo "USERNAME_FILE_VAR_NAME=STAGE_BACKEND_USERNAME" >> $GITHUB_ENV
+        echo "PASSWORD_FILE_VAR_NAME=STAGE_BACKEND_PASSWORD" >> $GITHUB_ENV
+
+    - name: Get token
+      run: token=$(jq '.token' <(echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/login' -H 'Content-Type: application/json' -d '{"email": "${{ secrets[env.USERNAME_FILE_VAR_NAME] }}","password": "${{ secrets[env.PASSWORD_FILE_VAR_NAME] }}"}')") | sed "s/\"//g")
+
+    - name: Run contract batch request
+      run: curl -L -XPATCH "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/batch" -H "Authorization: Bearer $token"
+
+    - name: Run daily measures request
+      run: curl -L -XGET "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/daily/measures" -H "Authorization: Bearer $token"
