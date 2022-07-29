@@ -43,10 +43,10 @@ jobs:
     - name: Get token
       run: |
         export TOKEN=$(jq '.token' <(echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/login' -H 'Content-Type:application/json' -d '{"email":"${{ secrets[env.USERNAME_FILE_VAR_NAME] }}","password":"${{ secrets[env.PASSWORD_FILE_VAR_NAME] }}"}')") | sed "s/\"//g")
-        echo $TOKEN
+        echo "BEARER_TOKEN=$TOKEN" >> $GITHUB_ENV
 
     - name: Run contract batch request
-      run: curl -L -XPATCH "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/batch" -H "Authorization:Bearer $TOKEN"
+      run: curl -L -XPATCH "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/batch" -H "Authorization:Bearer $BEARER_TOKEN"
 
     - name: Run daily measures request
-      run: curl -L -XGET "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/daily/measures" -H "Authorization:Bearer $TOKEN"
+      run: curl -L -XGET "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/daily/measures" -H "Authorization:Bearer $BEARER_TOKEN"
