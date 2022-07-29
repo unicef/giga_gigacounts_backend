@@ -41,10 +41,10 @@ jobs:
         echo "PASSWORD_FILE_VAR_NAME=STAGE_BACKEND_PASSWORD" >> $GITHUB_ENV
 
     - name: Get token
-      run: token=$(jq '.token' <(echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/login' -H 'Content-Type:\ application/json' -d '{"email":\ "${{ secrets[env.USERNAME_FILE_VAR_NAME] }}","password":\ "${{ secrets[env.PASSWORD_FILE_VAR_NAME] }}"}')") | sed "s/\"//g")
+      run: token=$(jq '.token' <(echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/login' -H 'Content-Type:application/json' -d '{"email":"${{ secrets[env.USERNAME_FILE_VAR_NAME] }}","password":"${{ secrets[env.PASSWORD_FILE_VAR_NAME] }}"}')") | sed "s/\"//g")
 
     - name: Run contract batch request
-      run: curl -L -XPATCH "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/batch" -H "Authorization:\ Bearer $token"
+      run: curl -L -XPATCH "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/batch" -H "Authorization:Bearer $token"
 
     - name: Run daily measures request
-      run: curl -L -XGET "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/daily/measures" -H "Authorization:\ Bearer $token"
+      run: curl -L -XGET "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/daily/measures" -H "Authorization:Bearer $token"
