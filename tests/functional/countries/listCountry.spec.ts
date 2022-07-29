@@ -55,11 +55,7 @@ test.group('List Countries', (group) => {
     const user = await UserFactory.with('country', 1, (country) => {
       country.merge({ name: 'Argentina' })
     })
-      .with('roles', 1, (role) => {
-        role.merge({
-          name: 'Country Office',
-        })
-      })
+      .with('roles', 1)
       .create()
     const response = await client.get('/country').loginAs(user)
     const countries = response.body()
