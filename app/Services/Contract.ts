@@ -106,6 +106,7 @@ const getContract = async (contractId: number) => {
     .preload('expectedMetrics')
     .preload('attachments')
     .preload('schools')
+    .preload('currency')
 
   if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
 

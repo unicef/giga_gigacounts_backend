@@ -1,5 +1,4 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Draft from 'App/Models/Draft'
 
 import service, { ContractCreation } from 'App/Services/Contract'
 import draftService, { DraftData } from 'App/Services/Draft'
