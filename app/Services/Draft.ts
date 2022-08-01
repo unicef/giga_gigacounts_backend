@@ -1,4 +1,5 @@
 import Database from '@ioc:Adonis/Lucid/Database'
+import { DateTime } from 'luxon'
 
 import NotFoundException from 'App/Exceptions/NotFoundException'
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
@@ -6,9 +7,11 @@ import Draft from 'App/Models/Draft'
 import Metric from 'App/Models/Metric'
 import School from 'App/Models/School'
 import Attachment from 'App/Models/Attachment'
-import { DateTime } from 'luxon'
 
 import dto from 'App/DTOs/Draft'
+import userService from 'App/Services/User'
+import { roles } from 'App/Helpers/constants'
+import User from 'App/Models/User'
 
 export interface DraftData {
   id: number
@@ -57,9 +60,10 @@ const getDraft = async (draftId: number) => {
   return dto.getDraftDTO({ draft, schools, expectedMetrics })
 }
 
-const saveDraft = async (draftData: DraftData): Promise<Draft> => {
+const saveDraft = async (draftData: DraftData, user: User): Promise<Draft> => {
   return Draft.create({
     ...draftData,
+    governmentBehalf: isGovernmentBehalf(user, draftData.governmentBehalf),
     startDate: draftData.startDate
       ? DateTime.fromFormat(draftData?.startDate, 'yyyy-MM-dd').set({
           hour: 0,
@@ -83,14 +87,14 @@ const destructDraftsArray = (object?: { id: number }[]) => {
   return (object || []).map((x) => x.id)
 }
 
-const updateDraft = async (draftData: DraftData): Promise<Draft> => {
+const updateDraft = async (draftData: DraftData, user: User): Promise<Draft> => {
   const draft = await Draft.find(draftData.id)
 
   if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
 
   draft.name = draftData?.name || draft.name
   draft.countryId = draftData?.countryId
-  draft.governmentBehalf = draftData?.governmentBehalf
+  draft.governmentBehalf = isGovernmentBehalf(user, draftData?.governmentBehalf)
   draft.ltaId = draftData?.ltaId
   draft.currencyId = draftData?.currencyId
   draft.budget = draftData?.budget
@@ -147,6 +151,9 @@ const deleteDraft = async (draftId: number) => {
     )
   }
 }
+
+const isGovernmentBehalf = (user: User, governmentBehalf?: boolean) =>
+  userService.checkUserRole(user, [roles.government]) ? true : governmentBehalf
 
 export default {
   saveDraft,

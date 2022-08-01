@@ -26,3 +26,10 @@ export const permissions = {
   ltaRead: 'lta.read',
   ltaWrite: 'lta.write',
 }
+
+export const Metrics = {
+  Latency: 'Latency',
+  Uptime: 'Uptime',
+  Download: 'Download speed',
+  Upload: 'Upload speed',
+}

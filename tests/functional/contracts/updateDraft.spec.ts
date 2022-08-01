@@ -33,6 +33,7 @@ test.group('Update Draft', (group) => {
     expect(draftUpdated?.createdBy).toBeNull()
     expect(draftUpdated?.schools).toBeNull()
     expect(draftUpdated?.expectedMetrics).toBeNull()
+    expect(draftUpdated?.governmentBehalf).toBe(false)
   })
   test('Throw an error when a draft doesnt exist', async ({ client, expect }) => {
     const user = await createUser()
@@ -116,6 +117,38 @@ test.group('Update Draft', (group) => {
     expect(draftUpdated?.expectedMetrics).toBeNull()
     expect(draftUpdated?.startDate?.toString()).toContain('2022-07-27T00:00:00.000')
     expect(draftUpdated?.endDate?.toString()).toContain('2022-10-31T23:59:59.000')
+  })
+  test('Successfully update a draft when the user role is government', async ({
+    client,
+    expect,
+  }) => {
+    const country = await CountryFactory.create()
+    const draft = await DraftFactory.create()
+    const user = await UserFactory.with('roles', 1, (role) => {
+      role
+        .merge({ name: 'Government' })
+        .with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
+    }).create()
+    const response = await client.put('/contract/draft').loginAs(user).json({
+      id: draft.id,
+      countryId: country.id,
+      budget: '100000',
+      governmentBehalf: false,
+    })
+    const body = response.body() as Draft
+    const draftUpdated = await Draft.find(body.id)
+    expect(draftUpdated?.name).toBe(draft.name)
+    expect(draftUpdated?.countryId).toBe(country.id)
+    expect(draftUpdated?.budget).toBe('100000')
+    expect(draftUpdated?.ltaId).toBeNull()
+    expect(draftUpdated?.currencyId).toBeNull()
+    expect(draftUpdated?.frequencyId).toBeNull()
+    expect(draftUpdated?.startDate).toBeNull()
+    expect(draftUpdated?.endDate).toBeNull()
+    expect(draftUpdated?.createdBy).toBeNull()
+    expect(draftUpdated?.schools).toBeNull()
+    expect(draftUpdated?.expectedMetrics).toBeNull()
+    expect(draftUpdated?.governmentBehalf).toBe(true)
   })
 })
 
