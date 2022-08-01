@@ -60,6 +60,7 @@ const fetchSchools = async (countryGigaId: number, countryId: number) => {
 
 const createSchool = (school: UnicefSchool, countryId: number) => {
   const externalId = school.school_id || school.id.toString()
+  const gigaIdSchool = school.giga_id_school === '' ? undefined : school.giga_id_school
   return School.firstOrCreate(
     { externalId },
     {
@@ -72,7 +73,7 @@ const createSchool = (school: UnicefSchool, countryId: number) => {
       location4: school.admin_4_name,
       educationLevel: school.education_level,
       email: school.email,
-      gigaIdSchool: school.giga_id_school,
+      gigaIdSchool: gigaIdSchool,
       countryId,
     }
   )
