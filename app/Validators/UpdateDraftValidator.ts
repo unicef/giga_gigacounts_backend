@@ -4,11 +4,20 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 export default class UpdateDraftValidator {
   constructor(protected ctx: HttpContextContract) {}
 
+  public refs = schema.refs({
+    id: this.ctx.request.body().id,
+  })
+
   public schema = schema.create({
     id: schema.string(),
     name: schema.string.optional({}, [
       rules.unique({ table: 'contracts', column: 'name', caseInsensitive: true }),
-      rules.unique({ table: 'drafts', column: 'name', caseInsensitive: true }),
+      rules.unique({
+        table: 'drafts',
+        column: 'name',
+        caseInsensitive: true,
+        whereNot: { id: this.refs.id },
+      }),
     ]),
     countryId: schema.string.nullableAndOptional(),
     governmentBehalf: schema.boolean.nullableAndOptional(),

@@ -18,7 +18,11 @@ test.group('Contract List', (group) => {
     await Database.beginGlobalTransaction()
     return () => Database.rollbackGlobalTransaction()
   })
-  test('Successfully return all contracts of a specific country', async ({ client, expect }) => {
+  test('Successfully return all contracts of a specific country', async ({
+    client,
+    expect,
+    assert,
+  }) => {
     const [country1, country2] = await setupCountries()
     const user = await UserFactory.merge({ countryId: country1.id })
       .with('roles', 1, (role) =>
@@ -35,6 +39,10 @@ test.group('Contract List', (group) => {
       expect(lta[0].schoolsConnection?.allEqualOrAboveAvg).toBe(0)
       expect(lta[0].numberOfSchools).toBe('1')
     }
+    for (const contract of contractList.contracts) {
+      assert.notEmpty(contract.id)
+      assert.notEmpty(contract.listId)
+    }
     expect(contractList.contracts.length).toBe(2)
     expect(contractList.contracts[0].status).toBe('Draft')
     expect(contractList.contracts[1].status).toBe('Ongoing')
@@ -46,6 +54,7 @@ test.group('Contract List', (group) => {
   test('Successfully return all contracts that are government behalf for a specific country', async ({
     client,
     expect,
+    assert,
   }) => {
     const [country1, country2] = await setupCountries()
     const user = await UserFactory.merge({ countryId: country1.id })
@@ -62,6 +71,10 @@ test.group('Contract List', (group) => {
     const contractList = response.body() as ContractListDTO
     for (const lta of Object.values(contractList.ltas)) {
       expect(lta.length).toBe(0)
+    }
+    for (const contract of contractList.contracts) {
+      assert.notEmpty(contract.id)
+      assert.notEmpty(contract.listId)
     }
     expect(contractList.contracts.length).toBe(1)
     expect(contractList.contracts[0].status).toBe('Ongoing')
@@ -89,6 +102,10 @@ test.group('Contract List', (group) => {
     const response = await client.get('/contract').loginAs(user)
     const contractList = response.body() as ContractListDTO
     assert.isEmpty(contractList.ltas)
+    for (const contract of contractList.contracts) {
+      assert.notEmpty(contract.id)
+      assert.notEmpty(contract.listId)
+    }
     expect(contractList.contracts.length).toBe(2)
     expect(contractList.contracts[0].status).toBe('Draft')
     expect(contractList.contracts[0].isp).toBe('Verizon')
@@ -99,7 +116,11 @@ test.group('Contract List', (group) => {
     expect(contractList.contracts[1].schoolsConnection?.allEqualOrAboveAvg).toBe(100)
     expect(contractList.contracts[1].numberOfSchools).toBe('1')
   })
-  test('Successfully return all contracts if the user is admin', async ({ client, expect }) => {
+  test('Successfully return all contracts if the user is admin', async ({
+    client,
+    expect,
+    assert,
+  }) => {
     const [country1, country2] = await setupCountries()
     const user = await UserFactory.with('roles', 1, (role) => {
       role
@@ -112,6 +133,10 @@ test.group('Contract List', (group) => {
     const response = await client.get('/contract').loginAs(user)
     const contractList = response.body() as ContractListDTO
     expect(Object.keys(contractList.ltas).length).toBe(2)
+    for (const contract of contractList.contracts) {
+      assert.notEmpty(contract.id)
+      assert.notEmpty(contract.listId)
+    }
     expect(contractList.contracts.length).toBe(3)
     expect(contractList.contracts[0].status).toBe('Draft')
     expect(contractList.contracts[1].status).toBe('Draft')
@@ -123,7 +148,11 @@ test.group('Contract List', (group) => {
     expect(contractList.contracts[2].numberOfSchools).toBe('1')
     expect(contractList.contracts[2].totalSpent).toBe(15)
   })
-  test('Successfully filter contract list by status ongoing', async ({ client, expect }) => {
+  test('Successfully filter contract list by status ongoing', async ({
+    client,
+    expect,
+    assert,
+  }) => {
     const [country1, country2] = await setupCountries()
     const user = await UserFactory.with('roles', 1, (role) => {
       role
@@ -141,6 +170,8 @@ test.group('Contract List', (group) => {
     }
     for (const contract of contractList.contracts) {
       expect(contract.status).toBe('Ongoing')
+      assert.notEmpty(contract.id)
+      assert.notEmpty(contract.listId)
     }
   })
   test('Successfully filter contract list by status draft', async ({ client, expect }) => {

@@ -10,6 +10,9 @@ on:
     paths-ignore:
       - '**/README.md'
       - '.env.example'
+      - '.github/workflows/cron.yml'
+      - '.github/workflows/pr-workflow.yml'
+      - '.github/workflows/sas_token.yml'
   workflow_dispatch:
     inputs:
       target_env:

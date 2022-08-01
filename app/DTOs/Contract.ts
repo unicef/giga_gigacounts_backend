@@ -7,6 +7,7 @@ import { ContractStatus } from 'App/Helpers/constants'
 import utils from 'App/Helpers/utils'
 import { DateTime } from 'luxon'
 import School from 'App/Models/School'
+import { v1 } from 'uuid'
 
 interface StatusCount {
   status: string
@@ -29,6 +30,7 @@ interface LtaList {
 
 interface ContractList {
   id: number
+  listId: string
   name: string
   isp?: string
   status: string
@@ -269,6 +271,7 @@ const contractListDTO = (
   drafts.map((draft) => {
     const draftData = {
       id: draft.id,
+      listId: v1(),
       name: draft.name,
       isp: draft.isp?.name,
       status: 'Draft',
@@ -311,6 +314,7 @@ const contractListDTO = (
 
     const contractData = {
       id: contract.id,
+      listId: v1(),
       name: contract.name,
       isp: contract.isp.name,
       status: ContractStatus[contract.status],

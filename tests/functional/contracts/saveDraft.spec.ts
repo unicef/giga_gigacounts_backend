@@ -1,5 +1,6 @@
 import { test } from '@japa/runner'
 import Database from '@ioc:Adonis/Lucid/Database'
+import { DateTime } from 'luxon'
 
 import UserFactory from 'Database/factories/UserFactory'
 
@@ -93,5 +94,44 @@ test.group('Save Draft', (group) => {
       'after or equal to date validation failed'
     )
     expect(JSON.parse(error.text).errors[0].rule).toBe('afterOrEqualToField')
+  })
+  test('Successfully save a draft with start and end dates', async ({ client, expect, assert }) => {
+    const user = await UserFactory.with('roles', 1, (role) => {
+      role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
+    }).create()
+    const startDate = DateTime.now().toFormat('yyyy-MM-dd')
+    const endDate = DateTime.now().plus({ day: 1 }).toFormat('yyyy-MM-dd')
+    const response = await client
+      .post('/contract/draft')
+      .loginAs(user)
+      .json({ name: 'Draft 1', startDate, endDate })
+    const draft = response.body()
+    expect(draft.name).toBe('Draft 1')
+    assert.notEmpty(draft.id)
+    assert.notEmpty(draft.created_at)
+    assert.notEmpty(draft.updated_at)
+    expect(draft.start_date).toContain(`${startDate}T00:00:00.000`)
+    expect(draft.end_date).toContain(`${endDate}T23:59:59.000`)
+  })
+  test('Successfully save a draft when the user role is government', async ({
+    client,
+    expect,
+    assert,
+  }) => {
+    const user = await UserFactory.with('roles', 1, (role) => {
+      role
+        .merge({ name: 'Government' })
+        .with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
+    }).create()
+    const response = await client
+      .post('/contract/draft')
+      .loginAs(user)
+      .json({ name: 'Draft 1', governmentBehalf: false })
+    const draft = response.body()
+    expect(draft.name).toBe('Draft 1')
+    assert.notEmpty(draft.id)
+    assert.notEmpty(draft.created_at)
+    assert.notEmpty(draft.updated_at)
+    expect(draft.government_behalf).toBe(true)
   })
 })

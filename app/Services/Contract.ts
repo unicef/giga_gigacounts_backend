@@ -1,9 +1,13 @@
 import Database from '@ioc:Adonis/Lucid/Database'
 import { DateTime } from 'luxon'
+import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
 
 import Contract from 'App/Models/Contract'
 import User from 'App/Models/User'
 import StatusTransition from 'App/Models/StatusTransition'
+import Measure from 'App/Models/Measure'
+import Lta from 'App/Models/Lta'
+import Metric from 'App/Models/Metric'
 
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
 import NotFoundException from 'App/Exceptions/NotFoundException'
@@ -15,9 +19,7 @@ import metricService from 'App/Services/Metric'
 import dto, { ContractsStatusCount } from 'App/DTOs/Contract'
 import utils from 'App/Helpers/utils'
 import Draft from 'App/Models/Draft'
-import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
-import Measure from 'App/Models/Measure'
-import Lta from 'App/Models/Lta'
+import schoolService from 'App/Services/School'
 
 export interface ContractCreation {
   draftId?: number
@@ -28,8 +30,8 @@ export interface ContractCreation {
   currencyId: number
   budget: string
   frequencyId: number
-  startDate: DateTime
-  endDate: DateTime
+  startDate: string
+  endDate: string
   ispId: number
   createdBy: number
   attachments?: { id: string }[]
@@ -38,9 +40,21 @@ export interface ContractCreation {
 }
 
 export interface BatchUpdate {
-  confirmedContracts: number[]
+  confirmedContracts: ContractsMap[]
   ongoingContracts: number[]
   sentContracts: number[]
+}
+
+export type LoadMeasuresType = 'daily' | 'historic'
+
+interface ContractsMap {
+  id: string
+}
+
+const loadContractsDailyMeasures = async () => {
+  const contracts = await Contract.query().where('status', ContractStatus.Ongoing).select('id')
+  const contractsId: ContractsMap[] = contracts.map(({ id }) => ({ id: id.toString() }))
+  loadContractsMeasures(contractsId, 'daily')
 }
 
 const contractStatusBatchUpdate = async (): Promise<BatchUpdate> => {
@@ -53,14 +67,16 @@ const contractStatusBatchUpdate = async (): Promise<BatchUpdate> => {
   const confirmedContracts = await Contract.query()
     .where('status', ContractStatus.Confirmed)
     .andWhere('start_date', '<=', today.toString())
-    .update('status', ContractStatus.Ongoing)
+    .update('status', ContractStatus.Ongoing, ['id'])
 
   const ongoingContracts = await Contract.query()
     .where('status', ContractStatus.Ongoing)
     .andWhere('end_date', '<=', today.toString())
     .update('status', ContractStatus.Expired)
 
-  return { confirmedContracts, ongoingContracts, sentContracts }
+  if (confirmedContracts.length > 0) loadContractsMeasures(confirmedContracts, 'historic')
+
+  return { sentContracts, confirmedContracts, ongoingContracts }
 }
 
 const getContractSchools = async (contractId: number) => {
@@ -150,6 +166,18 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
         governmentBehalf: userService.checkUserRole(user, [roles.government])
           ? true
           : data.governmentBehalf,
+        startDate: DateTime.fromFormat(data.startDate, 'yyyy-MM-dd').set({
+          hour: 0,
+          minute: 0,
+          second: 0,
+          millisecond: 0,
+        }),
+        endDate: DateTime.fromFormat(data.endDate, 'yyyy-MM-dd').set({
+          hour: 23,
+          minute: 59,
+          second: 59,
+          millisecond: 0,
+        }),
       },
       { client: trx }
     )
@@ -335,6 +363,49 @@ const fetchContractList = async (
     .withCount('schools')
 }
 
+export const loadContractsMeasures = async (
+  contractIds: ContractsMap[],
+  type: LoadMeasuresType
+) => {
+  const startDate = type === 'daily' ? DateTime.now().startOf('month') : undefined
+  return Promise.all(
+    contractIds.map(({ id }) => {
+      loadContractMeasures(parseInt(id), type, startDate)
+    })
+  )
+}
+
+const loadContractMeasures = async (
+  contractId: number,
+  type: LoadMeasuresType,
+  startDate?: DateTime
+) => {
+  const contract = await Contract.find(contractId)
+  if (!contract) return
+  let metrics: Metric[]
+  await Promise.all([
+    contract.load('country'),
+    contract.load('schools'),
+    (metrics = await Metric.all()),
+  ])
+  const schoolsIds = contract.schools.map(({ id }) => id)
+  return schoolService.loadSchoolsMeasures(
+    schoolsIds,
+    contract.id,
+    contract.country.code,
+    startDate || contract.startDate,
+    defineMeasuresEndDate(contract.endDate),
+    metrics,
+    type
+  )
+}
+
+const defineMeasuresEndDate = (contactEndDate: DateTime) => {
+  const today = utils.setDateToBeginOfDay(DateTime.now())
+  const endDate = utils.setDateToBeginOfDay(contactEndDate)
+  return endDate > today ? today : endDate
+}
+
 export default {
   getContractsCountByStatus,
   createContract,
@@ -344,4 +415,5 @@ export default {
   getContractSchools,
   getContract,
   contractStatusBatchUpdate,
+  loadContractsDailyMeasures,
 }

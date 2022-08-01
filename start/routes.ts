@@ -120,6 +120,11 @@ Route.patch('/contract/batch', 'ContractsController.contractStatusBatchUpdate').
   `acl:${permissions.contractWrite}`,
 ])
 
+Route.get('/contract/daily/measures', 'ContractsController.loadContractsDailyMeasures').middleware([
+  'auth:api',
+  `acl:${permissions.contractWrite}`,
+])
+
 Route.delete('/contract/draft/:draft_id', 'ContractsController.deleteDraft').middleware([
   'auth:api',
   `acl:${permissions.contractWrite}`,

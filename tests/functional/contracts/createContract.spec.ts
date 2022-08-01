@@ -49,7 +49,11 @@ test.group('Create Contract', (group) => {
       role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
     }).create()
     const { country, currency, frequency, isp, metrics, school } = await setupModels()
+    const startDate = DateTime.now().toFormat('yyyy-MM-dd')
+    const endDate = DateTime.now().plus({ day: 1 }).toFormat('yyyy-MM-dd')
     const body = buildContract(
+      startDate,
+      endDate,
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
@@ -68,6 +72,8 @@ test.group('Create Contract', (group) => {
     expect(contractRes.isp_id).toBe(isp.id)
     expect(contractRes.created_by).toBe(user.id)
     expect(contractRes.status).toBe(1)
+    expect(contractRes.start_date).toContain(`${startDate}T00:00:00.000`)
+    expect(contractRes.end_date).toContain(`${endDate}T23:59:59.000`)
     const contract = await Contract.find(contractRes.id)
     await contract?.load('schools')
     await contract?.load('expectedMetrics')
@@ -83,7 +89,11 @@ test.group('Create Contract', (group) => {
     const { country, currency, frequency, isp, metrics, school } = await setupModels()
     const draft = await DraftFactory.create()
     const attachment = await createAttachment(client, user, draft.id)
+    const startDate = DateTime.now().toFormat('yyyy-MM-dd')
+    const endDate = DateTime.now().plus({ day: 1 }).toFormat('yyyy-MM-dd')
     const body = buildContract(
+      startDate,
+      endDate,
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
@@ -104,6 +114,8 @@ test.group('Create Contract', (group) => {
     expect(contractRes.isp_id).toBe(isp.id)
     expect(contractRes.created_by).toBe(user.id)
     expect(contractRes.status).toBe(1)
+    expect(contractRes.start_date).toContain(`${startDate}T00:00:00.000`)
+    expect(contractRes.end_date).toContain(`${endDate}T23:59:59.000`)
     const contract = await Contract.find(contractRes.id)
     await contract?.load('schools')
     await contract?.load('expectedMetrics')
@@ -133,7 +145,11 @@ test.group('Create Contract', (group) => {
     }).create()
     const { country, currency, frequency, isp, metrics } = await setupModels()
     const draft = await DraftFactory.create()
+    const startDate = DateTime.now().toFormat('yyyy-MM-dd')
+    const endDate = DateTime.now().plus({ day: 1 }).toFormat('yyyy-MM-dd')
     const body = buildContract(
+      startDate,
+      endDate,
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
@@ -175,7 +191,11 @@ test.group('Create Contract', (group) => {
     }).create()
     const { country, currency, frequency, isp, metrics, school } = await setupModels()
     await DraftFactory.create()
+    const startDate = DateTime.now().toFormat('yyyy-MM-dd')
+    const endDate = DateTime.now().plus({ day: 1 }).toFormat('yyyy-MM-dd')
     const body = buildContract(
+      startDate,
+      endDate,
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
@@ -200,7 +220,11 @@ test.group('Create Contract', (group) => {
       role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
     }).create()
     const { country, currency, frequency, isp, metrics, school } = await setupModels()
+    const startDate = DateTime.now().toFormat('yyyy-MM-dd')
+    const endDate = DateTime.now().plus({ day: 1 }).toFormat('yyyy-MM-dd')
     const body = buildContract(
+      startDate,
+      endDate,
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
@@ -235,7 +259,11 @@ test.group('Create Contract', (group) => {
       role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
     }).create()
     const { country, currency, frequency, isp, metrics } = await setupModels()
+    const startDate = DateTime.now().toFormat('yyyy-MM-dd')
+    const endDate = DateTime.now().set({ year: 1990 }).toFormat('yyyy-MM-dd')
     const body = buildContract(
+      startDate,
+      endDate,
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
@@ -245,7 +273,6 @@ test.group('Create Contract', (group) => {
       buildManyToMany(['1123'], 'schools'),
       buildMetrics(metrics)
     )
-    body.endDate = DateTime.now().set({ year: 1990 })
     const response = await client.post('/contract').loginAs(user).json(body)
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(422)
@@ -267,7 +294,11 @@ test.group('Create Contract', (group) => {
         .with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
     }).create()
     const { country, currency, frequency, isp, metrics, school } = await setupModels()
+    const startDate = DateTime.now().toFormat('yyyy-MM-dd')
+    const endDate = DateTime.now().plus({ day: 1 }).toFormat('yyyy-MM-dd')
     const body = buildContract(
+      startDate,
+      endDate,
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
@@ -287,6 +318,8 @@ test.group('Create Contract', (group) => {
     expect(contractRes.created_by).toBe(user.id)
     expect(contractRes.status).toBe(1)
     expect(contractRes.government_behalf).toBe(true)
+    expect(contractRes.start_date).toContain(`${startDate}T00:00:00.000`)
+    expect(contractRes.end_date).toContain(`${endDate}T23:59:59.000`)
     const contract = await Contract.find(contractRes.id)
     await contract?.load('schools')
     await contract?.load('expectedMetrics')
@@ -308,6 +341,8 @@ const setupModels = async () => {
 }
 
 const buildContract = (
+  startDate: string,
+  endDate: string,
   name?: string,
   countryId?: string,
   currencyId?: string,
@@ -325,8 +360,8 @@ const buildContract = (
   currencyId,
   budget: '1000',
   frequencyId,
-  startDate: DateTime.now(),
-  endDate: DateTime.now().plus({ day: 1 }),
+  startDate,
+  endDate,
   ispId,
   createdBy,
   attachments,
