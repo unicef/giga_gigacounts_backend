@@ -119,8 +119,8 @@ test.group('Schools Measures', (group) => {
     const user = await setupUser()
     await createContract(user.countryId, user.id)
     const response = await client.post('/school/measures').loginAs(user).json({
-      schoolId: 1000,
-      contractId: 32333,
+      schoolId: '1000',
+      contractId: '32333',
       interval: 'month',
     })
     const measures = response.body() as SchoolMeasure[]

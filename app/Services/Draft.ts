@@ -27,8 +27,8 @@ export interface DraftData {
   ispId?: number
   createdBy?: number
   attachments?: { attachments: { id: number }[] }
-  schools?: { schools: { id: number }[] }
-  expectedMetrics?: { metrics: { metricId: number; value: number }[] }
+  schools?: { schools: { id: string }[] }
+  expectedMetrics?: { metrics: { metricId: string; value: number }[] }
 }
 
 const getDraft = async (draftId: number) => {
@@ -83,7 +83,7 @@ const saveDraft = async (draftData: DraftData, user: User): Promise<Draft> => {
   })
 }
 
-const destructDraftsArray = (object?: { id: number }[]) => {
+const destructDraftsArray = (object?: { id: string }[]) => {
   return (object || []).map((x) => x.id)
 }
 
