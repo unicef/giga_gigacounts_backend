@@ -42,15 +42,15 @@ jobs:
         echo "PASSWORD_FILE_VAR_NAME=STAGE_BACKEND_PASSWORD" >> $GITHUB_ENV
 
     - name: Get token
-      if: github.event.schedule == '2 0 * * *' || github.event.schedule == '58 23 * * *'
+      if: github.event.schedule == '2 0 * * *' || github.event.schedule == '58 23 * * *' || github.event_name == 'workflow_dispatch'
       run: |
         export TOKEN=$(jq '.token' <(echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/login' -H 'Content-Type:application/json' -d '{"email":"${{ secrets[env.USERNAME_FILE_VAR_NAME] }}","password":"${{ secrets[env.PASSWORD_FILE_VAR_NAME] }}"}')") | sed "s/\"//g")
         echo "BEARER_TOKEN=$TOKEN" >> $GITHUB_ENV
 
     - name: Run contract batch request
-      if: github.event.schedule == '2 0 * * *'
+      if: github.event.schedule == '2 0 * * *' || github.event_name == 'workflow_dispatch'
       run: curl -L -XPATCH "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/batch" -H "Authorization:Bearer $BEARER_TOKEN"
 
     - name: Run daily measures request
-      if: github.event.schedule == '58 23 * * *'
+      if: github.event.schedule == '58 23 * * *' || github.event_name == 'workflow_dispatch'
       run: curl -L -XGET "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/daily/measures" -H "Authorization:Bearer $BEARER_TOKEN"
