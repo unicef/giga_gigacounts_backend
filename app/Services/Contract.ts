@@ -30,8 +30,8 @@ export interface ContractCreation {
   currencyId: number
   budget: string
   frequencyId: number
-  startDate: DateTime
-  endDate: DateTime
+  startDate: string
+  endDate: string
   ispId: number
   createdBy: number
   attachments?: { id: number }[]
@@ -166,6 +166,18 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
         governmentBehalf: userService.checkUserRole(user, [roles.government])
           ? true
           : data.governmentBehalf,
+        startDate: DateTime.fromFormat(data.startDate, 'yyyy-MM-dd').set({
+          hour: 0,
+          minute: 0,
+          second: 0,
+          millisecond: 0,
+        }),
+        endDate: DateTime.fromFormat(data.endDate, 'yyyy-MM-dd').set({
+          hour: 23,
+          minute: 59,
+          second: 59,
+          millisecond: 0,
+        }),
       },
       { client: trx }
     )

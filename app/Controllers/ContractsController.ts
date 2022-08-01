@@ -28,7 +28,7 @@ export default class ContractsController {
   public async saveDraft({ response, request, auth }: HttpContextContract) {
     try {
       if (!auth.user) return
-      const draftData = request.all() as Draft
+      const draftData = request.all() as DraftData
       const draft = await draftService.saveDraft(draftData, auth.user)
       response.ok(draft)
     } catch (error) {
