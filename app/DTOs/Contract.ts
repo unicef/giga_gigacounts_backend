@@ -6,7 +6,6 @@ import Lta from 'App/Models/Lta'
 import { ContractStatus } from 'App/Helpers/constants'
 import utils from 'App/Helpers/utils'
 import { DateTime } from 'luxon'
-import School from 'App/Models/School'
 import { v1 } from 'uuid'
 
 interface StatusCount {
