@@ -94,4 +94,22 @@ test.group('Save Draft', (group) => {
     )
     expect(JSON.parse(error.text).errors[0].rule).toBe('afterOrEqualToField')
   })
+  test('Successfully save a draft when the user role is government', async ({
+    client,
+    expect,
+    assert,
+  }) => {
+    const user = await UserFactory.with('roles', 1, (role) => {
+      role
+        .merge({ name: 'Government' })
+        .with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
+    }).create()
+    const response = await client.post('/contract/draft').loginAs(user).json({ name: 'Draft 1' })
+    const draft = response.body()
+    expect(draft.name).toBe('Draft 1')
+    assert.notEmpty(draft.id)
+    assert.notEmpty(draft.created_at)
+    assert.notEmpty(draft.updated_at)
+    expect(draft.government_behalf).toBe(true)
+  })
 })
