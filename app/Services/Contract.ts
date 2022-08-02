@@ -166,18 +166,8 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
         governmentBehalf: userService.checkUserRole(user, [roles.government])
           ? true
           : data.governmentBehalf,
-        startDate: DateTime.fromFormat(data.startDate, 'yyyy-MM-dd').set({
-          hour: 0,
-          minute: 0,
-          second: 0,
-          millisecond: 0,
-        }),
-        endDate: DateTime.fromFormat(data.endDate, 'yyyy-MM-dd').set({
-          hour: 23,
-          minute: 59,
-          second: 59,
-          millisecond: 0,
-        }),
+        startDate: utils.formatContractDate(data.startDate, true),
+        endDate: utils.formatContractDate(data.endDate),
       },
       { client: trx }
     )
@@ -219,6 +209,7 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
     return contract
   } catch (error) {
     await trx.rollback()
+    console.log(error)
     if (error.status === 404) throw error
     throw new FailedDependencyException(
       'Some dependency failed while creating contract',
@@ -401,8 +392,8 @@ const loadContractMeasures = async (
 }
 
 const defineMeasuresEndDate = (contactEndDate: DateTime) => {
-  const today = utils.setDateToBeginOfDay(DateTime.now())
-  const endDate = utils.setDateToBeginOfDay(contactEndDate)
+  const today = utils.setDateToBeginOfDayFromISO(DateTime.now())
+  const endDate = utils.setDateToBeginOfDayFromISO(contactEndDate)
   return endDate > today ? today : endDate
 }
 

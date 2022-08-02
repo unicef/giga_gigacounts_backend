@@ -23,7 +23,7 @@ test.group('Get Draft', (group) => {
     const school = await SchoolFactory.merge({ countryId: country.id }).create()
     const draft = await DraftFactory.merge({
       countryId: country.id,
-      schools: { schools: [{ id: school.id }] },
+      schools: { schools: [{ id: school.id.toString() }] },
     })
       .with('currency')
       .with('frequency')
