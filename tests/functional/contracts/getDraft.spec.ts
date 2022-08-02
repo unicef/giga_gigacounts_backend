@@ -5,6 +5,7 @@ import DraftFactory from 'Database/factories/DraftFactory'
 import SchoolFactory from 'Database/factories/SchoolFactory'
 import CountryFactory from 'Database/factories/CountryFactory'
 import UserFactory from 'Database/factories/UserFactory'
+import MetricFactory from 'Database/factories/MetricFactory'
 
 import { GetDraftDTOResponse } from 'App/DTOs/Draft'
 
@@ -13,7 +14,7 @@ test.group('Get Draft', (group) => {
     await Database.beginGlobalTransaction()
     return () => Database.rollbackGlobalTransaction()
   })
-  test('Successfully get a contract', async ({ client, expect }) => {
+  test('Successfully get a draft', async ({ client, expect }) => {
     const country = await CountryFactory.create()
     const user = await UserFactory.merge({ countryId: country.id })
       .with('roles', 1, (role) =>
@@ -21,9 +22,11 @@ test.group('Get Draft', (group) => {
       )
       .create()
     const school = await SchoolFactory.merge({ countryId: country.id }).create()
+    const metric = await MetricFactory.merge({ name: 'Metric test' }).create()
     const draft = await DraftFactory.merge({
       countryId: country.id,
-      schools: { schools: [{ id: school.id }] },
+      schools: { schools: [{ id: school.id.toString() }] },
+      expectedMetrics: { metrics: [{ metricId: metric.id.toString(), value: 20 }] },
     })
       .with('currency')
       .with('frequency')
@@ -43,7 +46,9 @@ test.group('Get Draft', (group) => {
     expect(draftResponse?.isp?.name).toBe('T-Mobile')
     expect(draftResponse.createdBy).toBe(null)
     expect(draftResponse.attachments).toStrictEqual([])
-    expect(draftResponse.expectedMetrics).toStrictEqual([])
+    expect((draftResponse.expectedMetrics || [])[0].name).toBe('Metric test')
+    expect((draftResponse.expectedMetrics || [])[0].value).toBe(20)
+    expect((draftResponse.expectedMetrics || [])[0].metricId).toBe(metric.id.toString())
     expect((draftResponse?.schools || [])[0].name).toBe(school.name)
   })
   test('Throw an error if a contract doesnt exist', async ({ client, expect }) => {
