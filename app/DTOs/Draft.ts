@@ -14,6 +14,7 @@ interface GetDraftDtoParams {
   expectedMetrics?: {
     name?: string
     value: number
+    metricId: string
   }[]
 }
 
@@ -43,6 +44,7 @@ export interface GetDraftDTOResponse {
   expectedMetrics?: {
     name?: string
     value: number
+    metricId: string
   }[]
 }
 

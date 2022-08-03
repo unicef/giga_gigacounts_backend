@@ -6,7 +6,6 @@ import Lta from 'App/Models/Lta'
 import { ContractStatus } from 'App/Helpers/constants'
 import utils from 'App/Helpers/utils'
 import { DateTime } from 'luxon'
-import School from 'App/Models/School'
 import { v1 } from 'uuid'
 
 interface StatusCount {
@@ -119,12 +118,23 @@ export interface ContractDTO {
     value: number
   }[]
   budget: string
-  schools: School[]
   currency: {
     id: string
     name: string
     code: string
   }
+  schools: {
+    id: string
+    externalId: string
+    name: string
+    locations: string
+    educationLevel: string
+    geopoint: string
+    email: string
+    phoneNumber: string
+    contactPerson: string
+    gigaIdSchool: string
+  }[]
 }
 
 const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {}) => {
@@ -139,9 +149,12 @@ const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {})
         id: school.id,
         name: school.name,
         externalId: school.externalId,
-        locations: [school?.location1, school?.location2, school?.location3, school?.location4]
-          .filter((e) => e)
-          .join(','),
+        locations: concatLocations([
+          school?.location1,
+          school?.location2,
+          school?.location3,
+          school?.location4,
+        ]),
         connection,
       })
     }
@@ -178,12 +191,28 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
       })
     ),
     budget: contract.budget,
-    schools: contract?.schools,
     currency: {
       id: contract.currency.id.toString(),
       name: contract.currency.name,
       code: contract.currency.code,
     },
+    schools: contract?.schools.map((school) => ({
+      id: school.id.toString(),
+      externalId: school.externalId,
+      name: school.name,
+      locations: concatLocations([
+        school?.location1,
+        school?.location2,
+        school?.location3,
+        school?.location4,
+      ]),
+      educationLevel: school.educationLevel,
+      geopoint: school.geopoint,
+      email: school.email,
+      phoneNumber: school.phoneNumber,
+      contactPerson: school.contactPerson,
+      gigaIdSchool: school.gigaIdSchool,
+    })),
   }
 }
 
@@ -422,6 +451,8 @@ const calculateSchoolsMeasure = async (
   }
   return connection
 }
+
+const concatLocations = (locations: string[]) => locations.filter((l) => l).join(',')
 
 export default {
   contractCountByStatusDTO,

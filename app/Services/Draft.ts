@@ -46,13 +46,17 @@ const getDraft = async (draftId: number) => {
 
   const schools = await School.findMany(destructDraftsArray(draft.schools?.schools))
 
-  const expectedMetrics: { name?: string; value: number }[] = []
+  const expectedMetrics: { name?: string; value: number; metricId: string }[] = []
 
   if (draft.expectedMetrics?.metrics) {
     await Promise.all(
       draft.expectedMetrics?.metrics.map(async (metric) => {
         const metricFound = await Metric.find(metric.metricId)
-        expectedMetrics.push({ name: metricFound?.name, value: metric.value })
+        expectedMetrics.push({
+          name: metricFound?.name,
+          value: metric.value,
+          metricId: metric.metricId.toString(),
+        })
       })
     )
   }
