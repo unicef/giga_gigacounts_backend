@@ -33,6 +33,9 @@ test.group('Get Contract', (group) => {
     expect(contractResponse.expectedMetrics.length).toBe(4)
     assert.isNotEmpty(contractResponse.budget)
     expect(contractResponse.schools.length).toBe(2)
+    assert.isNotEmpty(contractResponse.currency.id)
+    assert.isNotEmpty(contractResponse.currency.name)
+    assert.isNotEmpty(contractResponse.currency.code)
   })
   test('Throw an error if a contract doesnt exist', async ({ client, expect }) => {
     const user = await setupUser()

@@ -118,6 +118,11 @@ export interface ContractDTO {
     value: number
   }[]
   budget: string
+  currency: {
+    id: string
+    name: string
+    code: string
+  }
   schools: {
     id: string
     externalId: string
@@ -186,6 +191,11 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
       })
     ),
     budget: contract.budget,
+    currency: {
+      id: contract.currency.id.toString(),
+      name: contract.currency.name,
+      code: contract.currency.code,
+    },
     schools: contract?.schools.map((school) => ({
       id: school.id.toString(),
       externalId: school.externalId,
