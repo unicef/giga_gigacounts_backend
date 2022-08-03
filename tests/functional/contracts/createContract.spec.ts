@@ -60,7 +60,7 @@ test.group('Create Contract', (group) => {
       frequency.id.toString(),
       isp.id.toString(),
       user.id.toString(),
-      buildManyToMany([school.id], 'schools'),
+      buildManyToMany([school.id.toString()], 'schools'),
       buildMetrics(metrics)
     )
     const response = await client.post('/contract').loginAs(user).json(body)
@@ -73,7 +73,7 @@ test.group('Create Contract', (group) => {
     expect(contractRes.created_by).toBe(user.id)
     expect(contractRes.status).toBe(1)
     expect(contractRes.start_date).toContain(`${startDate}T00:00:00.000`)
-    expect(contractRes.end_date).toContain(`${endDate}T23:59:59.000`)
+    expect(contractRes.end_date).toContain(`${endDate}T23:59:59.999`)
     const contract = await Contract.find(contractRes.id)
     await contract?.load('schools')
     await contract?.load('expectedMetrics')
@@ -100,7 +100,7 @@ test.group('Create Contract', (group) => {
       frequency.id.toString(),
       isp.id.toString(),
       user.id.toString(),
-      buildManyToMany([school.id], 'schools'),
+      buildManyToMany([school.id.toString()], 'schools'),
       buildMetrics(metrics),
       [{ id: attachment.id }],
       draft.id.toString()
@@ -115,7 +115,7 @@ test.group('Create Contract', (group) => {
     expect(contractRes.created_by).toBe(user.id)
     expect(contractRes.status).toBe(1)
     expect(contractRes.start_date).toContain(`${startDate}T00:00:00.000`)
-    expect(contractRes.end_date).toContain(`${endDate}T23:59:59.000`)
+    expect(contractRes.end_date).toContain(`${endDate}T23:59:59.999`)
     const contract = await Contract.find(contractRes.id)
     await contract?.load('schools')
     await contract?.load('expectedMetrics')
@@ -202,7 +202,7 @@ test.group('Create Contract', (group) => {
       frequency.id.toString(),
       isp.id.toString(),
       user.id.toString(),
-      buildManyToMany([school.id], 'schools'),
+      buildManyToMany([school.id.toString()], 'schools'),
       buildMetrics(metrics),
       undefined,
       '100001'
@@ -231,7 +231,7 @@ test.group('Create Contract', (group) => {
       frequency.id.toString(),
       isp.id.toString(),
       user.id.toString(),
-      buildManyToMany([school.id], 'schools'),
+      buildManyToMany([school.id.toString()], 'schools'),
       buildMetrics(metrics)
     )
     let response = await client.post('/contract').loginAs(user).json(body)
@@ -305,7 +305,7 @@ test.group('Create Contract', (group) => {
       frequency.id.toString(),
       isp.id.toString(),
       user.id.toString(),
-      buildManyToMany([school.id], 'schools'),
+      buildManyToMany([school.id.toString()], 'schools'),
       buildMetrics(metrics)
     )
     const response = await client.post('/contract').loginAs(user).json(body)
@@ -319,7 +319,7 @@ test.group('Create Contract', (group) => {
     expect(contractRes.status).toBe(1)
     expect(contractRes.government_behalf).toBe(true)
     expect(contractRes.start_date).toContain(`${startDate}T00:00:00.000`)
-    expect(contractRes.end_date).toContain(`${endDate}T23:59:59.000`)
+    expect(contractRes.end_date).toContain(`${endDate}T23:59:59.999`)
     const contract = await Contract.find(contractRes.id)
     await contract?.load('schools')
     await contract?.load('expectedMetrics')

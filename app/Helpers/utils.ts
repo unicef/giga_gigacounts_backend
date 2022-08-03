@@ -42,8 +42,8 @@ const businessDiff = (date1: DateTimeLBD, date2: DateTimeLBD, relative?: boolean
 const diffOfMonths = (date1: DateTime, date2: DateTime) =>
   date1.diff(date2, ['months']).toObject() as DiffMonths
 
-const setDateToBeginOfDay = (date: DateTime) =>
-  DateTime.fromISO(date.toString()).set({ hour: 0, minute: 0, millisecond: 0, second: 0 })
+const setDateToBeginOfDayFromISO = (date: DateTime) =>
+  DateTime.fromISO(date.toString()).startOf('day')
 
 const getFirstAndLastDaysMonth = (date: DateTime) => {
   const firstDay = date.startOf('month')
@@ -57,6 +57,11 @@ const removeDuplicateTimestamps = (timestamps: string[]) => {
     .filter((value, index, self) => index === self.findIndex((t) => t === value))
 }
 
+const formatContractDate = (date: string, start: boolean = false) => {
+  const formatedDate = DateTime.fromFormat(date, 'yyyy-MM-dd')
+  return start ? formatedDate.startOf('day') : formatedDate.endOf('day')
+}
+
 export default {
   destructObjArrayWithId,
   removeProperty,
@@ -64,7 +69,8 @@ export default {
   splitIntoChunks,
   businessDiff,
   diffOfMonths,
-  setDateToBeginOfDay,
+  setDateToBeginOfDayFromISO,
   getFirstAndLastDaysMonth,
   removeDuplicateTimestamps,
+  formatContractDate,
 }

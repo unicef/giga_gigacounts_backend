@@ -59,7 +59,7 @@ test.group('Update Draft', (group) => {
   test('Successfully set a nullable value to null', async ({ client, expect, assert }) => {
     const draft = await DraftFactory.merge({
       budget: '100',
-      schools: { schools: [{ id: 1 }] },
+      schools: { schools: [{ id: '1' }] },
     }).create()
     const user = await createUser()
     const response = await client.put('/contract/draft').loginAs(user).json({
@@ -71,7 +71,7 @@ test.group('Update Draft', (group) => {
     const draftUpdated = await Draft.find(body.id)
     expect(draftUpdated?.budget).toBe(null)
     expect(draftUpdated?.schools).toBe(null)
-    assert.deepEqual(draft?.schools, { schools: [{ id: 1 }] })
+    assert.deepEqual(draft?.schools, { schools: [{ id: '1' }] })
     expect(draft?.budget).toBe('100')
   })
   test('Throw a error when updating a draft with endDate smaller than startDate', async ({
@@ -116,7 +116,7 @@ test.group('Update Draft', (group) => {
     expect(draftUpdated?.schools).toBeNull()
     expect(draftUpdated?.expectedMetrics).toBeNull()
     expect(draftUpdated?.startDate?.toString()).toContain('2022-07-27T00:00:00.000')
-    expect(draftUpdated?.endDate?.toString()).toContain('2022-10-31T23:59:59.000')
+    expect(draftUpdated?.endDate?.toString()).toContain('2022-10-31T23:59:59.999')
   })
   test('Successfully update a draft when the user role is government', async ({
     client,

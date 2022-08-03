@@ -1,5 +1,4 @@
 import Database from '@ioc:Adonis/Lucid/Database'
-import { DateTime } from 'luxon'
 
 import NotFoundException from 'App/Exceptions/NotFoundException'
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
@@ -12,6 +11,7 @@ import dto from 'App/DTOs/Draft'
 import userService from 'App/Services/User'
 import { roles } from 'App/Helpers/constants'
 import User from 'App/Models/User'
+import utils from 'App/Helpers/utils'
 
 export interface DraftData {
   id: number
@@ -69,21 +69,9 @@ const saveDraft = async (draftData: DraftData, user: User): Promise<Draft> => {
     ...draftData,
     governmentBehalf: isGovernmentBehalf(user, draftData.governmentBehalf),
     startDate: draftData.startDate
-      ? DateTime.fromFormat(draftData?.startDate, 'yyyy-MM-dd').set({
-          hour: 0,
-          minute: 0,
-          second: 0,
-          millisecond: 0,
-        })
+      ? utils.formatContractDate(draftData?.startDate, true)
       : undefined,
-    endDate: draftData.endDate
-      ? DateTime.fromFormat(draftData?.endDate, 'yyyy-MM-dd').set({
-          hour: 23,
-          minute: 59,
-          second: 59,
-          millisecond: 0,
-        })
-      : undefined,
+    endDate: draftData.endDate ? utils.formatContractDate(draftData?.endDate) : undefined,
   })
 }
 
@@ -104,21 +92,9 @@ const updateDraft = async (draftData: DraftData, user: User): Promise<Draft> => 
   draft.budget = draftData?.budget
   draft.frequencyId = draftData?.frequencyId
   draft.startDate = draftData.startDate
-    ? DateTime.fromFormat(draftData.startDate, 'yyyy-MM-dd').set({
-        hour: 0,
-        minute: 0,
-        second: 0,
-        millisecond: 0,
-      })
+    ? utils.formatContractDate(draftData.startDate, true)
     : undefined
-  draft.endDate = draftData.endDate
-    ? DateTime.fromFormat(draftData.endDate, 'yyyy-MM-dd').set({
-        hour: 23,
-        minute: 59,
-        second: 59,
-        millisecond: 0,
-      })
-    : undefined
+  draft.endDate = draftData.endDate ? utils.formatContractDate(draftData.endDate) : undefined
   draft.ispId = draftData?.ispId
   draft.createdBy = draftData?.createdBy
   draft.schools = draftData?.schools
