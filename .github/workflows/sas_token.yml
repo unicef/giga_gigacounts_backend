@@ -13,6 +13,7 @@ on:
         options:
           - attachments-dev
           - attachments-stage
+          - attachments-uat
       ttl:
         description: 'SAS token TTL'
         required: true

@@ -1,11 +1,6 @@
 name: Cron Job
 
 on:
-  push:
-    branches:
-      - dev
-    paths:
-      - '.github/workflows/cron.yml'
   schedule:
     - cron: '2 0 * * *'
     - cron: '58 23 * * *'
@@ -19,6 +14,7 @@ on:
         options:
           - dev
           - stage
+          - uat
 
 jobs:
   build:
@@ -29,28 +25,46 @@ jobs:
 
     steps:
 
-    - name: Set credentials for DEV
-      if: env.CRON_TARGET_ENV == 'dev'
+    - name: Set credentials for DEV/STAGE
+      if: env.CRON_TARGET_ENV == 'dev' || env.CRON_TARGET_ENV == 'stage'
       run: |
         echo "USERNAME_FILE_VAR_NAME=DEV_BACKEND_USERNAME" >> $GITHUB_ENV
         echo "PASSWORD_FILE_VAR_NAME=DEV_BACKEND_PASSWORD" >> $GITHUB_ENV
 
-    - name: Set credentials for STAGE
-      if: env.CRON_TARGET_ENV == 'stage'
+    - name: Set credentials for UAT
+      if: env.CRON_TARGET_ENV == 'uat'
       run: |
-        echo "USERNAME_FILE_VAR_NAME=STAGE_BACKEND_USERNAME" >> $GITHUB_ENV
-        echo "PASSWORD_FILE_VAR_NAME=STAGE_BACKEND_PASSWORD" >> $GITHUB_ENV
+        echo "USERNAME_FILE_VAR_NAME=UAT_BACKEND_USERNAME" >> $GITHUB_ENV
+        echo "PASSWORD_FILE_VAR_NAME=UAT_BACKEND_PASSWORD" >> $GITHUB_ENV
 
-    - name: Get token
-      if: github.event.schedule == '2 0 * * *' || github.event.schedule == '58 23 * * *' || github.event_name == 'workflow_dispatch'
+    - name: Get token (schedule)
+      if: github.event_name == 'schedule'
+      run: |
+        export DEV_TOKEN=$(jq '.token' <(echo "$(curl -L -XPOST 'https://unicef-giga-backend-dev.azurewebsites.net/login' -H 'Content-Type:application/json' -d '{"email":"${{ secrets[env.USERNAME_FILE_VAR_NAME] }}","password":"${{ secrets[env.PASSWORD_FILE_VAR_NAME] }}"}')") | sed "s/\"//g")
+        echo "DEV_BEARER_TOKEN=$DEV_TOKEN" >> $GITHUB_ENV
+        export STAGE_TOKEN=$(jq '.token' <(echo "$(curl -L -XPOST 'https://unicef-giga-backend-stage.azurewebsites.net/login' -H 'Content-Type:application/json' -d '{"email":"${{ secrets[env.USERNAME_FILE_VAR_NAME] }}","password":"${{ secrets[env.PASSWORD_FILE_VAR_NAME] }}"}')") | sed "s/\"//g")
+        echo "STAGE_BEARER_TOKEN=$STAGE_TOKEN" >> $GITHUB_ENV
+
+    - name: Get token (manual run)
+      if: github.event_name == 'workflow_dispatch'
       run: |
         export TOKEN=$(jq '.token' <(echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/login' -H 'Content-Type:application/json' -d '{"email":"${{ secrets[env.USERNAME_FILE_VAR_NAME] }}","password":"${{ secrets[env.PASSWORD_FILE_VAR_NAME] }}"}')") | sed "s/\"//g")
         echo "BEARER_TOKEN=$TOKEN" >> $GITHUB_ENV
 
-    - name: Run contract batch request
-      if: github.event.schedule == '2 0 * * *' || github.event_name == 'workflow_dispatch'
-      run: curl -L -XPATCH "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/batch" -H "Authorization:Bearer $BEARER_TOKEN"
+    - name: Run contract batch request (schedule)
+      if: github.event.schedule == '2 0 * * *'
+      run: |
+        curl -L -XPATCH "https://unicef-giga-backend-dev.azurewebsites.net/contract/batch" -H "Authorization:Bearer $DEV_BEARER_TOKEN"
+        curl -L -XPATCH "https://unicef-giga-backend-stage.azurewebsites.net/contract/batch" -H "Authorization:Bearer $STAGE_BEARER_TOKEN"
 
-    - name: Run daily measures request
-      if: github.event.schedule == '58 23 * * *' || github.event_name == 'workflow_dispatch'
-      run: curl -L -XGET "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/daily/measures" -H "Authorization:Bearer $BEARER_TOKEN"
+    - name: Run daily measures request (schedule)
+      if: github.event.schedule == '58 23 * * *'
+      run: |
+        curl -L -XGET "https://unicef-giga-backend-dev.azurewebsites.net/contract/daily/measures" -H "Authorization:Bearer $DEV_BEARER_TOKEN"
+        curl -L -XGET "https://unicef-giga-backend-stage.azurewebsites.net/contract/daily/measures" -H "Authorization:Bearer $STAGE_BEARER_TOKEN"
+
+    - name: Run contract batch & daily measures requests (manual run)
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        curl -L -XPATCH "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/batch" -H "Authorization:Bearer $BEARER_TOKEN"
+        curl -L -XGET "https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/contract/daily/measures" -H "Authorization:Bearer $BEARER_TOKEN"

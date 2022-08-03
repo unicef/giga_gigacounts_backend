@@ -23,6 +23,7 @@ on:
         options:
           - dev
           - stage
+          - uat
 
 jobs:
   build:
@@ -43,6 +44,11 @@ jobs:
       if: env.DEPLOY_TARGET_ENV == 'stage'
       run: |
         echo "ENV_FILE_VAR_NAME=STAGE_ENV_FILE" >> $GITHUB_ENV
+
+    - name: Set env file for UAT
+      if: env.DEPLOY_TARGET_ENV == 'uat'
+      run: |
+        echo "ENV_FILE_VAR_NAME=UAT_ENV_FILE" >> $GITHUB_ENV
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
@@ -90,6 +96,11 @@ jobs:
       if: env.DEPLOY_TARGET_ENV == 'stage'
       run: |
         echo "AZUREAPPSERVICE_PUBLISHPROFILE_VAR_NAME=AZUREAPPSERVICE_PUBLISHPROFILE_STAGE" >> $GITHUB_ENV
+
+    - name: Set publish profile for UAT
+      if: env.DEPLOY_TARGET_ENV == 'uat'
+      run: |
+        echo "AZUREAPPSERVICE_PUBLISHPROFILE_VAR_NAME=AZUREAPPSERVICE_PUBLISHPROFILE_UAT" >> $GITHUB_ENV
 
     - name: Deploy to Azure Web App
       id: deploy-to-webapp
