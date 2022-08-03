@@ -14,11 +14,9 @@ export default class CreateContractValidator {
     ltaId: schema.string.nullableAndOptional(),
     currencyId: schema.string(),
     budget: schema.string(),
-    frequencyId: schema.string(),
     startDate: schema.date(),
     endDate: schema.date({}, [rules.afterOrEqualToField('startDate')]),
     ispId: schema.string(),
-    createdBy: schema.string(),
     attachments: schema.array.optional().members(schema.object().members({ id: schema.string() })),
     schools: schema.object().members({
       schools: schema.array().members(schema.object().members({ id: schema.string() })),
