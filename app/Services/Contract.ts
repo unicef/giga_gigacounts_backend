@@ -20,6 +20,7 @@ import dto, { ContractsStatusCount } from 'App/DTOs/Contract'
 import utils from 'App/Helpers/utils'
 import Draft from 'App/Models/Draft'
 import schoolService from 'App/Services/School'
+import Frequency from 'App/Models/Frequency'
 
 export interface ContractCreation {
   draftId?: number
@@ -29,11 +30,9 @@ export interface ContractCreation {
   ltaId: number
   currencyId: number
   budget: string
-  frequencyId: number
   startDate: string
   endDate: string
   ispId: number
-  createdBy: number
   attachments?: { id: string }[]
   schools: { schools: { id: string }[] }
   expectedMetrics: { metrics: { metricId: string; value: number }[] }
@@ -160,6 +159,8 @@ const getContractList = async (user: User, status?: number) => {
 const createContract = async (data: ContractCreation, user: User): Promise<Contract> => {
   const trx = await Database.transaction()
   try {
+    const frequency = await Frequency.findBy('name', 'Monthly')
+
     const contract = await Contract.create(
       {
         ...utils.removeProperty(data, 'draftId'),
@@ -169,6 +170,8 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
           : data.governmentBehalf,
         startDate: utils.formatContractDate(data.startDate, true),
         endDate: utils.formatContractDate(data.endDate),
+        createdBy: user.id,
+        frequencyId: frequency?.id || 2,
       },
       { client: trx }
     )
@@ -191,7 +194,7 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
 
       await StatusTransition.create(
         {
-          who: data.createdBy,
+          who: user.id,
           contractId: contract.id,
           initialStatus: ContractStatus.Draft,
           finalStatus: ContractStatus.Sent,

@@ -57,9 +57,7 @@ test.group('Create Contract', (group) => {
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
-      frequency.id.toString(),
       isp.id.toString(),
-      user.id.toString(),
       buildManyToMany([school.id.toString()], 'schools'),
       buildMetrics(metrics)
     )
@@ -97,9 +95,7 @@ test.group('Create Contract', (group) => {
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
-      frequency.id.toString(),
       isp.id.toString(),
-      user.id.toString(),
       buildManyToMany([school.id.toString()], 'schools'),
       buildMetrics(metrics),
       [{ id: attachment.id }],
@@ -143,7 +139,7 @@ test.group('Create Contract', (group) => {
     const user = await UserFactory.with('roles', 1, (role) => {
       role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
     }).create()
-    const { country, currency, frequency, isp, metrics } = await setupModels()
+    const { country, currency, isp, metrics } = await setupModels()
     const draft = await DraftFactory.create()
     const startDate = DateTime.now().toFormat('yyyy-MM-dd')
     const endDate = DateTime.now().plus({ day: 1 }).toFormat('yyyy-MM-dd')
@@ -153,9 +149,7 @@ test.group('Create Contract', (group) => {
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
-      frequency.id.toString(),
       isp.id.toString(),
-      user.id.toString(),
       buildManyToMany(['1123'], 'schools'),
       buildMetrics(metrics),
       undefined,
@@ -175,7 +169,7 @@ test.group('Create Contract', (group) => {
     const response = await client.post('/contract').loginAs(user).json({})
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(422)
-    expect(JSON.parse(error.text).errors.length).toBe(12)
+    expect(JSON.parse(error.text).errors.length).toBe(10)
     JSON.parse(error.text).errors.map((e) => {
       expect(e.message).toBe('required validation failed')
       expect(e.rule).toBe('required')
@@ -189,7 +183,7 @@ test.group('Create Contract', (group) => {
     const user = await UserFactory.with('roles', 1, (role) => {
       role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
     }).create()
-    const { country, currency, frequency, isp, metrics, school } = await setupModels()
+    const { country, currency, isp, metrics, school } = await setupModels()
     await DraftFactory.create()
     const startDate = DateTime.now().toFormat('yyyy-MM-dd')
     const endDate = DateTime.now().plus({ day: 1 }).toFormat('yyyy-MM-dd')
@@ -199,9 +193,7 @@ test.group('Create Contract', (group) => {
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
-      frequency.id.toString(),
       isp.id.toString(),
-      user.id.toString(),
       buildManyToMany([school.id.toString()], 'schools'),
       buildMetrics(metrics),
       undefined,
@@ -228,9 +220,7 @@ test.group('Create Contract', (group) => {
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
-      frequency.id.toString(),
       isp.id.toString(),
-      user.id.toString(),
       buildManyToMany([school.id.toString()], 'schools'),
       buildMetrics(metrics)
     )
@@ -258,7 +248,7 @@ test.group('Create Contract', (group) => {
     const user = await UserFactory.with('roles', 1, (role) => {
       role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
     }).create()
-    const { country, currency, frequency, isp, metrics } = await setupModels()
+    const { country, currency, isp, metrics } = await setupModels()
     const startDate = DateTime.now().toFormat('yyyy-MM-dd')
     const endDate = DateTime.now().set({ year: 1990 }).toFormat('yyyy-MM-dd')
     const body = buildContract(
@@ -267,9 +257,7 @@ test.group('Create Contract', (group) => {
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
-      frequency.id.toString(),
       isp.id.toString(),
-      user.id.toString(),
       buildManyToMany(['1123'], 'schools'),
       buildMetrics(metrics)
     )
@@ -302,9 +290,7 @@ test.group('Create Contract', (group) => {
       'Contract 1',
       country.id.toString(),
       currency.id.toString(),
-      frequency.id.toString(),
       isp.id.toString(),
-      user.id.toString(),
       buildManyToMany([school.id.toString()], 'schools'),
       buildMetrics(metrics)
     )
@@ -346,9 +332,7 @@ const buildContract = (
   name?: string,
   countryId?: string,
   currencyId?: string,
-  frequencyId?: string,
   ispId?: string,
-  createdBy?: string,
   schools?: object,
   expectedMetrics?: object,
   attachments?: object,
@@ -359,11 +343,9 @@ const buildContract = (
   countryId,
   currencyId,
   budget: '1000',
-  frequencyId,
   startDate,
   endDate,
   ispId,
-  createdBy,
   attachments,
   ...schools,
   ...expectedMetrics,

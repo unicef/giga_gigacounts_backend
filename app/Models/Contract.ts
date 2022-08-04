@@ -44,7 +44,11 @@ export default class Contract extends BaseModel {
   @column()
   public budget: string
 
-  @column()
+  @column({
+    serialize: (value: number) => {
+      return value.toString()
+    },
+  })
   public frequencyId: number
 
   @column.dateTime()
