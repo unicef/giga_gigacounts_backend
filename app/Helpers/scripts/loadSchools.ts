@@ -48,7 +48,7 @@ const fetchSchools = async (countryGigaId: number, countryId: number) => {
 
     if (result.data.data.length > 0) {
       /* LOG FOR WHEN RUNNING */
-      // console.log({ length: result.data?.data?.length, page, country: countryId })
+      console.log({ length: result.data?.data?.length, page, country: countryId })
       await Promise.all(
         result.data?.data.map((school: UnicefSchool) => createSchool(school, countryId))
       )

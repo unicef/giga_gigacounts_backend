@@ -23,7 +23,7 @@ export const createContracts = async (
   ltas: Lta[],
   isps: Isp[],
   countryId: number,
-  // otherCountryId: number,
+  otherCountryId: number,
   currencyId: number,
   frequencyId: number,
   budget: string,
@@ -456,7 +456,7 @@ export const createContracts = async (
         await createSchool(
           'Green Valley Grammar School',
           countryId,
-          '180700371',
+          '18070037132',
           'São Paulo',
           'Itapevi',
           'Rua Eulália',
@@ -1337,6 +1337,49 @@ export const createContracts = async (
           [98, 100, 10, 10]
         ),
       ])
+  })
+  await Contract.firstOrCreate({
+    countryId: otherCountryId,
+    governmentBehalf: true,
+    name: '9655154',
+    currencyId: currencyId,
+    budget: '2000000',
+    frequencyId: frequencyId,
+    startDate: DateTime.now(),
+    endDate: DateTime.now(),
+    ispId: isps[17].id,
+    createdBy: createdBy,
+    status: ContractStatus.Ongoing,
+    ltaId: ltas[3].id,
+  }).then(async (ctc) => {
+    await ctc
+      .related('expectedMetrics')
+      .createMany(generateExpectedMetrics(ctc.id, metricsId, [98, 100, 10, 10]))
+    await ctc
+      .related('schools')
+      .saveMany([
+        await createSchool(
+          'Northview School for Girls',
+          otherCountryId,
+          '180700308129',
+          'São Paulo',
+          'Itapevi',
+          'Rua Eulália',
+          '1245',
+          metricsId,
+          ctc.id,
+          generateMetric,
+          [98, 100, 10, 10]
+        ),
+      ])
+  })
+  await Draft.firstOrCreate({
+    countryId: otherCountryId,
+    governmentBehalf: true,
+    name: '9114097',
+    currencyId: currencyId,
+    frequencyId: frequencyId,
+    createdBy: createdBy,
   })
 }
 

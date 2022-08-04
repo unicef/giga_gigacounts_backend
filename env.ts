@@ -6,7 +6,7 @@ interface EnvInterface {
   APP_KEY: string
   APP_NAME: string
   DRIVE_DISK: 'local'
-  NODE_ENV: 'dev' | 'production' | 'test'
+  NODE_ENV: 'dev' | 'production' | 'test' | 'uat'
   AZURE_STORAGE_CONNECTION_STRING?: string
   AZURE_CONTAINER_NAME?: string
   ORIGINS_ALLOWED?: string
@@ -21,7 +21,7 @@ if (process.env.production) {
     APP_KEY: Env.schema.string(),
     APP_NAME: Env.schema.string(),
     DRIVE_DISK: Env.schema.enum(['local'] as const),
-    NODE_ENV: Env.schema.enum(['dev', 'production', 'test'] as const),
+    NODE_ENV: Env.schema.enum(['dev', 'production', 'test', 'uat'] as const),
     AZURE_STORAGE_CONNECTION_STRING: Env.schema.string(),
     AZURE_CONTAINER_NAME: Env.schema.string(),
     ORIGINS_ALLOWED: Env.schema.string(),
@@ -33,7 +33,7 @@ if (process.env.production) {
     APP_KEY: Env.schema.string(),
     APP_NAME: Env.schema.string(),
     DRIVE_DISK: Env.schema.enum(['local'] as const),
-    NODE_ENV: Env.schema.enum(['dev', 'production', 'test'] as const),
+    NODE_ENV: Env.schema.enum(['dev', 'production', 'test', 'uat'] as const),
   })
 }
 
