@@ -50,28 +50,57 @@ interface ContractsMap {
   id: string
 }
 
+export interface StatusTransitionData {
+  who: number
+  contractId: number
+  initialStatus: number
+  finalStatus: number
+  data: Object
+}
+
 const loadContractsDailyMeasures = async () => {
   const contracts = await Contract.query().where('status', ContractStatus.Ongoing).select('id')
   const contractsId: ContractsMap[] = contracts.map(({ id }) => ({ id: id.toString() }))
   loadContractsMeasures(contractsId, 'daily')
 }
 
-const contractStatusBatchUpdate = async (): Promise<BatchUpdate> => {
+const contractStatusBatchUpdate = async (user: User): Promise<BatchUpdate> => {
   const today = DateTime.now()
 
   const sentContracts = await Contract.query()
     .where('status', ContractStatus.Sent)
-    .update('status', ContractStatus.Confirmed)
+    .update('status', ContractStatus.Confirmed, ['id'])
+
+  await batchStatusTransitions(
+    sentContracts,
+    user.id,
+    ContractStatus.Sent,
+    ContractStatus.Confirmed
+  )
 
   const confirmedContracts = await Contract.query()
     .where('status', ContractStatus.Confirmed)
     .andWhere('start_date', '<=', today.toString())
     .update('status', ContractStatus.Ongoing, ['id'])
 
+  await batchStatusTransitions(
+    confirmedContracts,
+    user.id,
+    ContractStatus.Confirmed,
+    ContractStatus.Ongoing
+  )
+
   const ongoingContracts = await Contract.query()
     .where('status', ContractStatus.Ongoing)
     .andWhere('end_date', '<=', today.toString())
-    .update('status', ContractStatus.Expired)
+    .update('status', ContractStatus.Expired, ['id'])
+
+  await batchStatusTransitions(
+    ongoingContracts,
+    user.id,
+    ContractStatus.Ongoing,
+    ContractStatus.Expired
+  )
 
   if (confirmedContracts.length > 0) loadContractsMeasures(confirmedContracts, 'historic')
 
@@ -195,7 +224,7 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
       await StatusTransition.create(
         {
           who: user.id,
-          contractId: contract.id,
+          contractId: contract.id.toString(),
           initialStatus: ContractStatus.Draft,
           finalStatus: ContractStatus.Sent,
           data: {
@@ -292,7 +321,7 @@ const changeStatus = async (contractId: number, newStatus: ContractStatus, userI
     await StatusTransition.create(
       {
         who: userId,
-        contractId: contract.id,
+        contractId: contract.id.toString(),
         initialStatus: oldStatus,
         finalStatus: newStatus,
       },
@@ -398,6 +427,24 @@ const defineMeasuresEndDate = (contactEndDate: DateTime) => {
   const today = utils.setDateToBeginOfDayFromISO(DateTime.now())
   const endDate = utils.setDateToBeginOfDayFromISO(contactEndDate)
   return endDate > today ? today : endDate
+}
+
+const batchStatusTransitions = async (
+  contractIds: { id: string }[],
+  who: number,
+  initialStatus: ContractStatus,
+  finalStatus: ContractStatus
+) => {
+  return Promise.all(
+    contractIds.map(({ id }) =>
+      StatusTransition.create({
+        who,
+        contractId: id,
+        initialStatus,
+        finalStatus,
+      })
+    )
+  )
 }
 
 export default {
