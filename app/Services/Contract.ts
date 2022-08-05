@@ -395,8 +395,9 @@ const loadContractMeasures = async (
 }
 
 const defineMeasuresEndDate = (contactEndDate: DateTime) => {
-  const today = utils.setDateToBeginOfDayFromISO(DateTime.now())
-  const endDate = utils.setDateToBeginOfDayFromISO(contactEndDate)
+  // THE DATE IS INCREASE HERE BECAUSE UNICEF API END_DATE IS NOT INCLUSIVE
+  const today = utils.setDateToBeginOfDayFromISO(DateTime.now().plus({ day: 1 }))
+  const endDate = utils.setDateToBeginOfDayFromISO(contactEndDate.plus({ day: 1 }))
   return endDate > today ? today : endDate
 }
 

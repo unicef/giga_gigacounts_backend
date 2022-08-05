@@ -30,17 +30,16 @@ const businessDiff = (date1: DateTimeLBD, date2: DateTimeLBD, relative?: boolean
   const end = date2 > date1 ? date2 : date1
   let daysBetween = 0
   if (start.hasSame(end, 'day')) return daysBetween
-  while (start.startOf('day') < end.startOf('day')) {
+  while (start.startOf('day') <= end.startOf('day')) {
     if (start.isBusinessDay()) daysBetween += 1
     start = start.plus({ days: 1 })
   }
-  if (!end.isBusinessDay()) daysBetween -= 1
   if (relative) return positive ? daysBetween : -daysBetween
   return daysBetween
 }
 
 const diffOfMonths = (date1: DateTime, date2: DateTime) =>
-  date1.diff(date2, ['months']).toObject() as DiffMonths
+  date1.diff(date2, ['month']).toObject() as DiffMonths
 
 const setDateToBeginOfDayFromISO = (date: DateTime) =>
   DateTime.fromISO(date.toString()).startOf('day')
