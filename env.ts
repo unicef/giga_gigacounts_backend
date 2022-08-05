@@ -10,6 +10,7 @@ interface EnvInterface {
   AZURE_STORAGE_CONNECTION_STRING?: string
   AZURE_CONTAINER_NAME?: string
   ORIGINS_ALLOWED?: string
+  TZ: 'UTC' | 'America/Sao_Paulo'
 }
 
 let rules: EnvInterface
@@ -25,6 +26,7 @@ if (process.env.production) {
     AZURE_STORAGE_CONNECTION_STRING: Env.schema.string(),
     AZURE_CONTAINER_NAME: Env.schema.string(),
     ORIGINS_ALLOWED: Env.schema.string(),
+    TZ: Env.schema.enum(['UTC', 'America/Sao_Paulo'] as const),
   })
 } else {
   rules = Env.rules({
@@ -34,6 +36,7 @@ if (process.env.production) {
     APP_NAME: Env.schema.string(),
     DRIVE_DISK: Env.schema.enum(['local'] as const),
     NODE_ENV: Env.schema.enum(['dev', 'production', 'test', 'uat'] as const),
+    TZ: Env.schema.enum(['UTC', 'America/Sao_Paulo'] as const),
   })
 }
 
