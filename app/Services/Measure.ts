@@ -16,12 +16,18 @@ const saveMeasuresFromUnicef = (
   endDate: DateTime,
   type: LoadMeasuresType
 ) => {
+  // THE DATE IS DECREASE HERE TO GET THE REAL DATE IF IS DAILY
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const _endDate = type === 'daily' ? endDate.minus({ day: 1 }) : endDate
+
   const uptime = calculateUptime(
     startDate,
-    endDate,
+    _endDate,
     measures.map((measure) => measure['timestamp'])
   )
-  const filteredMeasures = type === 'daily' ? filterMeasures(measures, endDate) : measures
+
+  const filteredMeasures = type === 'daily' ? filterMeasures(measures, _endDate) : measures
+
   return Promise.all(
     filteredMeasures.map((measure) => {
       Measure.createMany([

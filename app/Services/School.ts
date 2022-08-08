@@ -78,17 +78,31 @@ const loadSchoolMeasure = async ({
 }: LoadSchoolsMeasuresData) => {
   const school = await School.find(schoolId)
   if (!school || !school.externalId) return
-
-  const diffMonths = utils.diffOfMonths(endDate, startDate) || { months: 0 }
+  /**
+   * THE DATE IS DECREASE HERE BECAUSE IT WAS INCREASE IN THE LAST STEP
+   * INCREASED DATE HAS IMPACT WHEN CALCULATING MONTH DIFFERENCE
+   */
+  const diffMonths = utils.diffOfMonths(
+    endDate.minus({ day: 1 }).startOf('month'),
+    startDate.startOf('month')
+  ) || { months: 0 }
 
   if (diffMonths.months >= 1) {
     let condition = true
     let monthDate = startDate
 
     while (condition) {
-      if (monthDate <= endDate) {
+      if (monthDate.get('month') <= endDate.get('month')) {
         const { firstDay, lastDay } = utils.getFirstAndLastDaysMonth(monthDate)
-        await loadAndSaveMeasures(school, countryCode, firstDay, lastDay, metrics, contractId, type)
+        await loadAndSaveMeasures(
+          school,
+          countryCode,
+          isSameMonth(monthDate, startDate) ? startDate : firstDay,
+          lastDay,
+          metrics,
+          contractId,
+          type
+        )
         monthDate = monthDate.plus({ month: 1 })
       } else {
         condition = false
@@ -127,6 +141,9 @@ const loadAndSaveMeasures = async (
     type
   )
 }
+
+const isSameMonth = (currentDate: DateTime, startDate: DateTime) =>
+  currentDate.get('month') === startDate.get('month')
 
 export default {
   listSchoolByCountry,
