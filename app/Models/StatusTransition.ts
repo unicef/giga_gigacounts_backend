@@ -12,7 +12,7 @@ export default class StatusTransition extends BaseModel {
   public who: number
 
   @column()
-  public contractId: number
+  public contractId: string
 
   @column()
   public initialStatus: number

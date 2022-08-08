@@ -108,9 +108,10 @@ export default class ContractsController {
     }
   }
 
-  public async contractStatusBatchUpdate({ response }: HttpContextContract) {
+  public async contractStatusBatchUpdate({ response, auth }: HttpContextContract) {
     try {
-      const contracts = await service.contractStatusBatchUpdate()
+      if (!auth.user) return
+      const contracts = await service.contractStatusBatchUpdate(auth.user)
       response.ok(contracts)
     } catch (error) {
       return response.status(error.status).send(error.message)
