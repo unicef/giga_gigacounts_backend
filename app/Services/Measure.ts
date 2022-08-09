@@ -42,14 +42,14 @@ const saveMeasuresFromUnicef = (
           contractId,
           schoolId,
           metricId: metrics.find((m) => m.name === 'Download speed')?.id,
-          value: convertKiloByteToMegaByte(measure['download']),
+          value: convertKilobitsToMegabits(measure['download']),
           createdAt: DateTime.fromJSDate(new Date(measure['timestamp'])),
         },
         {
           contractId,
           schoolId,
           metricId: metrics.find((m) => m.name === 'Upload speed')?.id,
-          value: convertKiloByteToMegaByte(measure['upload']),
+          value: convertKilobitsToMegabits(measure['upload']),
           createdAt: DateTime.fromJSDate(new Date(measure['timestamp'])),
         },
         {
@@ -80,7 +80,7 @@ const calculateUptime = (start: DateTime, end: DateTime, measuresTimestamps: str
   return (countOfTimestamps / businessDays) * 100
 }
 
-const convertKiloByteToMegaByte = (value: number) => (value > 0 ? Math.round(value / 1000) : 0)
+const convertKilobitsToMegabits = (value: number) => (value > 0 ? Math.round(value / 1000) : 0)
 
 export default {
   saveMeasuresFromUnicef,
