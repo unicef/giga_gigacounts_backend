@@ -110,8 +110,8 @@ test.group('Save Draft', (group) => {
     assert.notEmpty(draft.id)
     assert.notEmpty(draft.created_at)
     assert.notEmpty(draft.updated_at)
-    expect(draft.start_date).toContain(`${startDate}T00:00:00.000`)
-    expect(draft.end_date).toContain(`${endDate}T23:59:59.999`)
+    expect(draft.startDate).toContain(`${startDate}T00:00:00.000`)
+    expect(draft.endDate).toContain(`${endDate}T23:59:59.999`)
   })
   test('Successfully save a draft when the user role is government', async ({
     client,
@@ -132,6 +132,6 @@ test.group('Save Draft', (group) => {
     assert.notEmpty(draft.id)
     assert.notEmpty(draft.created_at)
     assert.notEmpty(draft.updated_at)
-    expect(draft.government_behalf).toBe(true)
+    expect(draft.governmentBehalf).toBe(true)
   })
 })
