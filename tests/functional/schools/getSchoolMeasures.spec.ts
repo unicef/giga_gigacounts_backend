@@ -102,8 +102,8 @@ test.group('Schools Measures', (group) => {
     expect(distinctDates.length).toBe(2)
     for (const measure of measures) {
       if (measure.date === distinctDates[0]) {
-        if (measure.metric_name === 'Uptime') expect(measure.median_value).toBe(95)
-        if (measure.metric_name === 'Latency') expect(measure.median_value).toBe(9)
+        if (measure.metric_name === 'Uptime') expect(measure.median_value).toBe(90)
+        if (measure.metric_name === 'Latency') expect(measure.median_value).toBe(8)
         if (measure.metric_name === 'Download speed') expect(measure.median_value).toBe(3)
         if (measure.metric_name === 'Upload speed') expect(measure.median_value).toBe(5)
       }
