@@ -29,8 +29,8 @@ const saveMeasuresFromUnicef = (
   const filteredMeasures = type === 'daily' ? filterMeasures(measures, _endDate) : measures
 
   return Promise.all(
-    filteredMeasures.map((measure) => {
-      Measure.createMany([
+    filteredMeasures.map(async (measure) => {
+      await Measure.createMany([
         {
           contractId,
           schoolId,
@@ -42,14 +42,14 @@ const saveMeasuresFromUnicef = (
           contractId,
           schoolId,
           metricId: metrics.find((m) => m.name === 'Download speed')?.id,
-          value: measure['download'],
+          value: convertKilobitsToMegabits(measure['download']),
           createdAt: DateTime.fromJSDate(new Date(measure['timestamp'])),
         },
         {
           contractId,
           schoolId,
           metricId: metrics.find((m) => m.name === 'Upload speed')?.id,
-          value: measure['upload'],
+          value: convertKilobitsToMegabits(measure['upload']),
           createdAt: DateTime.fromJSDate(new Date(measure['timestamp'])),
         },
         {
@@ -79,6 +79,8 @@ const calculateUptime = (start: DateTime, end: DateTime, measuresTimestamps: str
   const countOfTimestamps = utils.removeDuplicateTimestamps(measuresTimestamps).length
   return (countOfTimestamps / businessDays) * 100
 }
+
+const convertKilobitsToMegabits = (value: number) => (value > 0 ? Math.round(value / 1000) : 0)
 
 export default {
   saveMeasuresFromUnicef,
