@@ -1,7 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, hasMany, HasMany, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm'
 
 import Contract from 'App/Models/Contract'
+import Payment from 'App/Models/Payment'
 
 export default class Currency extends BaseModel {
   @column({ isPrimary: true })
@@ -25,4 +26,10 @@ export default class Currency extends BaseModel {
 
   @hasMany(() => Contract)
   public contracts: HasMany<typeof Contract>
+
+  @hasOne(() => Payment, {
+    localKey: 'id',
+    foreignKey: 'currency_id',
+  })
+  public payments: HasOne<typeof Payment>
 }

@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, BelongsTo, belongsTo, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, BelongsTo, belongsTo, column, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm'
 
 import Attachment from 'App/Models/Attachment'
 import Contract from 'App/Models/Contract'
@@ -59,29 +59,34 @@ export default class Payment extends BaseModel {
    * RELATIONSHIPS
    */
 
-  @belongsTo(() => Attachment, {
-    localKey: 'invoice_id',
+  @hasOne(() => Attachment, {
+    localKey: 'invoiceId',
   })
-  public invoice: BelongsTo<typeof Attachment>
+  public invoice: HasOne<typeof Attachment>
 
-  @belongsTo(() => Attachment, {
-    localKey: 'receipt_id',
+  @hasOne(() => Attachment, {
+    localKey: 'receiptId',
   })
-  public receipt: BelongsTo<typeof Attachment>
+  public receipt: HasOne<typeof Attachment>
 
   @belongsTo(() => Contract)
   public contract: BelongsTo<typeof Contract>
 
-  @belongsTo(() => User, {
-    localKey: 'paid_by',
+  @hasOne(() => User, {
+    localKey: 'paidBy',
+    foreignKey: 'id',
   })
-  public user: BelongsTo<typeof User>
+  public user: HasOne<typeof User>
 
-  @belongsTo(() => Currency)
-  public currency: BelongsTo<typeof Currency>
-
-  @belongsTo(() => User, {
-    localKey: 'created_by',
+  @hasOne(() => Currency, {
+    localKey: 'currencyId',
+    foreignKey: 'id',
   })
-  public creator: BelongsTo<typeof User>
+  public currency: HasOne<typeof Currency>
+
+  @hasOne(() => User, {
+    localKey: 'createdBy',
+    foreignKey: 'id',
+  })
+  public creator: HasOne<typeof User>
 }
