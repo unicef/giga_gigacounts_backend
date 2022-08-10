@@ -20,40 +20,44 @@ export default class Draft extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
-  @column()
+  @column({ serializeAs: 'countryId' })
   public countryId?: number
 
-  @column()
+  @column({ serializeAs: 'governmentBehalf' })
   public governmentBehalf?: boolean
 
   @column()
   public name: string
 
-  @column()
+  @column({ serializeAs: 'ltaId' })
   public ltaId?: number
 
-  @column()
+  @column({ serializeAs: 'currencyId' })
   public currencyId?: number
 
   @column()
   public budget?: string
 
-  @column()
+  @column({ serializeAs: 'frequencyId' })
   public frequencyId?: number
 
-  @column.dateTime()
+  @column.dateTime({ serializeAs: 'startDate' })
   public startDate?: DateTime
 
-  @column.dateTime()
+  @column.dateTime({ serializeAs: 'endDate' })
   public endDate?: DateTime
 
-  @column()
+  @column({ serializeAs: 'ispId' })
   public ispId?: number
 
-  @column()
+  @column({ serializeAs: 'createdBy' })
   public createdBy?: number
 
-  @column()
+  @column({
+    serialize: (value: { schools: { id: string }[] }) => {
+      return value?.schools
+    },
+  })
   public schools?: { schools: { id: string }[] }
 
   @column()
