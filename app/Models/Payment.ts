@@ -11,10 +11,10 @@ export default class Payment extends BaseModel {
   public id: number
 
   @column.dateTime()
-  public dueDate: DateTime
+  public dateFrom: DateTime
 
   @column.dateTime()
-  public paidDate: DateTime
+  public dateTo?: DateTime
 
   @column()
   public invoiceId: number | null
@@ -29,13 +29,25 @@ export default class Payment extends BaseModel {
   public contractId: number
 
   @column()
-  public paidBy: number
+  public paidBy?: number
 
   @column()
   public amount: number
 
   @column()
   public currencyId: number
+
+  @column()
+  public description?: string
+
+  @column()
+  public status: number
+
+  @column()
+  public createdBy: number
+
+  @column()
+  public metrics?: { red: number; orange: number; green: number }
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -67,4 +79,9 @@ export default class Payment extends BaseModel {
 
   @belongsTo(() => Currency)
   public currency: BelongsTo<typeof Currency>
+
+  @belongsTo(() => User, {
+    localKey: 'created_by',
+  })
+  public creator: BelongsTo<typeof User>
 }
