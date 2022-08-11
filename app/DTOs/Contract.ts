@@ -44,13 +44,13 @@ interface ContractList {
   ltaId?: number
 }
 
-interface SchoolsConnection {
+export interface SchoolsConnection {
   withoutConnection: number
   atLeastOneBellowAvg: number
   allEqualOrAboveAvg: number
 }
 
-interface ConnectionMedian {
+export interface ConnectionMedian {
   contract_id: number
   metric_id: number
   median_value: number
@@ -229,7 +229,7 @@ const contractDeatilsDTO = (
 
   if (contract.schools.length) {
     contract.schools.forEach((school) => {
-      evaluateMeasures(
+      evaluateAvgMeasures(
         schoolsMeasures[contract.name][school.name],
         contract.expectedMetrics,
         schoolsConnection
@@ -343,7 +343,7 @@ const contractListDTO = (
 
     if (contract.schools.length) {
       contract.schools.map((school) => {
-        evaluateMeasures(
+        evaluateAvgMeasures(
           schoolsMeasures[contract.name][school.name],
           contract.expectedMetrics,
           schoolsConnection
@@ -406,7 +406,7 @@ const formatLtaList = (ltas: Lta[]) => {
   )
 }
 
-const evaluateMeasures = (
+const evaluateAvgMeasures = (
   schoolMeasures: any[],
   expectedMetrics: ExpectedMetric[],
   schoolsConnection: SchoolsConnection

@@ -458,4 +458,5 @@ export default {
   getContract,
   contractStatusBatchUpdate,
   loadContractsDailyMeasures,
+  getContractSchoolsMeasures,
 }

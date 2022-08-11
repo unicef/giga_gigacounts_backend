@@ -1,11 +1,41 @@
-import Measure from 'App/Models/Measure'
+import Database from '@ioc:Adonis/Lucid/Database'
 import { DateTime } from 'luxon'
 import { DateTime as DateTimeLBD } from 'luxon-business-days'
 
-import { MeasurementsData } from 'App/Helpers/unicefApi'
+import NotFoundException from 'App/Exceptions/NotFoundException'
+
+import Measure from 'App/Models/Measure'
 import Metric from 'App/Models/Metric'
+import Contract from 'App/Models/Contract'
+
 import utils from 'App/Helpers/utils'
 import { LoadMeasuresType } from 'App/Services/Contract'
+import { MeasurementsData } from 'App/Helpers/unicefApi'
+import dto from 'App/DTOs/Measure'
+
+export interface CalculatebyMonthYearData {
+  contractId: number
+  month: number
+  year: number
+}
+
+const calculateMeasuresByMonthYear = async ({
+  contractId,
+  month,
+  year,
+}: CalculatebyMonthYearData) => {
+  const contract = await Contract.query()
+    .where('id', contractId)
+    .preload('schools')
+    .preload('expectedMetrics')
+    .withCount('schools')
+  if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  const dateFrom = DateTime.now().set({ month, year }).startOf('month')
+  const endMonth = DateTime.now().set({ month, year }).endOf('month')
+  const dateTo = endMonth > contract[0].endDate ? contract[0].endDate : endMonth
+  const schoolsMedians = await getSchoolsMedianMeasures(contract, dateFrom, dateTo)
+  return dto.calculateMeasuresDTO(contract[0], schoolsMedians)
+}
 
 const saveMeasuresFromUnicef = (
   measures: MeasurementsData[],
@@ -82,6 +112,29 @@ const calculateUptime = (start: DateTime, end: DateTime, measuresTimestamps: str
 
 const convertKilobitsToMegabits = (value: number) => (value > 0 ? Math.round(value / 1000) : 0)
 
+const getSchoolsMedianMeasures = async (
+  contracts: Contract[],
+  dateFrom: DateTime,
+  dateTo: DateTime
+) => {
+  const schoolsMedians = {}
+
+  for (const contract of contracts) {
+    if (!contract.schools?.length) continue
+    schoolsMedians[contract.name] = {}
+    for (const school of contract.schools) {
+      const measure = await Database.rawQuery(
+        // eslint-disable-next-line max-len
+        'SELECT contract_id, metric_id, Metrics.name as metric_name, Metrics.unit as unit, Measures.school_id, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from Measures INNER JOIN Metrics ON Metrics.id = metric_id WHERE Measures.created_at BETWEEN ? AND ? AND contract_id = ? AND school_id = ? GROUP BY contract_id, metric_id, metric_name, unit, school_id',
+        [dateFrom.toSQL(), dateTo.toSQL(), contract.id, school.id]
+      )
+      schoolsMedians[contract.name][school.name] = measure.rows
+    }
+  }
+  return schoolsMedians
+}
+
 export default {
   saveMeasuresFromUnicef,
+  calculateMeasuresByMonthYear,
 }

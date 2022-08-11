@@ -157,6 +157,16 @@ Route.get('/attachments/:attachment_id', 'AttachmentsController.getAttachment').
 Route.get('/lta', 'LtasController.listLtas').middleware(['auth:api', `acl:${permissions.ltaRead}`])
 
 /**
+ * MEASURE ROUTES
+ */
+
+Route.post('/measure/calculate', 'MeasuresController.calculateMeasuresByMonthYear').middleware([
+  'auth:api',
+  'validator:CalculateMeasuresValidator',
+  `acl:${permissions.measureRead}`,
+])
+
+/**
  * TESTING PURPOSE ONLY ROUTES
  */
 
