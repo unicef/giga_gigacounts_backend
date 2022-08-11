@@ -5,14 +5,18 @@ import { DateTime } from 'luxon'
 
 import ContractFactory from './ContractFactory'
 import CurrencyFactory from './CurrencyFactory'
+import UserFactory from './UserFactory'
 
 export default Factory.define(Payment, () => {
   return {
-    dueDate: DateTime.now(),
-    paidDate: DateTime.now(),
+    dateFrom: DateTime.now(),
+    dateTo: DateTime.now(),
     isVerified: true,
+    description: 'description of the payment',
+    amount: 1000,
   }
 })
   .relation('currency', () => CurrencyFactory)
   .relation('contract', () => ContractFactory)
+  .relation('creator', () => UserFactory)
   .build()

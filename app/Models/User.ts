@@ -18,6 +18,7 @@ import Role from 'App/Models/Role'
 import Country from 'App/Models/Country'
 import Lta from 'App/Models/Lta'
 import Contract from 'App/Models/Contract'
+import Payment from 'App/Models/Payment'
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -86,4 +87,16 @@ export default class User extends BaseModel {
     foreignKey: 'created_by',
   })
   public contracts: HasMany<typeof Contract>
+
+  @hasMany(() => Payment, {
+    localKey: 'id',
+    foreignKey: 'paid_by',
+  })
+  public paymentsPaid: HasMany<typeof Payment>
+
+  @hasMany(() => Payment, {
+    localKey: 'id',
+    foreignKey: 'created_by',
+  })
+  public payments: HasMany<typeof Payment>
 }

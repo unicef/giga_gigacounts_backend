@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, BelongsTo, belongsTo, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, BelongsTo, belongsTo, column, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm'
 
 import Attachment from 'App/Models/Attachment'
 import Contract from 'App/Models/Contract'
@@ -11,10 +11,10 @@ export default class Payment extends BaseModel {
   public id: number
 
   @column.dateTime()
-  public dueDate: DateTime
+  public dateFrom: DateTime
 
   @column.dateTime()
-  public paidDate: DateTime
+  public dateTo?: DateTime
 
   @column()
   public invoiceId: number | null
@@ -29,13 +29,25 @@ export default class Payment extends BaseModel {
   public contractId: number
 
   @column()
-  public paidBy: number
+  public paidBy?: number
 
   @column()
   public amount: number
 
   @column()
   public currencyId: number
+
+  @column()
+  public description?: string
+
+  @column()
+  public status: number
+
+  @column()
+  public createdBy: number
+
+  @column()
+  public metrics?: { red: number; orange: number; green: number }
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -47,24 +59,34 @@ export default class Payment extends BaseModel {
    * RELATIONSHIPS
    */
 
-  @belongsTo(() => Attachment, {
-    localKey: 'invoice_id',
+  @hasOne(() => Attachment, {
+    localKey: 'invoiceId',
   })
-  public invoice: BelongsTo<typeof Attachment>
+  public invoice: HasOne<typeof Attachment>
 
-  @belongsTo(() => Attachment, {
-    localKey: 'receipt_id',
+  @hasOne(() => Attachment, {
+    localKey: 'receiptId',
   })
-  public receipt: BelongsTo<typeof Attachment>
+  public receipt: HasOne<typeof Attachment>
 
   @belongsTo(() => Contract)
   public contract: BelongsTo<typeof Contract>
 
-  @belongsTo(() => User, {
-    localKey: 'paid_by',
+  @hasOne(() => User, {
+    localKey: 'paidBy',
+    foreignKey: 'id',
   })
-  public user: BelongsTo<typeof User>
+  public user: HasOne<typeof User>
 
-  @belongsTo(() => Currency)
-  public currency: BelongsTo<typeof Currency>
+  @hasOne(() => Currency, {
+    localKey: 'currencyId',
+    foreignKey: 'id',
+  })
+  public currency: HasOne<typeof Currency>
+
+  @hasOne(() => User, {
+    localKey: 'createdBy',
+    foreignKey: 'id',
+  })
+  public creator: HasOne<typeof User>
 }

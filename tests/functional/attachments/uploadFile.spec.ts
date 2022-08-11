@@ -60,7 +60,7 @@ test.group('Upload file attachments', (group) => {
     const user = await UserFactory.with('roles', 1, (role) =>
       role.with('permissions', 1, (permission) => permission.merge({ name: 'attachment.write' }))
     ).create()
-    const payment = await PaymentFactory.merge({ amount: 100 })
+    const payment = await PaymentFactory.merge({ amount: 100, createdBy: user.id })
       .with('contract', 1, (ctc) => {
         ctc.with('country').with('currency').with('frequency').with('isp').merge({
           createdBy: user.id,
@@ -86,7 +86,7 @@ test.group('Upload file attachments', (group) => {
     const user = await UserFactory.with('roles', 1, (role) =>
       role.with('permissions', 1, (permission) => permission.merge({ name: 'attachment.write' }))
     ).create()
-    const payment = await PaymentFactory.merge({ amount: 100 })
+    const payment = await PaymentFactory.merge({ amount: 100, createdBy: user.id })
       .with('contract', 1, (ctc) => {
         ctc.with('country').with('currency').with('frequency').with('isp').merge({
           createdBy: user.id,
