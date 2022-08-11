@@ -281,10 +281,12 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
         {
           amount: 1000,
           invoiceId: attch.id,
+          createdBy: userId,
         },
         {
           amount: 500,
           invoiceId: attch.id,
+          createdBy: userId,
         },
       ])
     })

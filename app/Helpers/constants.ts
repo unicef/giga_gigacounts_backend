@@ -33,3 +33,9 @@ export const Metrics = {
   Download: 'Download speed',
   Upload: 'Upload speed',
 }
+
+export enum PaymentStatus {
+  Pending,
+  Rejected,
+  Verified,
+}
