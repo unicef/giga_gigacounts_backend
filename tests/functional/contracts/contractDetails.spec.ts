@@ -8,6 +8,7 @@ import IspFactory from 'Database/factories/IspFactory'
 import LtaFactory from 'Database/factories/LtaFactory'
 import MetricFactory from 'Database/factories/MetricFactory'
 import MeasureFactory from 'Database/factories/MeasureFactory'
+import PaymentFactory from 'Database/factories/PaymentFactory'
 
 import { ContractDetails } from 'App/DTOs/Contract'
 
@@ -33,6 +34,12 @@ test.group('Contract Details', (group) => {
       if (connection.metric_name === 'Download speed') expect(connection.median_value).toBe(3)
       if (connection.metric_name === 'Upload speed') expect(connection.median_value).toBe(5)
     }
+    expect(contractDetails.budget).toBe('100000')
+    expect(contractDetails.numberOfPayments).toBe('3')
+    expect(contractDetails.currency.name).toBe('US Dollar')
+    expect(contractDetails.currency.code).toBe('USD')
+    expect(contractDetails.totalSpent.amount).toBe('16000')
+    expect(contractDetails.totalSpent.percentage).toBe(16)
   })
   test('Throw an error if a contract doesnt exist', async ({ client, expect }) => {
     const user = await setupUser()
@@ -81,6 +88,7 @@ const createContract = async (countryId: number, userId: number) => {
       createdBy: userId,
       ispId: isp.id,
       ltaId: lta.id,
+      budget: '100000',
     },
   ])
     .with('currency')
@@ -163,6 +171,30 @@ const createContract = async (countryId: number, userId: number) => {
       contractId: contract.id,
     },
   ]).createMany(8)
+
+  await PaymentFactory.merge([
+    {
+      amount: 10000,
+      invoiceId: contract.attachments[0].id,
+      createdBy: userId,
+      contractId: contract.id,
+      currencyId: contract.currencyId,
+    },
+    {
+      amount: 1000,
+      invoiceId: contract.attachments[0].id,
+      createdBy: userId,
+      contractId: contract.id,
+      currencyId: contract.currencyId,
+    },
+    {
+      amount: 5000,
+      invoiceId: contract.attachments[0].id,
+      createdBy: userId,
+      contractId: contract.id,
+      currencyId: contract.currencyId,
+    },
+  ]).createMany(3)
 
   return contract
 }
