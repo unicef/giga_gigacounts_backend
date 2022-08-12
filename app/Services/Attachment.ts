@@ -59,36 +59,40 @@ const deleteAttachment = async (attachmentId: number) => {
   }
 }
 
-const uploadAttachment = async (data: UploadRequest): Promise<Attachment> => {
-  const trx = await Database.transaction()
+const uploadAttachment = async (
+  data: UploadRequest,
+  trx?: TransactionClientContract
+): Promise<Attachment> => {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const _trx = trx || (await Database.transaction())
   try {
     const fileUrl = await storage.uploadFile(data.file)
-    const attachment = await Attachment.create({ url: fileUrl, name: data.name }, { client: trx })
+    const attachment = await Attachment.create({ url: fileUrl, name: data.name }, { client: _trx })
 
     if (data.type === AttachmentsType.DRAFT) {
-      const draft = await Draft.find(data.typeId, { client: trx })
+      const draft = await Draft.find(data.typeId, { client: _trx })
       if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
-      await draft.related('attachments').attach([attachment.id], trx)
+      await draft.related('attachments').attach([attachment.id], _trx)
     }
 
     if (data.type === AttachmentsType.CONTRACT) {
-      const contract = await Contract.find(data.typeId, { client: trx })
+      const contract = await Contract.find(data.typeId, { client: _trx })
       if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
-      await contract.related('attachments').attach([attachment.id], trx)
+      await contract.related('attachments').attach([attachment.id], _trx)
     }
 
     if (data.type === AttachmentsType.RECEIPT || data.type === AttachmentsType.INVOICE) {
-      const payment = await Payment.find(data.typeId, { client: trx })
+      const payment = await Payment.find(data.typeId, { client: _trx })
       if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
       payment[`${data.type}Id`] = attachment.id
-      await payment.useTransaction(trx).save()
+      await payment.useTransaction(_trx).save()
     }
 
-    await trx.commit()
+    if (!trx) await _trx.commit()
 
     return attachment
   } catch (error) {
-    await trx.rollback()
+    await _trx.rollback()
     if (error?.status === 404) throw error
     throw new FailedDependencyException(
       'Some dependency failed while uploading attachment',
