@@ -21,6 +21,7 @@ import utils from 'App/Helpers/utils'
 import Draft from 'App/Models/Draft'
 import schoolService from 'App/Services/School'
 import Frequency from 'App/Models/Frequency'
+import Payment from 'App/Models/Payment'
 
 export interface ContractCreation {
   draftId?: number
@@ -448,6 +449,31 @@ const batchStatusTransitions = async (
   )
 }
 
+const getContractAvailablePayments = async (contractId: string) => {
+  const contract = await Contract.find(contractId)
+  if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  const endMonth = DateTime.now().endOf('month')
+  const endDate = (endMonth > contract.endDate ? contract.endDate : endMonth).toISODate()
+  const startDate = contract.startDate.toISODate()
+  const diff = utils.diffOfDays(contract.startDate, contract.startDate.startOf('month'))
+  const payments = await Database.rawQuery(
+    `select to_char(months, 'MM-YYYY') as dates
+      from generate_series(
+        '${startDate}'::DATE,
+        '${endDate}'::DATE,
+        '1 month'
+      ) as months
+    where months::date - ${diff.days} not in (
+      select date_from::date from payments where contract_id = ${contract.id}
+    )
+    and months::date not in (
+      select date_from::date from payments where contract_id = 1
+    )
+    order by dates asc`
+  )
+  return dto.contractAvailablePaymentsDTO(payments.rows)
+}
+
 export default {
   getContractsCountByStatus,
   createContract,
@@ -459,4 +485,5 @@ export default {
   contractStatusBatchUpdate,
   loadContractsDailyMeasures,
   getContractSchoolsMeasures,
+  getContractAvailablePayments,
 }

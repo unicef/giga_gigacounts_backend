@@ -136,6 +136,11 @@ Route.delete('/contract/draft/:draft_id', 'ContractsController.deleteDraft').mid
   `acl:${permissions.contractWrite}`,
 ])
 
+Route.get(
+  '/contract/available-payments/:contract_id',
+  'ContractsController.getContractAvailablePayments'
+).middleware(['auth:api', `acl:${permissions.contractRead}:${permissions.paymentRead}`])
+
 /**
  * ATTACHMENTS ROUTES
  */
