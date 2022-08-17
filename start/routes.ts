@@ -15,6 +15,11 @@ Route.post('/login', 'UsersController.login').middleware('validator:LoginValidat
 
 Route.get('/payment/frequencies', 'PaymentsController.listFrequencies')
 
+Route.get('/payment/:contract_id', 'PaymentsController.getPaymentsByContract').middleware([
+  'auth:api',
+  `acl:${permissions.paymentRead}:${permissions.contractRead}`,
+])
+
 /**
  * ISP ROUTES
  */

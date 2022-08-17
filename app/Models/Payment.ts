@@ -47,7 +47,11 @@ export default class Payment extends BaseModel {
   public createdBy: number
 
   @column()
-  public metrics?: { red: number; orange: number; green: number }
+  public metrics?: {
+    withoutConnection: number
+    atLeastOneBellowAvg: number
+    allEqualOrAboveAvg: number
+  }
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -61,11 +65,13 @@ export default class Payment extends BaseModel {
 
   @hasOne(() => Attachment, {
     localKey: 'invoiceId',
+    foreignKey: 'id',
   })
   public invoice: HasOne<typeof Attachment>
 
   @hasOne(() => Attachment, {
     localKey: 'receiptId',
+    foreignKey: 'id',
   })
   public receipt: HasOne<typeof Attachment>
 

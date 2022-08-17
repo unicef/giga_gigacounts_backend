@@ -26,6 +26,8 @@ export const permissions = {
   ltaRead: 'lta.read',
   ltaWrite: 'lta.write',
   measureRead: 'measure.read',
+  paymentRead: 'payment.read',
+  paymentWrite: 'payment.write',
 }
 
 export const Metrics = {
