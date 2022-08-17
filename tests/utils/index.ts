@@ -51,7 +51,8 @@ const buildCreatePaymentBody = async (
   month: number,
   year: number,
   contractId: string,
-  currencyId: string
+  currencyId: string,
+  hasReceipt: boolean = false
 ): Promise<CreatePaymentData> => ({
   description: 'payment description',
   month,
@@ -63,6 +64,9 @@ const buildCreatePaymentBody = async (
   },
   contractId,
   currencyId,
+  ...(hasReceipt && {
+    receipt: { file: await toBase64('data:application/pdf;base64,'), name: 'Receipt' },
+  }),
 })
 
 export default {

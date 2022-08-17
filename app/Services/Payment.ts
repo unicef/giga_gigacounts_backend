@@ -140,8 +140,20 @@ const getPaymentsByContract = async (contractId: string) => {
   return dto.getPaymentsByContractDTO(payments)
 }
 
+const getPayment = async (paymentId: string) => {
+  const payment = await Payment.find(paymentId)
+  if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
+  await payment.load('currency')
+  await payment.load('creator')
+  await payment.creator.load('roles')
+  if (payment.invoiceId) await payment.load('invoice')
+  if (payment.receiptId) await payment.load('receipt')
+  return dto.getPaymentDTO(payment)
+}
+
 export default {
   listFrequencies,
   createPayment,
   getPaymentsByContract,
+  getPayment,
 }

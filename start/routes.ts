@@ -21,9 +21,14 @@ Route.post('/payment', 'PaymentsController.createPayment').middleware([
   `acl:${permissions.paymentWrite}`,
 ])
 
-Route.get('/payment/:contract_id', 'PaymentsController.getPaymentsByContract').middleware([
+Route.get('/payment/contract/:contract_id', 'PaymentsController.getPaymentsByContract').middleware([
   'auth:api',
   `acl:${permissions.paymentRead}:${permissions.contractRead}`,
+])
+
+Route.get('/payment/:payment_id', 'PaymentsController.getPayment').middleware([
+  'auth:api',
+  `acl:${permissions.paymentRead}`,
 ])
 
 /**
