@@ -153,6 +153,7 @@ const setupModels = async (countryId: number, userId: number) => {
       countryId: countryId,
       status: 3,
       createdBy: userId,
+      endDate: DateTime.now().set({ year: 2022, month: 8, day: 13 }),
     },
   ])
     .with('isp')
