@@ -1,6 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import service from 'App/Services/Payment'
+import service, { CreatePaymentData } from 'App/Services/Payment'
 
 export default class PaymentsController {
   public async listFrequencies({ response }: HttpContextContract) {
@@ -12,5 +12,16 @@ export default class PaymentsController {
     const { contract_id } = request.params()
     const payments = await service.getPaymentsByContract(contract_id)
     return response.ok(payments)
+  }
+
+  public async createPayment({ response, request, auth }: HttpContextContract) {
+    try {
+      if (!auth.user) return
+      const data = request.all() as CreatePaymentData
+      const payment = await service.createPayment(data, auth.user)
+      return response.ok(payment)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
   }
 }

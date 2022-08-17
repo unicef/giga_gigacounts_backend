@@ -10,31 +10,36 @@ export default class Payment extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
-  @column.dateTime()
+  @column.dateTime({ serializeAs: 'dateFrom' })
   public dateFrom: DateTime
 
-  @column.dateTime()
+  @column.dateTime({ serializeAs: 'dateTo' })
   public dateTo?: DateTime
 
-  @column()
+  @column({ serializeAs: 'invoiceId' })
   public invoiceId: number | null
 
-  @column()
+  @column({ serializeAs: 'receiptId' })
   public receiptId: number | null
 
-  @column()
+  @column({ serializeAs: 'isVerified' })
   public isVerified: boolean
 
-  @column()
+  @column({ serializeAs: 'contractId' })
   public contractId: number
 
-  @column()
+  @column({ serializeAs: 'paidBy' })
   public paidBy?: number
 
   @column()
   public amount: number
 
-  @column()
+  @column({
+    serializeAs: 'currencyId',
+    serialize: (value: number) => {
+      return value.toString()
+    },
+  })
   public currencyId: number
 
   @column()
@@ -43,7 +48,7 @@ export default class Payment extends BaseModel {
   @column()
   public status: number
 
-  @column()
+  @column({ serializeAs: 'createdBy' })
   public createdBy: number
 
   @column()

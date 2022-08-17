@@ -1,7 +1,6 @@
 import { test } from '@japa/runner'
 import Database from '@ioc:Adonis/Lucid/Database'
 import { DateTime } from 'luxon'
-import { ApiClient } from '@japa/api-client'
 
 import UserFactory from 'Database/factories/UserFactory'
 import ContractFactory from 'Database/factories/ContractFactory'
@@ -9,112 +8,120 @@ import MeasureFactory from 'Database/factories/MeasureFactory'
 import MetricFactory from 'Database/factories/MetricFactory'
 
 import testUtils from '../../utils'
-import User from 'App/Models/User'
-import { PaymentsByContract } from 'App/DTOs/Payment'
+import Payment from 'App/Models/Payment'
+import Attachment from 'App/Models/Attachment'
 
-test.group('Get Payments by Contract', (group) => {
+const requiredFields = ['month', 'year', 'contractId', 'currencyId', 'amount', 'invoice']
+
+test.group('Create Payment', (group) => {
   group.each.setup(async () => {
     await Database.beginGlobalTransaction()
     return () => Database.rollbackGlobalTransaction()
   })
-  test('Successfully get payment list of a contract Aug 2022', async ({
-    client,
-    expect,
-    assert,
-  }) => {
-    const user = await setupUser()
+  test('Successfully create a payment in August 2022', async ({ client, expect }) => {
+    const user = await setupUser('ISP')
     const contract = await setupModels(user.countryId, user.id)
-    await createPayment(client, user, 8, contract.id, contract.currencyId)
-    const response = await client.get(`/payment/${contract.id}`).loginAs(user)
-    const payments = response.body() as PaymentsByContract[]
-    expect(payments[0].paidDate).toBe('2022-08-13')
-    expect(payments[0].description).toBe('payment description')
-    expect(payments[0].currency.name).toBe('US Dollar')
-    expect(payments[0].amount).toBe(100000)
-    expect(payments[0].status).toBe('Pending')
-    expect(payments[0].metrics?.allEqualOrAboveAvg).toBe(33.33)
-    expect(payments[0].metrics?.withoutConnection).toBe(33.33)
-    expect(payments[0].metrics?.atLeastOneBellowAvg).toBe(33.33)
-    assert.isNotEmpty(payments[0].invoice)
+    const body = await testUtils.buildCreatePaymentBody(
+      8,
+      2022,
+      contract.id.toString(),
+      contract.currencyId.toString()
+    )
+    const response = await client.post('/payment').loginAs(user).json(body)
+    const payment = response.body() as Payment
+    expect(payment.metrics?.allEqualOrAboveAvg).toBe(33.33)
+    expect(payment.metrics?.atLeastOneBellowAvg).toBe(33.33)
+    expect(payment.metrics?.withoutConnection).toBe(33.33)
+    expect(payment.dateFrom).toContain('2022-08-01')
+    expect(payment.dateTo).toContain('2022-08-13')
+    expect(payment.amount).toBe(100000)
+    expect(payment.currencyId).toBe(contract.currencyId)
+    expect(payment.createdBy).toBe(user.id)
+    expect(payment.description).toBe('payment description')
+    expect(payment.status).toBe(0)
+    const invoice = await Attachment.find(payment.invoiceId)
+    expect(invoice?.url).not.toBeNull()
+    expect(invoice?.name).toBe('File')
   })
-  test('Successfully get payment list of a contract July 2022', async ({
-    client,
-    expect,
-    assert,
-  }) => {
-    const user = await setupUser()
+  test('Successfully create a payment in July 2022', async ({ client, expect }) => {
+    const user = await setupUser('Government')
     const contract = await setupModels(user.countryId, user.id)
-    await createPayment(client, user, 7, contract.id, contract.currencyId)
-    const response = await client.get(`/payment/${contract.id}`).loginAs(user)
-    const payments = response.body() as PaymentsByContract[]
-    expect(payments[0].paidDate).toBe('2022-07-31')
-    expect(payments[0].description).toBe('payment description')
-    expect(payments[0].currency.name).toBe('US Dollar')
-    expect(payments[0].amount).toBe(100000)
-    expect(payments[0].status).toBe('Pending')
-    expect(payments[0].metrics?.allEqualOrAboveAvg).toBe(66.67)
-    expect(payments[0].metrics?.withoutConnection).toBe(33.33)
-    expect(payments[0].metrics?.atLeastOneBellowAvg).toBe(0)
-    assert.isNotEmpty(payments[0].invoice)
+    const body = await testUtils.buildCreatePaymentBody(
+      7,
+      2022,
+      contract.id.toString(),
+      contract.currencyId.toString()
+    )
+    const response = await client.post('/payment').loginAs(user).json(body)
+    const payment = response.body() as Payment
+    expect(payment.metrics?.allEqualOrAboveAvg).toBe(66.67)
+    expect(payment.metrics?.atLeastOneBellowAvg).toBe(0)
+    expect(payment.metrics?.withoutConnection).toBe(33.33)
+    expect(payment.dateFrom).toContain('2022-07-01')
+    expect(payment.dateTo).toContain('2022-07-31')
+    expect(payment.amount).toBe(100000)
+    expect(payment.currencyId).toBe(contract.currencyId)
+    expect(payment.createdBy).toBe(user.id)
+    expect(payment.description).toBe('payment description')
+    expect(payment.status).toBe(2)
+    const invoice = await Attachment.find(payment.invoiceId)
+    expect(invoice?.url).not.toBeNull()
+    expect(invoice?.name).toBe('File')
   })
-  test('Successfully get payment list of a contract Aug/July 2022', async ({
+  test('Throw an error when trying to create a payment in the same period', async ({
     client,
     expect,
-    assert,
   }) => {
-    const user = await setupUser()
+    const user = await setupUser('ISP')
     const contract = await setupModels(user.countryId, user.id)
-    await createPayment(client, user, 8, contract.id, contract.currencyId)
-    await createPayment(client, user, 7, contract.id, contract.currencyId)
-    const response = await client.get(`/payment/${contract.id}`).loginAs(user)
-    const payments = response.body() as PaymentsByContract[]
-    expect(payments[0].paidDate).toBe('2022-08-13')
-    expect(payments[0].description).toBe('payment description')
-    expect(payments[0].currency.name).toBe('US Dollar')
-    expect(payments[0].amount).toBe(100000)
-    expect(payments[0].status).toBe('Pending')
-    expect(payments[0].metrics?.allEqualOrAboveAvg).toBe(33.33)
-    expect(payments[0].metrics?.withoutConnection).toBe(33.33)
-    expect(payments[0].metrics?.atLeastOneBellowAvg).toBe(33.33)
-    assert.isNotEmpty(payments[0].invoice)
-    expect(payments[1].paidDate).toBe('2022-07-31')
-    expect(payments[1].description).toBe('payment description')
-    expect(payments[1].currency.name).toBe('US Dollar')
-    expect(payments[1].amount).toBe(100000)
-    expect(payments[1].status).toBe('Pending')
-    expect(payments[1].metrics?.allEqualOrAboveAvg).toBe(66.67)
-    expect(payments[1].metrics?.withoutConnection).toBe(33.33)
-    expect(payments[1].metrics?.atLeastOneBellowAvg).toBe(0)
-    assert.isNotEmpty(payments[1].invoice)
+    const body = await testUtils.buildCreatePaymentBody(
+      7,
+      2022,
+      contract.id.toString(),
+      contract.currencyId.toString()
+    )
+    let response = await client.post('/payment').loginAs(user).json(body)
+    const payment = response.body() as Payment
+    expect(payment.metrics?.allEqualOrAboveAvg).toBe(66.67)
+    expect(payment.metrics?.atLeastOneBellowAvg).toBe(0)
+    expect(payment.metrics?.withoutConnection).toBe(33.33)
+    expect(payment.dateFrom).toContain('2022-07-01')
+    expect(payment.dateTo).toContain('2022-07-31')
+    expect(payment.amount).toBe(100000)
+    expect(payment.currencyId).toBe(contract.currencyId)
+    expect(payment.createdBy).toBe(user.id)
+    expect(payment.description).toBe('payment description')
+    expect(payment.status).toBe(0)
+    const invoice = await Attachment.find(payment.invoiceId)
+    expect(invoice?.url).not.toBeNull()
+    expect(invoice?.name).toBe('File')
+    response = await client.post('/payment').loginAs(user).json(body)
+    const error = response.error() as import('superagent').HTTPError
+    expect(error.status).toBe(422)
+    expect(error.text).toBe('ALREADY_HAS_PAYMENT: Contract already has payment on that month-year')
+    const payments = await Payment.all()
+    expect(payments.length).toBe(1)
+  })
+  test('Throw an error if validation fails', async ({ client, expect }) => {
+    const user = await setupUser('Government')
+    const response = await client.post('/payment').loginAs(user).json({})
+    const error = response.error() as import('superagent').HTTPError
+    expect(error.status).toBe(422)
+    expect(JSON.parse(error.text).errors.length).toBe(6)
+    JSON.parse(error.text).errors.map((e) => {
+      expect(e.message).toBe('required validation failed')
+      expect(e.rule).toBe('required')
+      expect(requiredFields.some((v) => v === e.field)).toBeTruthy()
+    })
   })
 })
 
-const createPayment = async (
-  client: ApiClient,
-  user: User,
-  month: number,
-  contractId: number,
-  currencyId: number
-) => {
-  const body = await testUtils.buildCreatePaymentBody(
-    month,
-    2022,
-    contractId.toString(),
-    currencyId.toString()
-  )
-  return testUtils.createPayments(client, user, body)
-}
-
-const setupUser = async () => {
+const setupUser = async (name: string, hasPermission = true) => {
   return UserFactory.with('roles', 1, (role) =>
     role
-      .merge({ name: 'Giga Admin' })
-      .with('permissions', 3, (permission) =>
-        permission.merge([
-          { name: 'payment.write' },
-          { name: 'contract.read' },
-          { name: 'payment.read' },
-        ])
+      .merge({ name })
+      .with('permissions', 1, (permission) =>
+        permission.merge({ name: hasPermission ? 'payment.write' : 'contract.write' })
       )
   )
     .with('country')
