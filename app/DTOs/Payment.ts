@@ -5,6 +5,7 @@ import Currency from 'App/Models/Currency'
 import Attachment from 'App/Models/Attachment'
 
 export interface PaymentsByContract {
+  id: number
   paidDate: string
   description?: string
   currency: Currency
@@ -21,6 +22,7 @@ export interface PaymentsByContract {
 
 const getPaymentsByContractDTO = (payments: Payment[]): PaymentsByContract[] => {
   return payments.map((payment) => ({
+    id: payment.id,
     paidDate: payment.dateTo?.toISODate() || '',
     description: payment.description,
     currency: payment.currency,

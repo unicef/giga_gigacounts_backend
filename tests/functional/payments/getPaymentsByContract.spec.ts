@@ -25,7 +25,7 @@ test.group('Get Payments by Contract', (group) => {
     const user = await setupUser()
     const contract = await setupModels(user.countryId, user.id)
     await createPayment(client, user, 8, contract.id, contract.currencyId)
-    const response = await client.get(`/payment/${contract.id}`).loginAs(user)
+    const response = await client.get(`/payment/contract/${contract.id}`).loginAs(user)
     const payments = response.body() as PaymentsByContract[]
     expect(payments[0].paidDate).toBe('2022-08-13')
     expect(payments[0].description).toBe('payment description')
@@ -45,7 +45,7 @@ test.group('Get Payments by Contract', (group) => {
     const user = await setupUser()
     const contract = await setupModels(user.countryId, user.id)
     await createPayment(client, user, 7, contract.id, contract.currencyId)
-    const response = await client.get(`/payment/${contract.id}`).loginAs(user)
+    const response = await client.get(`/payment/contract/${contract.id}`).loginAs(user)
     const payments = response.body() as PaymentsByContract[]
     expect(payments[0].paidDate).toBe('2022-07-31')
     expect(payments[0].description).toBe('payment description')
@@ -66,7 +66,7 @@ test.group('Get Payments by Contract', (group) => {
     const contract = await setupModels(user.countryId, user.id)
     await createPayment(client, user, 8, contract.id, contract.currencyId)
     await createPayment(client, user, 7, contract.id, contract.currencyId)
-    const response = await client.get(`/payment/${contract.id}`).loginAs(user)
+    const response = await client.get(`/payment/contract/${contract.id}`).loginAs(user)
     const payments = response.body() as PaymentsByContract[]
     expect(payments[0].paidDate).toBe('2022-08-13')
     expect(payments[0].description).toBe('payment description')

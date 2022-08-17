@@ -9,9 +9,13 @@ export default class PaymentsController {
   }
 
   public async getPaymentsByContract({ response, request }: HttpContextContract) {
-    const { contract_id } = request.params()
-    const payments = await service.getPaymentsByContract(contract_id)
-    return response.ok(payments)
+    try {
+      const { contract_id } = request.params()
+      const payments = await service.getPaymentsByContract(contract_id)
+      return response.ok(payments)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
   }
 
   public async createPayment({ response, request, auth }: HttpContextContract) {
