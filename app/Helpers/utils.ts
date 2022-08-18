@@ -61,6 +61,8 @@ const formatContractDate = (date: string, start: boolean = false) => {
   return start ? formatedDate.startOf('day') : formatedDate.endOf('day')
 }
 
+const toFixedFloat = (num: number, digits: number = 2) => parseFloat(num.toFixed(digits))
+
 export default {
   destructObjArrayWithId,
   removeProperty,
@@ -72,4 +74,5 @@ export default {
   getFirstAndLastDaysMonth,
   removeDuplicateTimestamps,
   formatContractDate,
+  toFixedFloat,
 }

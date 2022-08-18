@@ -25,6 +25,7 @@ export const permissions = {
   attachmentRead: 'attachment.read',
   ltaRead: 'lta.read',
   ltaWrite: 'lta.write',
+  measureRead: 'measure.read',
 }
 
 export const Metrics = {
