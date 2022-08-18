@@ -1,5 +1,6 @@
 import { DateTime as DateTimeLBD } from 'luxon-business-days'
 import { DateTime } from 'luxon'
+import Contract from 'App/Models/Contract'
 
 interface DiffMonths {
   months: number
@@ -63,6 +64,13 @@ const formatContractDate = (date: string, start: boolean = false) => {
 
 const toFixedFloat = (num: number, digits: number = 2) => parseFloat(num.toFixed(digits))
 
+const makeFromAndToDate = (month: number, year: number, contractEndDate: DateTime) => {
+  const dateFrom = DateTime.now().set({ month, year }).startOf('month')
+  const endMonth = DateTime.now().set({ month, year }).endOf('month')
+  const dateTo = endMonth > contractEndDate ? contractEndDate : endMonth
+  return { dateFrom, dateTo }
+}
+
 export default {
   destructObjArrayWithId,
   removeProperty,
@@ -75,4 +83,5 @@ export default {
   removeDuplicateTimestamps,
   formatContractDate,
   toFixedFloat,
+  makeFromAndToDate,
 }

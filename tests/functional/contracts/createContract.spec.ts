@@ -14,9 +14,6 @@ import Metric from 'App/Models/Metric'
 import Contract from 'App/Models/Contract'
 import Draft from 'App/Models/Draft'
 import ExpectedMetric from 'App/Models/ExpectedMetric'
-import { ApiClient } from '@japa/api-client'
-import User from 'App/Models/User'
-import Attachment from 'App/Models/Attachment'
 
 import testUtils from '../../utils'
 import StatusTransition from 'App/Models/StatusTransition'
@@ -36,8 +33,6 @@ const requiredFields = [
   'schools',
   'expectedMetrics',
 ]
-
-const lower20Pdf = `${__dirname}/lower_20.pdf`
 
 test.group('Create Contract', (group) => {
   group.each.setup(async () => {
@@ -86,7 +81,7 @@ test.group('Create Contract', (group) => {
     }).create()
     const { country, currency, frequency, isp, metrics, school } = await setupModels()
     const draft = await DraftFactory.create()
-    const attachment = await createAttachment(client, user, draft.id)
+    const attachment = await testUtils.createAttachment(client, user, draft.id)
     const startDate = DateTime.now().toFormat('yyyy-MM-dd')
     const endDate = DateTime.now().plus({ day: 1 }).toFormat('yyyy-MM-dd')
     const body = buildContract(
@@ -162,7 +157,7 @@ test.group('Create Contract', (group) => {
     const contracts = await Contract.all()
     assert.isEmpty(contracts)
   })
-  test('Successfully rollback the transaction if a error occur', async ({ client, expect }) => {
+  test('Throw an error if validation fails', async ({ client, expect }) => {
     const user = await UserFactory.with('roles', 1, (role) => {
       role.with('permissions', 1, (permission) => permission.merge({ name: 'contract.write' }))
     }).create()
@@ -368,13 +363,3 @@ const buildManyToMany = (modelsId: string[], modelName: string) => ({
     })),
   },
 })
-
-const createAttachment = async (client: ApiClient, user: User, typeId: number) => {
-  const file = await testUtils.toBase64('data:application/pdf;base64,', lower20Pdf)
-  const response = await client
-    .post('/attachments/upload')
-    .loginAs(user)
-    .json({ file, type: 'draft', typeId, name: 'fake name' })
-  const attachment = response.body() as Attachment
-  return attachment
-}

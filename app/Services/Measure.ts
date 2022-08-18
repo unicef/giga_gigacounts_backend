@@ -30,9 +30,7 @@ const calculateMeasuresByMonthYear = async ({
     .preload('expectedMetrics')
     .withCount('schools')
   if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
-  const dateFrom = DateTime.now().set({ month, year }).startOf('month')
-  const endMonth = DateTime.now().set({ month, year }).endOf('month')
-  const dateTo = endMonth > contract[0].endDate ? contract[0].endDate : endMonth
+  const { dateFrom, dateTo } = utils.makeFromAndToDate(month, year, contract[0].endDate)
   const schoolsMedians = await getSchoolsMedianMeasures(contract, dateFrom, dateTo)
   return dto.calculateMeasuresDTO(contract[0], schoolsMedians)
 }
