@@ -7,6 +7,7 @@ import { ContractStatus } from 'App/Helpers/constants'
 import utils from 'App/Helpers/utils'
 import { DateTime } from 'luxon'
 import { v1 } from 'uuid'
+import Currency from 'App/Models/Currency'
 
 interface StatusCount {
   status: string
@@ -74,6 +75,13 @@ export interface ContractDetails {
     name: string
   }[]
   connectionsMedian: ConnectionMedian[]
+  budget: string
+  numberOfPayments: number
+  currency: Currency
+  totalSpent: {
+    amount: string
+    percentage: number
+  }
 }
 
 interface ConnectionEquation {
@@ -261,6 +269,13 @@ const contractDeatilsDTO = (
       ),
     },
     connectionsMedian,
+    budget: contract.budget,
+    numberOfPayments: contract.$extras.payments_count,
+    currency: contract.currency,
+    totalSpent: {
+      amount: contract.$extras.total_payments,
+      percentage: utils.getPercentage(parseInt(contract.budget), contract.$extras.total_payments),
+    },
   }
 }
 

@@ -150,7 +150,12 @@ const getContractDetails = async (contractId: number) => {
     .preload('expectedMetrics')
     .preload('attachments')
     .preload('schools')
+    .withAggregate('payments', (qry) => {
+      qry.sum('amount').as('total_payments')
+    })
+    .preload('currency')
     .withCount('schools')
+    .withCount('payments')
 
   if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
 
