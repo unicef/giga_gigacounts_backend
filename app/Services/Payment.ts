@@ -46,7 +46,12 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
     if (contract.status === ContractStatus.Completed)
       throw new InvalidStatusException('Invalid status', 400, 'INVALID_STATUS')
 
-    const { dateFrom, dateTo } = utils.makeFromAndToDate(data.month, data.year, contract.endDate)
+    const { dateFrom, dateTo } = utils.makeFromAndToDate(
+      data.month,
+      data.year,
+      contract.startDate,
+      contract.endDate
+    )
 
     if (await checkPaymentInSameMonthYear(dateFrom, dateTo, contract.id)) {
       throw new AlreadyHasPaymentException(

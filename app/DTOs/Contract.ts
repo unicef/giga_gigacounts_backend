@@ -469,10 +469,21 @@ const calculateSchoolsMeasure = async (
 
 const concatLocations = (locations: string[]) => locations.filter((l) => l).join(',')
 
+const contractAvailablePaymentsDTO = (paymentsDates: { dates: string }[]) => {
+  return paymentsDates.map(({ dates }) => {
+    const [month, year] = dates.split('-')
+    return {
+      month: parseInt(month),
+      year: parseInt(year),
+    }
+  })
+}
+
 export default {
   contractCountByStatusDTO,
   contractListDTO,
   contractDeatilsDTO,
   contractSchoolsDetailDTO,
   getContractDTO,
+  contractAvailablePaymentsDTO,
 }

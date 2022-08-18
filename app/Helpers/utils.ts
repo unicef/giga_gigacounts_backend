@@ -1,6 +1,5 @@
 import { DateTime as DateTimeLBD } from 'luxon-business-days'
 import { DateTime } from 'luxon'
-import Contract from 'App/Models/Contract'
 
 interface DiffMonths {
   months: number
@@ -42,6 +41,9 @@ const businessDiff = (date1: DateTimeLBD, date2: DateTimeLBD, relative?: boolean
 const diffOfMonths = (date1: DateTime, date2: DateTime) =>
   date1.diff(date2, ['month']).toObject() as DiffMonths
 
+const diffOfDays = (date1: DateTime, date2: DateTime) =>
+  date1.diff(date2, ['days']).toObject() as { days: number }
+
 const setDateToBeginOfDayFromISO = (date: DateTime) =>
   DateTime.fromISO(date.toString()).startOf('day')
 
@@ -64,9 +66,15 @@ const formatContractDate = (date: string, start: boolean = false) => {
 
 const toFixedFloat = (num: number, digits: number = 2) => parseFloat(num.toFixed(digits))
 
-const makeFromAndToDate = (month: number, year: number, contractEndDate: DateTime) => {
-  const dateFrom = DateTime.now().set({ month, year }).startOf('month')
+const makeFromAndToDate = (
+  month: number,
+  year: number,
+  contractStartDate: DateTime,
+  contractEndDate: DateTime
+) => {
+  const startMonth = DateTime.now().set({ month, year }).startOf('month')
   const endMonth = DateTime.now().set({ month, year }).endOf('month')
+  const dateFrom = startMonth > contractStartDate ? contractStartDate : startMonth
   const dateTo = endMonth > contractEndDate ? contractEndDate : endMonth
   return { dateFrom, dateTo }
 }
@@ -84,4 +92,5 @@ export default {
   formatContractDate,
   toFixedFloat,
   makeFromAndToDate,
+  diffOfDays,
 }
