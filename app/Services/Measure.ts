@@ -77,7 +77,7 @@ const calculateUptime = (start: DateTime, end: DateTime, measuresTimestamps: str
   const endLBD = new DateTimeLBD(end)
   const businessDays = utils.businessDiff(startLBD, endLBD)
   const countOfTimestamps = utils.removeDuplicateTimestamps(measuresTimestamps).length
-  return (countOfTimestamps / businessDays) * 100
+  return Math.round((countOfTimestamps / businessDays) * 100)
 }
 
 const convertKilobitsToMegabits = (value: number) => (value > 0 ? Math.round(value / 1000) : 0)

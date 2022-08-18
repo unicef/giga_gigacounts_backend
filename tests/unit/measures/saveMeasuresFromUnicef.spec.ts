@@ -25,36 +25,36 @@ test.group('Save Measures from Unicef', (group) => {
       contract.schools[0].id,
       metrics,
       DateTime.now().set({ year: 2022, month: 7, day: 21, hour: 0, minute: 0, second: 0 }),
-      DateTime.now().set({ year: 2022, month: 7, day: 26, hour: 0, minute: 0, second: 0 }),
+      DateTime.now().set({ year: 2022, month: 7, day: 30, hour: 0, minute: 0, second: 0 }),
       'historic'
     )
     const measures = await Measure.query().preload('metric')
-    expect(measures.length).toBe(16)
+    expect(measures.length).toBe(20)
     for (const measure of measures) {
       const json = measure.toJSON()
       if (json.created_at.startsWith('2022-07-21')) {
         if (json.metric.name === 'Latency') expect(json.value).toBe(10)
         if (json.metric.name === 'Download speed') expect(json.value).toBe(28)
         if (json.metric.name === 'Upload speed') expect(json.value).toBe(82)
-        if (json.metric.name === 'Uptime') expect(json.value).toBe(100)
+        if (json.metric.name === 'Uptime') expect(json.value).toBe(71)
       }
       if (json.created_at.startsWith('2022-07-22')) {
         if (json.metric.name === 'Latency') expect(json.value).toBe(5)
         if (json.metric.name === 'Download speed') expect(json.value).toBe(27)
         if (json.metric.name === 'Upload speed') expect(json.value).toBe(59)
-        if (json.metric.name === 'Uptime') expect(json.value).toBe(100)
+        if (json.metric.name === 'Uptime') expect(json.value).toBe(71)
       }
       if (json.created_at.startsWith('2022-07-25')) {
         if (json.metric.name === 'Latency') expect(json.value).toBe(8)
         if (json.metric.name === 'Download speed') expect(json.value).toBe(2)
         if (json.metric.name === 'Upload speed') expect(json.value).toBe(25)
-        if (json.metric.name === 'Uptime') expect(json.value).toBe(100)
+        if (json.metric.name === 'Uptime') expect(json.value).toBe(71)
       }
       if (json.created_at.startsWith('2022-07-26')) {
         if (json.metric.name === 'Latency') expect(json.value).toBe(9)
         if (json.metric.name === 'Download speed') expect(json.value).toBe(29)
         if (json.metric.name === 'Upload speed') expect(json.value).toBe(0)
-        if (json.metric.name === 'Uptime') expect(json.value).toBe(100)
+        if (json.metric.name === 'Uptime') expect(json.value).toBe(71)
       }
     }
   })
@@ -66,18 +66,18 @@ test.group('Save Measures from Unicef', (group) => {
       contract.schools[0].id,
       metrics,
       DateTime.now().set({ year: 2022, month: 7, day: 21, hour: 0, minute: 0, second: 0 }),
-      DateTime.now().set({ year: 2022, month: 7, day: 27, hour: 0, minute: 0, second: 0 }),
+      DateTime.now().set({ year: 2022, month: 7, day: 31, hour: 0, minute: 0, second: 0 }),
       'daily'
     )
     const measures = await Measure.query().preload('metric')
     expect(measures.length).toBe(4)
     for (const measure of measures) {
       const json = measure.toJSON()
-      expect(json.created_at).toContain('2022-07-26')
+      expect(json.created_at).toContain('2022-07-30')
       if (json.metric.name === 'Latency') expect(json.value).toBe(9)
       if (json.metric.name === 'Download speed') expect(json.value).toBe(29)
       if (json.metric.name === 'Upload speed') expect(json.value).toBe(0)
-      if (json.metric.name === 'Uptime') expect(json.value).toBe(100)
+      if (json.metric.name === 'Uptime') expect(json.value).toBe(71)
     }
   })
 })
@@ -106,6 +106,12 @@ const generateMeasurementsData = (): MeasurementsData[] => [
     upload: 0,
     latency: '9',
     timestamp: '2022-07-26T10:09:43.267Z',
+  },
+  {
+    download: 28618.635,
+    upload: 0,
+    latency: '9',
+    timestamp: '2022-07-30T10:09:43.267Z',
   },
 ]
 
