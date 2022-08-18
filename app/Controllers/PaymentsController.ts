@@ -28,4 +28,14 @@ export default class PaymentsController {
       return response.status(error.status).send(error.message)
     }
   }
+
+  public async getPayment({ response, request }: HttpContextContract) {
+    try {
+      const { payment_id } = request.params()
+      const payment = await service.getPayment(payment_id)
+      return response.ok(payment)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
 }

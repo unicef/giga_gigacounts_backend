@@ -96,7 +96,7 @@ export default class User extends BaseModel {
 
   @hasMany(() => Payment, {
     localKey: 'id',
-    foreignKey: 'created_by',
+    foreignKey: 'createdBy',
   })
   public payments: HasMany<typeof Payment>
 }

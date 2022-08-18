@@ -20,6 +20,29 @@ export interface PaymentsByContract {
   receipt?: Attachment
 }
 
+export interface GetPayment {
+  id: number
+  description?: string
+  paidDate: {
+    month?: number
+    year?: number
+  }
+  currency: Currency
+  amount: number
+  status: string
+  metrics?: {
+    withoutConnection: number
+    atLeastOneBellowAvg: number
+    allEqualOrAboveAvg: number
+  }
+  invoice?: Attachment
+  receipt?: Attachment
+  createdBy?: {
+    name: string
+    role: string
+  }
+}
+
 const getPaymentsByContractDTO = (payments: Payment[]): PaymentsByContract[] => {
   return payments.map((payment) => ({
     id: payment.id,
@@ -34,6 +57,26 @@ const getPaymentsByContractDTO = (payments: Payment[]): PaymentsByContract[] => 
   }))
 }
 
+const getPaymentDTO = (payment: Payment): GetPayment => ({
+  id: payment.id,
+  description: payment.description,
+  paidDate: {
+    month: payment.dateTo?.get('month'),
+    year: payment.dateTo?.get('year'),
+  },
+  currency: payment.currency,
+  amount: payment.amount,
+  status: PaymentStatus[payment.status],
+  metrics: payment?.metrics,
+  invoice: payment?.invoice,
+  receipt: payment?.receipt,
+  createdBy: {
+    name: payment?.creator?.name,
+    role: payment?.creator?.roles[0]?.name,
+  },
+})
+
 export default {
   getPaymentsByContractDTO,
+  getPaymentDTO,
 }

@@ -26,6 +26,11 @@ Route.get('/payment/contract/:contract_id', 'PaymentsController.getPaymentsByCon
   `acl:${permissions.paymentRead}:${permissions.contractRead}`,
 ])
 
+Route.get('/payment/:payment_id', 'PaymentsController.getPayment').middleware([
+  'auth:api',
+  `acl:${permissions.paymentRead}`,
+])
+
 /**
  * ISP ROUTES
  */
