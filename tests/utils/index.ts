@@ -4,6 +4,8 @@ import { ApiClient } from '@japa/api-client'
 
 import Attachment from 'App/Models/Attachment'
 import User from 'App/Models/User'
+import { CreatePaymentData } from 'App/Services/Payment'
+import Payment from 'App/Models/Payment'
 
 const UNICEF_API = process.env.UNICEF_API || ''
 
@@ -39,10 +41,36 @@ const createAttachment = async (client: ApiClient, user: User, typeId: number) =
   return attachment
 }
 
+const createPayments = async (client: ApiClient, user: User, body: CreatePaymentData) => {
+  const response = await client.post('/payment').loginAs(user).json(body)
+  const payment = response.body() as Payment
+  return payment
+}
+
+const buildCreatePaymentBody = async (
+  month: number,
+  year: number,
+  contractId: string,
+  currencyId: string
+): Promise<CreatePaymentData> => ({
+  description: 'payment description',
+  month,
+  year,
+  amount: 100000,
+  invoice: {
+    file: await toBase64('data:application/pdf;base64,'),
+    name: 'File',
+  },
+  contractId,
+  currencyId,
+})
+
 export default {
   toBase64,
   mockUnicefAllMeasurements,
   checkAllMocksCalled,
   cleanAllMocks,
   createAttachment,
+  createPayments,
+  buildCreatePaymentBody,
 }

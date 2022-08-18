@@ -4,6 +4,7 @@ import { DateTime } from 'luxon/src/luxon'
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
 import NotFoundException from 'App/Exceptions/NotFoundException'
 import AlreadyHasPaymentException from 'App/Exceptions/AlreadyHasPaymentException'
+import InvalidStatusException from 'App/Exceptions/InvalidStatusException'
 
 import Frequency from 'App/Models/Frequency'
 import Payment from 'App/Models/Payment'
@@ -13,10 +14,10 @@ import User from 'App/Models/User'
 import attachmentService, { AttachmentsType } from 'App/Services/Attachment'
 import userService from 'App/Services/User'
 import measureService from 'App/Services/Measure'
-
 import utils from 'App/Helpers/utils'
 import { PaymentStatus, roles, ContractStatus } from 'App/Helpers/constants'
-import InvalidStatusException from 'App/Exceptions/InvalidStatusException'
+
+import dto from 'App/DTOs/Payment'
 
 interface File {
   file: string
@@ -131,7 +132,21 @@ const checkPaymentInSameMonthYear = async (
   return payments.length > 0
 }
 
+const getPaymentsByContract = async (contractId: string) => {
+  const contract = await Contract.find(contractId)
+  if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  const payments = await Payment.query().where('contract_id', contractId).preload('currency')
+  await Promise.all(
+    payments.map(async (payment) => {
+      if (payment.invoiceId) await payment.load('invoice')
+      if (payment.receiptId) await payment.load('receipt')
+    })
+  )
+  return dto.getPaymentsByContractDTO(payments)
+}
+
 export default {
   listFrequencies,
   createPayment,
+  getPaymentsByContract,
 }

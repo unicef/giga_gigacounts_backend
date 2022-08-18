@@ -8,6 +8,16 @@ export default class PaymentsController {
     return response.ok(frequencies)
   }
 
+  public async getPaymentsByContract({ response, request }: HttpContextContract) {
+    try {
+      const { contract_id } = request.params()
+      const payments = await service.getPaymentsByContract(contract_id)
+      return response.ok(payments)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
+
   public async createPayment({ response, request, auth }: HttpContextContract) {
     try {
       if (!auth.user) return

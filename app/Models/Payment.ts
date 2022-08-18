@@ -70,11 +70,13 @@ export default class Payment extends BaseModel {
 
   @hasOne(() => Attachment, {
     localKey: 'invoiceId',
+    foreignKey: 'id',
   })
   public invoice: HasOne<typeof Attachment>
 
   @hasOne(() => Attachment, {
     localKey: 'receiptId',
+    foreignKey: 'id',
   })
   public receipt: HasOne<typeof Attachment>
 
