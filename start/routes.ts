@@ -31,6 +31,12 @@ Route.get('/payment/:payment_id', 'PaymentsController.getPayment').middleware([
   `acl:${permissions.paymentRead}`,
 ])
 
+Route.post('/payment/change-status', 'PaymentsController.changePaymentStatus').middleware([
+  'auth:api',
+  'validator:ChangePaymentStatusValidator',
+  `acl:${permissions.paymentWrite}`,
+])
+
 Route.put('/payment', 'PaymentsController.updatePayment').middleware([
   'auth:api',
   'validator:UpdatePaymentValidator',
