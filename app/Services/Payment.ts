@@ -35,6 +35,16 @@ export interface CreatePaymentData {
   contractId: string
 }
 
+export interface UpdatePaymentData {
+  paymentId: string
+  description?: string
+  month?: number
+  year?: number
+  amount?: number
+  invoice?: File
+  receipt?: File
+}
+
 const listFrequencies = async (): Promise<Frequency[]> => {
   return Frequency.all()
 }
@@ -47,30 +57,15 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
     if (contract.status === ContractStatus.Completed)
       throw new InvalidStatusException('Invalid status', 400, 'INVALID_STATUS')
 
-    const { dateFrom, dateTo } = utils.makeFromAndToDate(
-      data.month,
-      data.year,
-      contract.startDate,
-      contract.endDate
-    )
-
-    if (await checkPaymentInSameMonthYear(dateFrom, dateTo, contract.id)) {
-      throw new AlreadyHasPaymentException(
-        'Contract already has payment on that month-year',
-        422,
-        'ALREADY_HAS_PAYMENT'
-      )
-    }
-
     const status = userService.checkUserRole(user, [roles.government, roles.countryOffice])
       ? PaymentStatus.Verified
       : PaymentStatus.Pending
 
-    const metrics = await measureService.calculateMeasuresByMonthYear({
-      contractId: contract.id,
-      month: data.month,
-      year: data.year,
-    })
+    const { dateFrom, dateTo, metrics } = await checkAndSavePaymentMetrics(
+      data.month,
+      data.year,
+      contract
+    )
 
     const payment = await Payment.create(
       {
@@ -156,9 +151,97 @@ const getPayment = async (paymentId: string) => {
   return dto.getPaymentDTO(payment)
 }
 
+const updatePayment = async (data: UpdatePaymentData, user: User) => {
+  const trx = await Database.transaction()
+  try {
+    const payment = await Payment.find(data.paymentId, { client: trx })
+    if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
+
+    payment.description = data.description || payment.description
+    payment.amount = data.amount || payment.amount
+
+    if (data.month && data.year) {
+      const contract = await Contract.find(payment.contractId, { client: trx })
+      if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+      const { dateFrom, dateTo, metrics } = await checkAndSavePaymentMetrics(
+        data.month,
+        data.year,
+        contract
+      )
+
+      payment.dateFrom = dateFrom
+      payment.dateTo = dateTo
+      payment.metrics = metrics
+    }
+
+    if (data.invoice) {
+      if (payment.invoiceId) await attachmentService.deleteAttachment(payment.invoiceId, trx)
+      const invoice = await attachmentService.uploadAttachment(
+        { ...data.invoice, type: AttachmentsType.INVOICE, typeId: payment.id },
+        trx
+      )
+      payment.invoiceId = invoice.id
+    }
+
+    if (
+      data.receipt &&
+      userService.checkUserRole(user, [roles.government, roles.countryOffice, roles.gigaAdmin])
+    ) {
+      if (payment.receiptId) await attachmentService.deleteAttachment(payment.receiptId, trx)
+      const receipt = await attachmentService.uploadAttachment(
+        {
+          ...data.receipt,
+          type: AttachmentsType.RECEIPT,
+          typeId: payment.id,
+        },
+        trx
+      )
+      payment.receiptId = receipt.id
+    }
+
+    const updatedPayment = await payment.useTransaction(trx).save()
+    await trx.commit()
+
+    return updatedPayment
+  } catch (error) {
+    await trx.rollback()
+    if ([404, 422, 400].some((status) => status === error?.status)) throw error
+    throw new FailedDependencyException(
+      'Some dependency failed while uploading attachment',
+      424,
+      'FAILED_DEPENDENCY'
+    )
+  }
+}
+
+const checkAndSavePaymentMetrics = async (month: number, year: number, contract: Contract) => {
+  const { dateFrom, dateTo } = utils.makeFromAndToDate(
+    month,
+    year,
+    contract.startDate,
+    contract.endDate
+  )
+
+  if (await checkPaymentInSameMonthYear(dateFrom, dateTo, contract.id)) {
+    throw new AlreadyHasPaymentException(
+      'Contract already has payment on that month-year',
+      422,
+      'ALREADY_HAS_PAYMENT'
+    )
+  }
+
+  const metrics = await measureService.calculateMeasuresByMonthYear({
+    contractId: contract.id,
+    month: month,
+    year: year,
+  })
+  return { dateFrom, dateTo, metrics }
+}
+
 export default {
   listFrequencies,
   createPayment,
   getPaymentsByContract,
   getPayment,
+  updatePayment,
 }

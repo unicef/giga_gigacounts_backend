@@ -31,6 +31,12 @@ Route.get('/payment/:payment_id', 'PaymentsController.getPayment').middleware([
   `acl:${permissions.paymentRead}`,
 ])
 
+Route.put('/payment', 'PaymentsController.updatePayment').middleware([
+  'auth:api',
+  'validator:UpdatePaymentValidator',
+  `acl:${permissions.paymentWrite}`,
+])
+
 /**
  * ISP ROUTES
  */
