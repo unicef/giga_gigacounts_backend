@@ -35,6 +35,11 @@ export interface CreatePaymentData {
   contractId: string
 }
 
+export interface ChangePaymentStatusData {
+  paymentId: number
+  status: PaymentStatus
+}
+
 const listFrequencies = async (): Promise<Frequency[]> => {
   return Frequency.all()
 }
@@ -156,9 +161,21 @@ const getPayment = async (paymentId: string) => {
   return dto.getPaymentDTO(payment)
 }
 
+const changePaymentStatus = async ({ paymentId, status }: ChangePaymentStatusData) => {
+  const payment = await Payment.find(paymentId)
+  if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
+  if (payment.status === PaymentStatus.Verified)
+    throw new InvalidStatusException('Payment already verified', 400, 'INVALID_STATUS')
+  if (payment.status === PaymentStatus.Rejected && status === PaymentStatus.Verified)
+    throw new InvalidStatusException('Rejected payment cant be verified', 400, 'INVALID_STATUS')
+  payment.status = status
+  return payment.save()
+}
+
 export default {
   listFrequencies,
   createPayment,
   getPaymentsByContract,
   getPayment,
+  changePaymentStatus,
 }
