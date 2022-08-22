@@ -486,4 +486,5 @@ export default {
   contractSchoolsDetailDTO,
   getContractDTO,
   contractAvailablePaymentsDTO,
+  calculateSchoolsMeasure,
 }

@@ -6,6 +6,8 @@ import Contract from 'App/Models/Contract'
 import User from 'App/Models/User'
 import Currency from 'App/Models/Currency'
 
+import { ConnectionMedian } from 'App/DTOs/Contract'
+
 export default class Payment extends BaseModel {
   @column({ isPrimary: true })
   public id: number
@@ -53,6 +55,7 @@ export default class Payment extends BaseModel {
 
   @column()
   public metrics?: {
+    connectionsMedian: ConnectionMedian[]
     withoutConnection: number
     atLeastOneBellowAvg: number
     allEqualOrAboveAvg: number

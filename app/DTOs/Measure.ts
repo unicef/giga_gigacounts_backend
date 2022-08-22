@@ -1,10 +1,14 @@
 import Contract from 'App/Models/Contract'
 
 import utils from 'App/Helpers/utils'
-import { SchoolsConnection } from 'App/DTOs/Contract'
+import { SchoolsConnection, ConnectionMedian } from 'App/DTOs/Contract'
 import ExpectedMetric from 'App/Models/ExpectedMetric'
 
-const calculateMeasuresDTO = (contract: Contract, schoolsMedians: {}) => {
+const calculateMeasuresDTO = async (
+  contract: Contract,
+  schoolsMedians: {},
+  connectionsMedian: ConnectionMedian[]
+) => {
   const schoolsConnection: SchoolsConnection = {
     withoutConnection: 0,
     atLeastOneBellowAvg: 0,
@@ -22,6 +26,7 @@ const calculateMeasuresDTO = (contract: Contract, schoolsMedians: {}) => {
   }
 
   return {
+    connectionsMedian,
     withoutConnection: utils.toFixedFloat(
       utils.getPercentage(contract.$extras.schools_count, schoolsConnection.withoutConnection)
     ),

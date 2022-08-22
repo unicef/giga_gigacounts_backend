@@ -30,9 +30,25 @@ const calculateMeasuresByMonthYear = async ({
     .preload('expectedMetrics')
     .withCount('schools')
   if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
-  const { dateFrom, dateTo } = utils.makeFromAndToDate(month, year, contract[0].endDate)
+  const { dateFrom, dateTo } = utils.makeFromAndToDate(
+    month,
+    year,
+    contract[0].startDate,
+    contract[0].endDate
+  )
   const schoolsMedians = await getSchoolsMedianMeasures(contract, dateFrom, dateTo)
-  return dto.calculateMeasuresDTO(contract[0], schoolsMedians)
+
+  const connectionsMedian = await Database.rawQuery(
+    `SELECT contract_id, metric_id, Metrics.name as metric_name, Metrics.unit as unit, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value
+      from Measures 
+      INNER JOIN Metrics ON Metrics.id = metric_id 
+      WHERE Measures.created_at BETWEEN ? AND ? AND contract_id = ?
+      GROUP BY contract_id, metric_id, metric_name, unit
+    `,
+    [dateFrom.toSQL(), dateTo.toSQL(), contract[0].id]
+  )
+
+  return dto.calculateMeasuresDTO(contract[0], schoolsMedians, connectionsMedian.rows)
 }
 
 const saveMeasuresFromUnicef = (
