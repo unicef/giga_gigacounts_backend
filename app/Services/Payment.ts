@@ -140,7 +140,11 @@ const checkPaymentInSameMonthYear = async (
 const getPaymentsByContract = async (contractId: string) => {
   const contract = await Contract.find(contractId)
   if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
-  const payments = await Payment.query().where('contract_id', contractId).preload('currency')
+  const payments = await Payment.query()
+    .where('contract_id', contractId)
+    .preload('currency')
+    .orderBy('date_to', 'desc')
+
   await Promise.all(
     payments.map(async (payment) => {
       if (payment.invoiceId) await payment.load('invoice')
