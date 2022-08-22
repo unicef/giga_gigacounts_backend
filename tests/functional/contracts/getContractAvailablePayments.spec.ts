@@ -156,6 +156,76 @@ test.group('Contract Available Payments', (group) => {
     expect(paymentDates[2].month).toBe(4)
     expect(paymentDates[2].year).toBe(2022)
   })
+  test('Successfully get available payments for contract if endMonth day is lower than startMonth day', async ({
+    client,
+    expect,
+  }) => {
+    const user = await createUser()
+    const contract = await ContractFactory.merge({
+      createdBy: user.id,
+      startDate: DateTime.now().set({ year: 2022, month: 1, day: 5 }),
+      endDate: DateTime.now().set({ year: 2022, month: 8, day: 3 }),
+    })
+      .with('isp')
+      .with('country')
+      .with('currency')
+      .with('frequency')
+      .create()
+
+    await PaymentFactory.merge([
+      {
+        dateFrom: DateTime.now().set({ year: 2022, month: 1 }).startOf('month'),
+        dateTo: DateTime.now().set({ year: 2022, month: 1 }).endOf('month'),
+        contractId: contract.id,
+        createdBy: user.id,
+      },
+      {
+        dateFrom: DateTime.now().set({ year: 2022, month: 2 }).startOf('month'),
+        dateTo: DateTime.now().set({ year: 2022, month: 2 }).endOf('month'),
+        contractId: contract.id,
+        createdBy: user.id,
+      },
+      {
+        dateFrom: DateTime.now().set({ year: 2022, month: 3 }).startOf('month'),
+        dateTo: DateTime.now().set({ year: 2022, month: 3 }).endOf('month'),
+        contractId: contract.id,
+        createdBy: user.id,
+      },
+      {
+        dateFrom: DateTime.now().set({ year: 2022, month: 4 }).startOf('month'),
+        dateTo: DateTime.now().set({ year: 2022, month: 4 }).endOf('month'),
+        contractId: contract.id,
+        createdBy: user.id,
+      },
+    ]).createMany(4)
+    const response = await client.get(`/contract/available-payments/${contract.id}`).loginAs(user)
+    const paymentDates = response.body() as { month: number; year: number }[]
+    expect(paymentDates.length).toBe(4)
+    expect(paymentDates[0].month).toBe(5)
+    expect(paymentDates[0].year).toBe(2022)
+    expect(paymentDates[1].month).toBe(6)
+    expect(paymentDates[1].year).toBe(2022)
+    expect(paymentDates[2].month).toBe(7)
+    expect(paymentDates[2].year).toBe(2022)
+    expect(paymentDates[3].month).toBe(8)
+    expect(paymentDates[3].year).toBe(2022)
+  })
+  test('Successfully return empty if contract doesnt have payments', async ({ client, expect }) => {
+    const user = await createUser()
+    const contract = await ContractFactory.merge({
+      createdBy: user.id,
+      startDate: DateTime.now().set({ year: 2022, month: 1, day: 5 }),
+      endDate: DateTime.now().set({ year: 2022, month: 8, day: 3 }),
+    })
+      .with('isp')
+      .with('country')
+      .with('currency')
+      .with('frequency')
+      .create()
+    const response = await client.get(`/contract/available-payments/${contract.id}`).loginAs(user)
+    const paymentDates = response.body() as { month: number; year: number }[]
+    expect(paymentDates.length).toBe(0)
+  })
 })
 
 const createUser = () => {
