@@ -8,6 +8,7 @@ import SchoolMeasuresValidator from './SchoolMeasuresValidator'
 import CalculateMeasuresValidator from './CalculateMeasuresValidator'
 import CreatePaymentValidator from './CreatePaymentValidator'
 import ChangePaymentStatusValidator from './ChangePaymentStatusValidator'
+import UpdatePaymentValidator from './UpdatePaymentValidator'
 
 export default (validator: string) => {
   switch (validator) {
@@ -31,6 +32,8 @@ export default (validator: string) => {
       return CreatePaymentValidator
     case 'ChangePaymentStatusValidator':
       return ChangePaymentStatusValidator
+    case 'UpdatePaymentValidator':
+      return UpdatePaymentValidator
     default:
       return
   }
