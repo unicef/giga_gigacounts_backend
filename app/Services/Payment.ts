@@ -62,7 +62,11 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
     if (contract.status === ContractStatus.Completed)
       throw new InvalidStatusException('Invalid status', 400, 'INVALID_STATUS')
 
-    const status = userService.checkUserRole(user, [roles.government, roles.countryOffice])
+    const status = userService.checkUserRole(user, [
+      roles.government,
+      roles.countryOffice,
+      roles.gigaAdmin,
+    ])
       ? PaymentStatus.Verified
       : PaymentStatus.Pending
 
