@@ -33,6 +33,7 @@ test.group('Change Payment Status', (group) => {
     const paymentRes = response.body()
     expect(paymentRes.status).toBe(2)
     expect(paymentRes.id).toBe(payment.id)
+    expect(paymentRes.isVerified).toBe(true)
   })
   test('Successfully change a pending payment to rejected', async ({ client, expect }) => {
     const user = await setupUser()

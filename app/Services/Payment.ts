@@ -164,6 +164,7 @@ const changePaymentStatus = async ({ paymentId, status }: ChangePaymentStatusDat
   if (payment.status === PaymentStatus.Rejected && status === PaymentStatus.Verified)
     throw new InvalidStatusException('Rejected payment cant be verified', 400, 'INVALID_STATUS')
   payment.status = status
+  payment.isVerified = true
   return payment.save()
 }
 
