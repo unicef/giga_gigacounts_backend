@@ -29,6 +29,10 @@ test.group('Create Payment', (group) => {
     )
     const response = await client.post('/payment').loginAs(user).json(body)
     const payment = response.body() as Payment
+    expect(payment.metrics?.connectionsMedian[0].median_value).toBe(100)
+    expect(payment.metrics?.connectionsMedian[1].median_value).toBe(10)
+    expect(payment.metrics?.connectionsMedian[2].median_value).toBe(10)
+    expect(payment.metrics?.connectionsMedian[3].median_value).toBe(10)
     expect(payment.metrics?.allEqualOrAboveAvg).toBe(33.33)
     expect(payment.metrics?.atLeastOneBellowAvg).toBe(33.33)
     expect(payment.metrics?.withoutConnection).toBe(33.33)
@@ -54,6 +58,10 @@ test.group('Create Payment', (group) => {
     )
     const response = await client.post('/payment').loginAs(user).json(body)
     const payment = response.body() as Payment
+    expect(payment.metrics?.connectionsMedian[0].median_value).toBe(100)
+    expect(payment.metrics?.connectionsMedian[1].median_value).toBe(20)
+    expect(payment.metrics?.connectionsMedian[2].median_value).toBe(10)
+    expect(payment.metrics?.connectionsMedian[3].median_value).toBe(15)
     expect(payment.metrics?.allEqualOrAboveAvg).toBe(66.67)
     expect(payment.metrics?.atLeastOneBellowAvg).toBe(0)
     expect(payment.metrics?.withoutConnection).toBe(33.33)
@@ -82,6 +90,10 @@ test.group('Create Payment', (group) => {
     )
     let response = await client.post('/payment').loginAs(user).json(body)
     const payment = response.body() as Payment
+    expect(payment.metrics?.connectionsMedian[0].median_value).toBe(100)
+    expect(payment.metrics?.connectionsMedian[1].median_value).toBe(20)
+    expect(payment.metrics?.connectionsMedian[2].median_value).toBe(10)
+    expect(payment.metrics?.connectionsMedian[3].median_value).toBe(15)
     expect(payment.metrics?.allEqualOrAboveAvg).toBe(66.67)
     expect(payment.metrics?.atLeastOneBellowAvg).toBe(0)
     expect(payment.metrics?.withoutConnection).toBe(33.33)
@@ -149,7 +161,15 @@ const setupModels = async (countryId: number, userId: number) => {
       countryId: countryId,
       status: 3,
       createdBy: userId,
-      endDate: DateTime.now().set({ year: 2022, month: 8, day: 13 }),
+      endDate: DateTime.now().set({
+        year: 2022,
+        month: 8,
+        day: 13,
+        hour: 0,
+        millisecond: 0,
+        minute: 0,
+        second: 0,
+      }),
     },
   ])
     .with('isp')
