@@ -454,12 +454,18 @@ const batchStatusTransitions = async (
 }
 
 const getContractAvailablePayments = async (contractId: string) => {
-  const contract = await Contract.find(contractId)
-  if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  const contract = await Contract.query().where('id', contractId).preload('payments')
+  if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  if (!contract[0].payments.length) return []
   const endMonth = DateTime.now().endOf('month')
-  const endDate = (endMonth > contract.endDate ? contract.endDate : endMonth).toISODate()
-  const startDate = contract.startDate.toISODate()
-  const diff = utils.diffOfDays(contract.startDate, contract.startDate.startOf('month'))
+  let endDate: DateTime | string = endMonth > contract[0].endDate ? contract[0].endDate : endMonth
+  const startDate = contract[0].startDate.toISODate()
+  if (contract[0].startDate.get('day') > endDate.get('day')) {
+    endDate = endDate.set({ day: contract[0].startDate.get('day') }).toISODate()
+  }
+  const diff = Math.floor(
+    utils.diffOfDays(contract[0].startDate, contract[0].startDate.startOf('month')).days
+  )
   const payments = await Database.rawQuery(
     `select to_char(months, 'MM-YYYY') as dates
       from generate_series(
@@ -467,13 +473,14 @@ const getContractAvailablePayments = async (contractId: string) => {
         '${endDate}'::DATE,
         '1 month'
       ) as months
-    where months::date - ${diff.days} not in (
-      select date_from::date from payments where contract_id = ${contract.id}
-    )
-    and months::date not in (
-      select date_from::date from payments where contract_id = 1
-    )
-    order by dates asc`
+      where months::date - ${diff} not in (
+        select date_from::date from payments where contract_id = ${contract[0].id}
+      )
+      and months::date not in (
+        select date_from::date from payments where contract_id = 1
+      )
+      order by dates asc
+    `
   )
   return dto.contractAvailablePaymentsDTO(payments.rows)
 }
