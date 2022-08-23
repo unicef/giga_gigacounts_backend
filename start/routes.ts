@@ -37,6 +37,12 @@ Route.post('/payment/change-status', 'PaymentsController.changePaymentStatus').m
   `acl:${permissions.paymentWrite}`,
 ])
 
+Route.put('/payment', 'PaymentsController.updatePayment').middleware([
+  'auth:api',
+  'validator:UpdatePaymentValidator',
+  `acl:${permissions.paymentWrite}`,
+])
+
 /**
  * ISP ROUTES
  */

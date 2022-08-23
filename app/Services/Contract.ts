@@ -21,7 +21,6 @@ import utils from 'App/Helpers/utils'
 import Draft from 'App/Models/Draft'
 import schoolService from 'App/Services/School'
 import Frequency from 'App/Models/Frequency'
-import Payment from 'App/Models/Payment'
 
 export interface ContractCreation {
   draftId?: number

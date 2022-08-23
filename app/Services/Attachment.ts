@@ -26,30 +26,31 @@ export interface DeleteRequest {
   paymentId: number
 }
 
-const deleteAttachment = async (attachmentId: number) => {
-  const trx = await Database.transaction()
+const deleteAttachment = async (attachmentId: number, trx?: TransactionClientContract) => {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const _trx = trx || (await Database.transaction())
   try {
     const attachment = await Attachment.find(attachmentId)
     if (!attachment) throw new NotFoundException('Attachment not found', 404, 'NOT_FOUND')
 
-    await attachment.useTransaction(trx).load('paymentInvoice')
-    await attachment.useTransaction(trx).load('paymentReceipt')
+    await attachment.useTransaction(_trx).load('paymentInvoice')
+    await attachment.useTransaction(_trx).load('paymentReceipt')
 
     if (attachment.paymentInvoice.length)
-      await deletefromPayment(attachment.paymentInvoice[0].id, 'invoice', trx)
+      await deletefromPayment(attachment.paymentInvoice[0].id, 'invoice', _trx)
 
     if (attachment.paymentReceipt.length)
-      await deletefromPayment(attachment.paymentReceipt[0].id, 'receipt', trx)
+      await deletefromPayment(attachment.paymentReceipt[0].id, 'receipt', _trx)
 
     await attachment.related('drafts').detach()
     await attachment.related('contracts').detach()
 
     await storage.deleteFile(attachment.url)
-    await attachment.useTransaction(trx).delete()
+    await attachment.useTransaction(_trx).delete()
 
-    return trx.commit()
+    if (!trx) return _trx.commit()
   } catch (error) {
-    await trx.rollback()
+    await _trx.rollback()
     if (error?.status === 404) throw error
     throw new FailedDependencyException(
       'Some dependency failed while uploading attachment',
