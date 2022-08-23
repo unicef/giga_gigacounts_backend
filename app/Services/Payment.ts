@@ -30,7 +30,7 @@ export interface CreatePaymentData {
   description?: string
   currencyId: string
   amount: number
-  invoice: File
+  invoice?: File
   receipt?: File
   contractId: string
 }
@@ -91,11 +91,13 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
       { client: trx }
     )
 
-    const invoice = await attachmentService.uploadAttachment(
-      { ...data.invoice, type: AttachmentsType.INVOICE, typeId: payment.id },
-      trx
-    )
-    payment.invoiceId = invoice.id
+    if (data.invoice) {
+      const invoice = await attachmentService.uploadAttachment(
+        { ...data.invoice, type: AttachmentsType.INVOICE, typeId: payment.id },
+        trx
+      )
+      payment.invoiceId = invoice.id
+    }
 
     if (data.receipt) {
       const receipt = await attachmentService.uploadAttachment(
