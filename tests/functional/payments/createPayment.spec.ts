@@ -11,7 +11,7 @@ import testUtils from '../../utils'
 import Payment from 'App/Models/Payment'
 import Attachment from 'App/Models/Attachment'
 
-const requiredFields = ['month', 'year', 'contractId', 'currencyId', 'amount', 'invoice']
+const requiredFields = ['month', 'year', 'contractId', 'currencyId', 'amount']
 
 test.group('Create Payment', (group) => {
   group.each.setup(async () => {
@@ -107,7 +107,7 @@ test.group('Create Payment', (group) => {
     const response = await client.post('/payment').loginAs(user).json({})
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(422)
-    expect(JSON.parse(error.text).errors.length).toBe(6)
+    expect(JSON.parse(error.text).errors.length).toBe(5)
     JSON.parse(error.text).errors.map((e) => {
       expect(e.message).toBe('required validation failed')
       expect(e.rule).toBe('required')
