@@ -35,11 +35,11 @@ test.group('Contract Details', (group) => {
       if (connection.metric_name === 'Upload speed') expect(connection.median_value).toBe(5)
     }
     expect(contractDetails.budget).toBe('100000')
-    expect(contractDetails.numberOfPayments).toBe('3')
+    expect(contractDetails.numberOfPayments).toBe('4')
     expect(contractDetails.currency.name).toBe('US Dollar')
     expect(contractDetails.currency.code).toBe('USD')
-    expect(contractDetails.totalSpent.amount).toBe('16000')
-    expect(contractDetails.totalSpent.percentage).toBe(16)
+    expect(contractDetails.totalSpent.amount).toBe('17000')
+    expect(contractDetails.totalSpent.percentage).toBe(17)
   })
   test('Throw an error if a contract doesnt exist', async ({ client, expect }) => {
     const user = await setupUser()
@@ -48,6 +48,33 @@ test.group('Contract Details', (group) => {
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(404)
     expect(error.text).toBe('NOT_FOUND: Contract not found')
+  })
+  test('Successfully return contract details with rounded total payment', async ({
+    client,
+    expect,
+  }) => {
+    const user = await setupUser()
+    const contract = await createContract(user.countryId, user.id, false)
+    const response = await client.get(`/contract/details/${contract.id}`).loginAs(user)
+    const contractDetails = response.body() as ContractDetails
+    expect(contractDetails.numberOfSchools).toBe('2')
+    expect(contractDetails.isp).toBe('Verizon')
+    expect(contractDetails.schoolsConnection?.withoutConnection).toBe(0)
+    expect(contractDetails.schoolsConnection?.atLeastOneBellowAvg).toBe(50)
+    expect(contractDetails.schoolsConnection?.allEqualOrAboveAvg).toBe(50)
+    expect(contractDetails.attachments?.length).toBe(1)
+    for (const connection of contractDetails.connectionsMedian) {
+      if (connection.metric_name === 'Uptime') expect(connection.median_value).toBe(95)
+      if (connection.metric_name === 'Latency') expect(connection.median_value).toBe(9)
+      if (connection.metric_name === 'Download speed') expect(connection.median_value).toBe(3)
+      if (connection.metric_name === 'Upload speed') expect(connection.median_value).toBe(5)
+    }
+    expect(contractDetails.budget).toBe('100000')
+    expect(contractDetails.numberOfPayments).toBe('4')
+    expect(contractDetails.currency.name).toBe('US Dollar')
+    expect(contractDetails.currency.code).toBe('USD')
+    expect(contractDetails.totalSpent.amount).toBe('16333')
+    expect(contractDetails.totalSpent.percentage).toBe(16)
   })
 })
 
@@ -60,7 +87,7 @@ const setupUser = async () => {
     .create()
 }
 
-const createContract = async (countryId: number, userId: number) => {
+const createContract = async (countryId: number, userId: number, roundPayment: boolean = true) => {
   const isp = await IspFactory.merge({ name: 'Verizon' }).create()
   const lta = await LtaFactory.merge({
     countryId: countryId,
@@ -194,7 +221,14 @@ const createContract = async (countryId: number, userId: number) => {
       contractId: contract.id,
       currencyId: contract.currencyId,
     },
-  ]).createMany(3)
+    {
+      amount: roundPayment ? 1000 : 333,
+      invoiceId: contract.attachments[0].id,
+      createdBy: userId,
+      contractId: contract.id,
+      currencyId: contract.currencyId,
+    },
+  ]).createMany(4)
 
   return contract
 }

@@ -274,7 +274,9 @@ const contractDeatilsDTO = (
     currency: contract.currency,
     totalSpent: {
       amount: contract.$extras.total_payments,
-      percentage: utils.getPercentage(parseInt(contract.budget), contract.$extras.total_payments),
+      percentage: Math.round(
+        utils.getPercentage(parseInt(contract.budget), contract.$extras.total_payments)
+      ),
     },
   }
 }
