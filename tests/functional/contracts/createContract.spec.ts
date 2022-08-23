@@ -93,7 +93,6 @@ test.group('Create Contract', (group) => {
       isp.id.toString(),
       buildManyToMany([school.id.toString()], 'schools'),
       buildMetrics(metrics),
-      [{ id: attachment.id }],
       draft.id.toString()
     )
     const response = await client.post('/contract').loginAs(user).json(body)
@@ -147,7 +146,6 @@ test.group('Create Contract', (group) => {
       isp.id.toString(),
       buildManyToMany(['1123'], 'schools'),
       buildMetrics(metrics),
-      undefined,
       draft.id.toString()
     )
     const response = await client.post('/contract').loginAs(user).json(body)
@@ -191,7 +189,6 @@ test.group('Create Contract', (group) => {
       isp.id.toString(),
       buildManyToMany([school.id.toString()], 'schools'),
       buildMetrics(metrics),
-      undefined,
       '100001'
     )
     const response = await client.post('/contract').loginAs(user).json(body)
@@ -330,7 +327,6 @@ const buildContract = (
   ispId?: string,
   schools?: object,
   expectedMetrics?: object,
-  attachments?: object,
   draftId?: string
 ) => ({
   name,
@@ -341,7 +337,6 @@ const buildContract = (
   startDate,
   endDate,
   ispId,
-  attachments,
   ...schools,
   ...expectedMetrics,
   draftId,
