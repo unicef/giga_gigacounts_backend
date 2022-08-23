@@ -117,7 +117,7 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
     return payment
   } catch (error) {
     await trx.rollback()
-    if ([404, 422, 400].some((status) => status === error?.status)) throw error
+    if ([404, 422, 400, 413].some((status) => status === error?.status)) throw error
     throw new FailedDependencyException(
       'Some dependency failed while uploading attachment',
       424,
@@ -232,7 +232,7 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
     return updatedPayment
   } catch (error) {
     await trx.rollback()
-    if ([404, 422, 400].some((status) => status === error?.status)) throw error
+    if ([404, 422, 400, 413].some((status) => status === error?.status)) throw error
     throw new FailedDependencyException(
       'Some dependency failed while uploading attachment',
       424,

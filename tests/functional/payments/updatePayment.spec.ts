@@ -235,6 +235,26 @@ test.group('Update Payment', (group) => {
     expect(error.status).toBe(404)
     expect(error.text).toBe('NOT_FOUND: Payment not found')
   })
+  test('Throw an error when the file passed exceeds 20mb limit', async ({ client, expect }) => {
+    const user = await setupUser('Government')
+    const contract = await setupModels(user.countryId, user.id)
+    const body = await testUtils.buildCreatePaymentBody(
+      7,
+      2022,
+      contract.id.toString(),
+      contract.currencyId.toString()
+    )
+    body.invoice = {
+      file: 'data:application/pdf;base64,' + Buffer.allocUnsafe(20 * 1024 * 1025),
+      name: 'Large_file.pdf',
+    }
+    const response = await client.post('/payment').loginAs(user).json(body)
+    const error = response.error() as import('superagent').HTTPError
+    expect(error.status).toBe(413)
+    expect(JSON.parse(error.text).message).toBe(
+      'E_REQUEST_ENTITY_TOO_LARGE: request entity too large'
+    )
+  })
 })
 
 const validatePayment = async (data: CheckPaymentData, expect: any) => {
