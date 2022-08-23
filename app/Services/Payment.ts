@@ -67,7 +67,11 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
       )
     }
 
-    const status = userService.checkUserRole(user, [roles.government, roles.countryOffice])
+    const status = userService.checkUserRole(user, [
+      roles.government,
+      roles.countryOffice,
+      roles.gigaAdmin,
+    ])
       ? PaymentStatus.Verified
       : PaymentStatus.Pending
 

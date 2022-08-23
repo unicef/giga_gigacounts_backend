@@ -114,6 +114,62 @@ test.group('Create Payment', (group) => {
       expect(requiredFields.some((v) => v === e.field)).toBeTruthy()
     })
   })
+  test('Successfully create a payment as a Country office and status is verified', async ({
+    client,
+    expect,
+  }) => {
+    const user = await setupUser('Country Office')
+    const contract = await setupModels(user.countryId, user.id)
+    const body = await testUtils.buildCreatePaymentBody(
+      7,
+      2022,
+      contract.id.toString(),
+      contract.currencyId.toString()
+    )
+    const response = await client.post('/payment').loginAs(user).json(body)
+    const payment = response.body() as Payment
+    expect(payment.metrics?.allEqualOrAboveAvg).toBe(66.67)
+    expect(payment.metrics?.atLeastOneBellowAvg).toBe(0)
+    expect(payment.metrics?.withoutConnection).toBe(33.33)
+    expect(payment.dateFrom).toContain('2022-07-01')
+    expect(payment.dateTo).toContain('2022-07-31')
+    expect(payment.amount).toBe(100000)
+    expect(payment.currencyId).toBe(contract.currencyId)
+    expect(payment.createdBy).toBe(user.id)
+    expect(payment.description).toBe('payment description')
+    expect(payment.status).toBe(2)
+    const invoice = await Attachment.find(payment.invoiceId)
+    expect(invoice?.url).not.toBeNull()
+    expect(invoice?.name).toBe('File')
+  })
+  test('Successfully create a payment as a Giga Admin and status is verified', async ({
+    client,
+    expect,
+  }) => {
+    const user = await setupUser('Giga Admin')
+    const contract = await setupModels(user.countryId, user.id)
+    const body = await testUtils.buildCreatePaymentBody(
+      7,
+      2022,
+      contract.id.toString(),
+      contract.currencyId.toString()
+    )
+    const response = await client.post('/payment').loginAs(user).json(body)
+    const payment = response.body() as Payment
+    expect(payment.metrics?.allEqualOrAboveAvg).toBe(66.67)
+    expect(payment.metrics?.atLeastOneBellowAvg).toBe(0)
+    expect(payment.metrics?.withoutConnection).toBe(33.33)
+    expect(payment.dateFrom).toContain('2022-07-01')
+    expect(payment.dateTo).toContain('2022-07-31')
+    expect(payment.amount).toBe(100000)
+    expect(payment.currencyId).toBe(contract.currencyId)
+    expect(payment.createdBy).toBe(user.id)
+    expect(payment.description).toBe('payment description')
+    expect(payment.status).toBe(2)
+    const invoice = await Attachment.find(payment.invoiceId)
+    expect(invoice?.url).not.toBeNull()
+    expect(invoice?.name).toBe('File')
+  })
 })
 
 const setupUser = async (name: string, hasPermission = true) => {
