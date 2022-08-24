@@ -94,7 +94,7 @@ const uploadAttachment = async (
     return attachment
   } catch (error) {
     await _trx.rollback()
-    if (error?.status === 404) throw error
+    if ([404, 413].some((status) => status === error?.status)) throw error
     throw new FailedDependencyException(
       'Some dependency failed while uploading attachment',
       424,

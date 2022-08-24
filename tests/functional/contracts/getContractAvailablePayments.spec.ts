@@ -210,7 +210,10 @@ test.group('Contract Available Payments', (group) => {
     expect(paymentDates[3].month).toBe(8)
     expect(paymentDates[3].year).toBe(2022)
   })
-  test('Successfully return empty if contract doesnt have payments', async ({ client, expect }) => {
+  test('Successfully return all months to start o finish with the contract doesnt have payments', async ({
+    client,
+    expect,
+  }) => {
     const user = await createUser()
     const contract = await ContractFactory.merge({
       createdBy: user.id,
@@ -224,6 +227,7 @@ test.group('Contract Available Payments', (group) => {
       .create()
     const response = await client.get(`/contract/available-payments/${contract.id}`).loginAs(user)
     const paymentDates = response.body() as { month: number; year: number }[]
+    console.log(paymentDates)
     expect(paymentDates.length).toBe(8)
     expect(paymentDates[0].month).toBe(1)
     expect(paymentDates[0].year).toBe(2022)

@@ -66,17 +66,11 @@ const formatContractDate = (date: string, start: boolean = false) => {
 
 const toFixedFloat = (num: number, digits: number = 2) => parseFloat(num.toFixed(digits))
 
-const makeFromAndToDate = (
-  month: number,
-  year: number,
-  contractStartDate: DateTime,
-  contractEndDate: DateTime
-) => {
+const makeFromAndToDate = (month: number, year: number, contractEndDate: DateTime) => {
   const startMonth = DateTime.now().set({ month, year }).startOf('month')
   const endMonth = DateTime.now().set({ month, year }).endOf('month')
-  const dateFrom = startMonth > contractStartDate ? contractStartDate : startMonth
   const dateTo = endMonth > contractEndDate ? contractEndDate : endMonth
-  return { dateFrom, dateTo }
+  return { dateFrom: startMonth, dateTo }
 }
 
 export default {

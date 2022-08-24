@@ -8,7 +8,7 @@ import MetricFactory from 'Database/factories/MetricFactory'
 import ContractFactory from 'Database/factories/ContractFactory'
 import MeasureFactory from 'Database/factories/MeasureFactory'
 
-import { SchoolsConnection } from 'App/DTOs/Contract'
+import { CalculateMeasuresDTO } from 'App/DTOs/Measure'
 
 test.group('Calculate Measures by Month and Year', (group) => {
   group.each.setup(async () => {
@@ -26,7 +26,11 @@ test.group('Calculate Measures by Month and Year', (group) => {
         year: 2022,
       })
       .loginAs(user)
-    const connections = response.body() as SchoolsConnection
+    const connections = response.body() as CalculateMeasuresDTO
+    expect(connections.connectionsMedian[0].median_value).toBe(100)
+    expect(connections.connectionsMedian[1].median_value).toBe(10)
+    expect(connections.connectionsMedian[2].median_value).toBe(10)
+    expect(connections.connectionsMedian[3].median_value).toBe(10)
     expect(connections.allEqualOrAboveAvg).toBe(33.33)
     expect(connections.atLeastOneBellowAvg).toBe(33.33)
     expect(connections.withoutConnection).toBe(33.33)
@@ -42,7 +46,11 @@ test.group('Calculate Measures by Month and Year', (group) => {
         year: 2022,
       })
       .loginAs(user)
-    const connections = response.body() as SchoolsConnection
+    const connections = response.body() as CalculateMeasuresDTO
+    expect(connections.connectionsMedian[0].median_value).toBe(100)
+    expect(connections.connectionsMedian[1].median_value).toBe(20)
+    expect(connections.connectionsMedian[2].median_value).toBe(10)
+    expect(connections.connectionsMedian[3].median_value).toBe(15)
     expect(connections.allEqualOrAboveAvg).toBe(66.67)
     expect(connections.atLeastOneBellowAvg).toBe(0)
     expect(connections.withoutConnection).toBe(33.33)
@@ -63,6 +71,23 @@ test.group('Calculate Measures by Month and Year', (group) => {
     expect(JSON.parse(error.text).errors[0].message).toBe('string validation failed')
     expect(JSON.parse(error.text).errors[0].field).toBe('contractId')
     expect(JSON.parse(error.text).errors[0].rule).toBe('string')
+  })
+  test('Successfully calculate measures in September 2022', async ({ expect, client }) => {
+    const user = await setupUser()
+    const contract = await setupModels(user.countryId, user.id)
+    const response = await client
+      .post('/measure/calculate')
+      .json({
+        contractId: contract.id,
+        month: 9,
+        year: 2022,
+      })
+      .loginAs(user)
+    const connections = response.body() as CalculateMeasuresDTO
+    expect(connections.connectionsMedian.length).toBe(0)
+    expect(connections.allEqualOrAboveAvg).toBe(0)
+    expect(connections.atLeastOneBellowAvg).toBe(0)
+    expect(connections.withoutConnection).toBe(100)
   })
 })
 
