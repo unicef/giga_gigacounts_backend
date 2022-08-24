@@ -33,7 +33,6 @@ export interface ContractCreation {
   startDate: string
   endDate: string
   ispId: number
-  // attachments?: { id: string }[]
   schools: { schools: { id: string }[] }
   expectedMetrics: { metrics: { metricId: string; value: number }[] }
 }
