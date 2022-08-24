@@ -30,12 +30,8 @@ const calculateMeasuresByMonthYear = async ({
     .preload('expectedMetrics')
     .withCount('schools')
   if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
-  const { dateFrom, dateTo } = utils.makeFromAndToDate(
-    month,
-    year,
-    contract[0].startDate,
-    contract[0].endDate
-  )
+  const { dateFrom, dateTo } = utils.makeFromAndToDate(month, year, contract[0].endDate)
+
   const schoolsMedians = await getSchoolsMedianMeasures(contract, dateFrom, dateTo)
 
   const connectionsMedian = await Database.rawQuery(

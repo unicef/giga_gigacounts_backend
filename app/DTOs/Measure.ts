@@ -4,6 +4,13 @@ import utils from 'App/Helpers/utils'
 import { SchoolsConnection, ConnectionMedian } from 'App/DTOs/Contract'
 import ExpectedMetric from 'App/Models/ExpectedMetric'
 
+export interface CalculateMeasuresDTO {
+  connectionsMedian: ConnectionMedian[]
+  withoutConnection: number
+  atLeastOneBellowAvg: number
+  allEqualOrAboveAvg: number
+}
+
 const calculateMeasuresDTO = async (
   contract: Contract,
   schoolsMedians: {},

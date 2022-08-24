@@ -242,12 +242,7 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
 }
 
 const checkAndSavePaymentMetrics = async (month: number, year: number, contract: Contract) => {
-  const { dateFrom, dateTo } = utils.makeFromAndToDate(
-    month,
-    year,
-    contract.startDate,
-    contract.endDate
-  )
+  const { dateFrom, dateTo } = utils.makeFromAndToDate(month, year, contract.endDate)
 
   if (await checkPaymentInSameMonthYear(dateFrom, dateTo, contract.id)) {
     throw new AlreadyHasPaymentException(
