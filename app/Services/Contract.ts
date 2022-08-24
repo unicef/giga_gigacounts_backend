@@ -476,7 +476,7 @@ const getContractAvailablePayments = async (contractId: string) => {
         select date_from::date from payments where contract_id = ${contract[0].id}
       )
       and months::date not in (
-        select date_from::date from payments where contract_id = 1
+        select date_from::date from payments where contract_id = ${contract[0].id}
       )
       order by dates asc
     `
