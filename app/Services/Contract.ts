@@ -456,7 +456,6 @@ const batchStatusTransitions = async (
 const getContractAvailablePayments = async (contractId: string) => {
   const contract = await Contract.query().where('id', contractId).preload('payments')
   if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
-  if (!contract[0].payments.length) return []
   const endMonth = DateTime.now().endOf('month')
   let endDate: DateTime | string = endMonth > contract[0].endDate ? contract[0].endDate : endMonth
   const startDate = contract[0].startDate.toISODate()
