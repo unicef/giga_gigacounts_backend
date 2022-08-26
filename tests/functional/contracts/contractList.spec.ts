@@ -69,9 +69,7 @@ test.group('Contract List', (group) => {
     await setupModels(country1.id, country2.id, user.id)
     const response = await client.get('/contract').loginAs(user)
     const contractList = response.body() as ContractListDTO
-    for (const lta of Object.values(contractList.ltas)) {
-      expect(lta.length).toBe(0)
-    }
+    assert.isEmpty(contractList.ltas)
     for (const contract of contractList.contracts) {
       assert.notEmpty(contract.id)
       assert.notEmpty(contract.listId)

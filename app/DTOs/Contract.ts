@@ -408,7 +408,7 @@ const contractListDTO = (
   })
 
   return {
-    ltas,
+    ltas: removeEmptyLtas(ltas),
     contracts,
   }
 }
@@ -480,6 +480,9 @@ const contractAvailablePaymentsDTO = (paymentsDates: { dates: string }[]) => {
     }
   })
 }
+
+const removeEmptyLtas = (ltas: LtaList): LtaList =>
+  Object.fromEntries(Object.entries(ltas).filter(([_, v]) => v.length !== 0))
 
 export default {
   contractCountByStatusDTO,
