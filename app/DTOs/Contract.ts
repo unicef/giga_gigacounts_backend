@@ -319,7 +319,8 @@ const contractListDTO = (
   data: Contract[],
   drafts: Draft[],
   ltasData: Lta[],
-  schoolsMeasures: {}
+  schoolsMeasures: {},
+  status?: number
 ): ContractListDTO => {
   const ltas: LtaList = formatLtaList(ltasData)
   const contracts: ContractList[] = []
@@ -408,7 +409,7 @@ const contractListDTO = (
   })
 
   return {
-    ltas: removeEmptyLtas(ltas),
+    ltas: status || status === 0 ? removeEmptyLtas(ltas) : ltas,
     contracts,
   }
 }
