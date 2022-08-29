@@ -43,7 +43,7 @@ export default class User extends BaseModel {
   public countryId: number
 
   @column()
-  public safe_id?: number
+  public safeId?: number
 
   @column()
   public walletAddress?: string
@@ -110,7 +110,7 @@ export default class User extends BaseModel {
   public payments: HasMany<typeof Payment>
 
   @hasOne(() => Safe, {
-    localKey: 'safe_id',
+    localKey: 'safeId',
     foreignKey: 'id',
   })
   public safe: HasOne<typeof Safe>
