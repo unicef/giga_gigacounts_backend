@@ -186,7 +186,7 @@ const getContractList = async (user: User, status?: number) => {
 
   const schoolsMeasures = await getContractSchoolsMeasures(contracts)
 
-  return dto.contractListDTO(contracts, drafts, ltas, schoolsMeasures)
+  return dto.contractListDTO(contracts, drafts, ltas, schoolsMeasures, status)
 }
 
 const createContract = async (data: ContractCreation, user: User): Promise<Contract> => {

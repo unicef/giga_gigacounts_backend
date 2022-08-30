@@ -227,7 +227,6 @@ test.group('Contract Available Payments', (group) => {
       .create()
     const response = await client.get(`/contract/available-payments/${contract.id}`).loginAs(user)
     const paymentDates = response.body() as { month: number; year: number }[]
-    console.log(paymentDates)
     expect(paymentDates.length).toBe(8)
     expect(paymentDates[0].month).toBe(1)
     expect(paymentDates[0].year).toBe(2022)

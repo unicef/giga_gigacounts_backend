@@ -319,7 +319,8 @@ const contractListDTO = (
   data: Contract[],
   drafts: Draft[],
   ltasData: Lta[],
-  schoolsMeasures: {}
+  schoolsMeasures: {},
+  status?: number
 ): ContractListDTO => {
   const ltas: LtaList = formatLtaList(ltasData)
   const contracts: ContractList[] = []
@@ -408,7 +409,7 @@ const contractListDTO = (
   })
 
   return {
-    ltas,
+    ltas: status || status === 0 ? removeEmptyLtas(ltas) : ltas,
     contracts,
   }
 }
@@ -480,6 +481,9 @@ const contractAvailablePaymentsDTO = (paymentsDates: { dates: string }[]) => {
     }
   })
 }
+
+const removeEmptyLtas = (ltas: LtaList): LtaList =>
+  Object.fromEntries(Object.entries(ltas).filter(([_, v]) => v.length !== 0))
 
 export default {
   contractCountByStatusDTO,
