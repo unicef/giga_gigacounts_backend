@@ -1,9 +1,9 @@
 name: Cron Job
 
 on:
-  schedule:
-    - cron: '2 0 * * *'
-    - cron: '58 23 * * *'
+#  schedule:
+#    - cron: '2 0 * * *'
+#    - cron: '58 23 * * *'
   workflow_dispatch:
     inputs:
       target_env:
