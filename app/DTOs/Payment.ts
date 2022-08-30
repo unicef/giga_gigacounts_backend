@@ -18,6 +18,10 @@ export interface PaymentsByContract {
   }
   invoice?: Attachment
   receipt?: Attachment
+  createdBy?: {
+    name: string
+    role: string
+  }
 }
 
 export interface GetPayment {
@@ -54,6 +58,10 @@ const getPaymentsByContractDTO = (payments: Payment[]): PaymentsByContract[] => 
     metrics: payment?.metrics,
     invoice: payment?.invoice,
     receipt: payment?.receipt,
+    createdBy: {
+      name: payment?.creator?.name,
+      role: payment?.creator?.roles[0]?.name,
+    },
   }))
 }
 
