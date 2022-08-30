@@ -11,6 +11,8 @@ import {
   ModelQueryBuilderContract,
   belongsTo,
   BelongsTo,
+  hasOne,
+  HasOne,
 } from '@ioc:Adonis/Lucid/Orm'
 import Hash from '@ioc:Adonis/Core/Hash'
 
@@ -19,6 +21,7 @@ import Country from 'App/Models/Country'
 import Lta from 'App/Models/Lta'
 import Contract from 'App/Models/Contract'
 import Payment from 'App/Models/Payment'
+import Safe from './Safe'
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -38,6 +41,12 @@ export default class User extends BaseModel {
 
   @column()
   public countryId: number
+
+  @column()
+  public safeId?: number
+
+  @column()
+  public walletAddress?: string
 
   @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
@@ -99,4 +108,10 @@ export default class User extends BaseModel {
     foreignKey: 'createdBy',
   })
   public payments: HasMany<typeof Payment>
+
+  @hasOne(() => Safe, {
+    localKey: 'safeId',
+    foreignKey: 'id',
+  })
+  public safe: HasOne<typeof Safe>
 }
