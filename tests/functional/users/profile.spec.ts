@@ -1,6 +1,8 @@
 import { test } from '@japa/runner'
 import Database from '@ioc:Adonis/Lucid/Database'
+
 import UserFactory from 'Database/factories/UserFactory'
+import SafeFactory from 'Database/factories/SafeFactory'
 
 test.group('Profile', (group) => {
   group.each.setup(async () => {
@@ -83,5 +85,31 @@ test.group('Profile', (group) => {
     expect(JSON.parse(error.text).errors[0].message).toBe(
       'E_UNAUTHORIZED_ACCESS: Unauthorized access'
     )
+  })
+  test('Sucessfully return user profile with safe', async ({ client, expect, assert }) => {
+    const safe = await SafeFactory.create()
+    const user = await UserFactory.with('roles', 1, (role) => {
+      role
+        .merge({
+          name: 'ISP',
+        })
+        .with('permissions', 1)
+    })
+      .merge({
+        walletAddress: 'eth-address',
+        safeId: safe.id,
+      })
+      .create()
+    const response = await client.get('/user/profile').loginAs(user)
+    const profile = response.body()
+    assert.notEmpty(profile?.name)
+    assert.notEmpty(profile?.lastName)
+    assert.notEmpty(profile?.email)
+    assert.notExists(profile?.country)
+    expect(profile?.role).toBe('ISP')
+    expect(profile.walletAddress).toBe('eth-address')
+    expect(profile.safe.id).toBe(safe.id)
+    expect(profile.safe.address).toBe(safe.address)
+    expect(profile.safeId).toBe(safe.id)
   })
 })

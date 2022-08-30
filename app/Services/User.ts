@@ -3,6 +3,7 @@ import User from 'App/Models/User'
 import { permissions } from 'App/Helpers/constants'
 import roleService from 'App/Services/Role'
 import Country from 'App/Models/Country'
+import Safe from 'App/Models/Safe'
 
 interface UserProfile {
   name: string
@@ -10,11 +11,15 @@ interface UserProfile {
   email: string
   country?: Partial<Country>
   role: string
+  safeId?: number
+  safe?: Safe
+  walletAddress?: string
 }
 
 const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
   if (!user) return
   const userPermissions = await roleService.getRolesPermission(user.roles)
+  if (user.safeId) await user.load('safe')
   return {
     name: user.name,
     email: user.email,
@@ -28,6 +33,9 @@ const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
           }
         : undefined,
     role: user.roles[0].name,
+    safeId: user?.safeId,
+    safe: user?.safe,
+    walletAddress: user?.walletAddress,
   }
 }
 
