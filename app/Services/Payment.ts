@@ -144,6 +144,7 @@ const getPaymentsByContract = async (contractId: string) => {
   const payments = await Payment.query()
     .where('contract_id', contractId)
     .preload('currency')
+    .preload('creator', (builder) => builder.preload('roles'))
     .orderBy('date_to', 'desc')
 
   await Promise.all(
