@@ -184,12 +184,16 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
     const payment = await Payment.find(data.paymentId, { client: trx })
     if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
 
+    const contract = await Contract.find(payment.contractId, { client: trx })
+    if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+    if (contract.status === ContractStatus.Completed) {
+      throw new InvalidStatusException('Contract already completed', 400, 'INVALID_STATUS')
+    }
+
     payment.description = data.description || payment.description
     payment.amount = data.amount || payment.amount
 
     if (data.month && data.year) {
-      const contract = await Contract.find(payment.contractId, { client: trx })
-      if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
       const { dateFrom, dateTo, metrics } = await checkAndSavePaymentMetrics(
         data.month,
         data.year,

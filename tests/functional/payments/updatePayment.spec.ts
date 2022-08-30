@@ -238,22 +238,42 @@ test.group('Update Payment', (group) => {
   test('Throw an error when the file passed exceeds 20mb limit', async ({ client, expect }) => {
     const user = await setupUser('Government')
     const contract = await setupModels(user.countryId, user.id)
-    const body = await testUtils.buildCreatePaymentBody(
+    const createdPayment = await createPayment(8, 2022, contract, user, client)
+    const body = await testUtils.buildUpdatePaymentBody(
+      createdPayment.id.toString(),
       7,
       2022,
-      contract.id.toString(),
-      contract.currencyId.toString()
+      undefined
     )
     body.invoice = {
       file: 'data:application/pdf;base64,' + Buffer.allocUnsafe(20 * 1024 * 1025),
       name: 'Large_file.pdf',
     }
-    const response = await client.post('/payment').loginAs(user).json(body)
+    const response = await client.put('/payment').loginAs(user).json(body)
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(413)
     expect(JSON.parse(error.text).message).toBe(
       'E_REQUEST_ENTITY_TOO_LARGE: request entity too large'
     )
+  })
+  test('Throw an error when update payment from a completed contract', async ({
+    client,
+    expect,
+  }) => {
+    const user = await setupUser('Government')
+    const contract = await setupModels(user.countryId, user.id)
+    const createdPayment = await createPayment(8, 2022, contract, user, client)
+    const body = await testUtils.buildUpdatePaymentBody(
+      createdPayment.id.toString(),
+      7,
+      2022,
+      undefined
+    )
+    await Contract.updateOrCreate({ id: contract.id }, { status: 5 })
+    const response = await client.put('/payment').loginAs(user).json(body)
+    const error = response.error() as import('superagent').HTTPError
+    expect(error.status).toBe(400)
+    expect(error.text).toBe('INVALID_STATUS: Contract already completed')
   })
 })
 
