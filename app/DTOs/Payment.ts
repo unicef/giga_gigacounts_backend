@@ -22,6 +22,8 @@ export interface PaymentsByContract {
     name: string
     role: string
   }
+  dateFrom: string
+  dateTo?: string
 }
 
 export interface GetPayment {
@@ -62,6 +64,8 @@ const getPaymentsByContractDTO = (payments: Payment[]): PaymentsByContract[] => 
       name: payment?.creator?.name,
       role: payment?.creator?.roles[0]?.name,
     },
+    dateFrom: payment.dateFrom.toISODate(),
+    dateTo: payment.dateTo?.toISODate(),
   }))
 }
 
