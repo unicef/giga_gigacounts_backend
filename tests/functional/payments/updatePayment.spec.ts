@@ -275,6 +275,57 @@ test.group('Update Payment', (group) => {
     expect(error.status).toBe(400)
     expect(error.text).toBe('INVALID_STATUS: Contract already completed')
   })
+  test('Successfully change a reject payment to pending if updated by a ISP user', async ({
+    client,
+    expect,
+  }) => {
+    const user = await setupUser('ISP')
+    const contract = await setupModels(user.countryId, user.id)
+    const createdPayment = await createPayment(8, 2022, contract, user, client)
+    validatePayment(
+      {
+        payment: createdPayment,
+        dateFrom: '2022-08-01',
+        dateTo: '2022-08-13',
+        description: 'payment description',
+        amount: 100000,
+        allEqualOrAboveAvg: 33.33,
+        withoutConnection: 33.33,
+        atLeastOneBellowAvg: 33.33,
+        invoiceId: null,
+        receiptId: null,
+      },
+      expect
+    )
+    const updatedPayment = await Payment.updateOrCreate({ id: createdPayment.id }, { status: 1 })
+    expect(updatedPayment.status).toBe(1)
+    const body = await testUtils.buildUpdatePaymentBody(
+      createdPayment.id.toString(),
+      7,
+      2022,
+      100,
+      true,
+      false
+    )
+    const response = await client.put('/payment').json(body).loginAs(user)
+    const payment = response.body() as Payment
+    validatePayment(
+      {
+        payment,
+        dateFrom: '2022-07-01',
+        dateTo: '2022-07-31',
+        description: 'payment description updated',
+        amount: 100,
+        allEqualOrAboveAvg: 66.67,
+        withoutConnection: 33.33,
+        atLeastOneBellowAvg: 0,
+        invoiceId: null,
+        receiptId: null,
+      },
+      expect
+    )
+    expect(payment.status).toBe(0)
+  })
 })
 
 const validatePayment = async (data: CheckPaymentData, expect: any) => {
