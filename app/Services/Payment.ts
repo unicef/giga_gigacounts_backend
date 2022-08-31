@@ -231,6 +231,10 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
       payment.receiptId = receipt.id
     }
 
+    if (userService.checkUserRole(user, [roles.isp]) && payment.status === PaymentStatus.Rejected) {
+      payment.status = PaymentStatus.Pending
+    }
+
     const updatedPayment = await payment.useTransaction(trx).save()
     await trx.commit()
 
