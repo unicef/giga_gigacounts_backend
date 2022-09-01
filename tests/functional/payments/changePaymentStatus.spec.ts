@@ -5,6 +5,7 @@ import PaymentFactory from 'Database/factories/PaymentFactory'
 import UserFactory from 'Database/factories/UserFactory'
 import CurrencyFactory from 'Database/factories/CurrencyFactory'
 import Payment from 'App/Models/Payment'
+import { PaymentStatus } from 'App/Helpers/constants'
 
 test.group('Change Payment Status', (group) => {
   group.each.setup(async () => {
@@ -31,9 +32,8 @@ test.group('Change Payment Status', (group) => {
       .loginAs(user)
       .json({ paymentId: payment.id, status: 2 })
     const paymentRes = response.body()
-    expect(paymentRes.status).toBe(2)
+    expect(paymentRes.status).toBe(PaymentStatus[2])
     expect(paymentRes.id).toBe(payment.id)
-    expect(paymentRes.isVerified).toBe(true)
   })
   test('Successfully change a pending payment to rejected', async ({ client, expect }) => {
     const user = await setupUser()
@@ -55,7 +55,7 @@ test.group('Change Payment Status', (group) => {
       .loginAs(user)
       .json({ paymentId: payment.id, status: 1 })
     const paymentRes = response.body()
-    expect(paymentRes.status).toBe(1)
+    expect(paymentRes.status).toBe(PaymentStatus[1])
     expect(paymentRes.id).toBe(payment.id)
   })
   test('Successfully change a rejected payment to pending', async ({ client, expect }) => {
@@ -78,7 +78,7 @@ test.group('Change Payment Status', (group) => {
       .loginAs(user)
       .json({ paymentId: payment.id, status: 0 })
     const paymentRes = response.body()
-    expect(paymentRes.status).toBe(0)
+    expect(paymentRes.status).toBe(PaymentStatus[0])
     expect(paymentRes.id).toBe(payment.id)
   })
   test('Throw an error when trying to change a rejected payment to verified', async ({

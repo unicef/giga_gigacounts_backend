@@ -114,7 +114,13 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
     await payment.useTransaction(trx).save()
     await trx.commit()
 
-    return payment
+    await payment.load('currency')
+    await payment.load('creator')
+    await payment.creator.load('roles')
+    if (payment.invoiceId) await payment.load('invoice')
+    if (payment.receiptId) await payment.load('receipt')
+
+    return dto.getPaymentDTO(payment)
   } catch (error) {
     await trx.rollback()
     if ([404, 422, 400, 413].some((status) => status === error?.status)) throw error
@@ -176,7 +182,15 @@ const changePaymentStatus = async ({ paymentId, status }: ChangePaymentStatusDat
     throw new InvalidStatusException('Rejected payment cant be verified', 400, 'INVALID_STATUS')
   payment.status = status
   payment.isVerified = true
-  return payment.save()
+
+  await payment.save()
+  await payment.load('currency')
+  await payment.load('creator')
+  await payment.creator.load('roles')
+  if (payment.invoiceId) await payment.load('invoice')
+  if (payment.receiptId) await payment.load('receipt')
+
+  return dto.getPaymentDTO(payment)
 }
 
 const updatePayment = async (data: UpdatePaymentData, user: User) => {
@@ -238,7 +252,13 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
     const updatedPayment = await payment.useTransaction(trx).save()
     await trx.commit()
 
-    return updatedPayment
+    await updatedPayment.load('currency')
+    await updatedPayment.load('creator')
+    await updatedPayment.creator.load('roles')
+    if (updatedPayment.invoiceId) await updatedPayment.load('invoice')
+    if (updatedPayment.receiptId) await updatedPayment.load('receipt')
+
+    return dto.getPaymentDTO(updatedPayment)
   } catch (error) {
     await trx.rollback()
     if ([404, 422, 400, 413].some((status) => status === error?.status)) throw error

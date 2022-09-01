@@ -100,10 +100,12 @@ test.group('Schools Measures', (group) => {
       .filter((value, index, self) => self.indexOf(value) === index)
     expect(measures.length).toBe(8)
     expect(distinctDates.length).toBe(2)
+    const today = DateTime.now().get('day')
     for (const measure of measures) {
       if (measure.date === distinctDates[0]) {
-        if (measure.metric_name === 'Uptime') expect(measure.median_value).toBe(90)
-        if (measure.metric_name === 'Latency') expect(measure.median_value).toBe(8)
+        if (measure.metric_name === 'Uptime')
+          expect(measure.median_value).toBe(today <= 7 ? 95 : 90)
+        if (measure.metric_name === 'Latency') expect(measure.median_value).toBe(today <= 7 ? 9 : 8)
         if (measure.metric_name === 'Download speed') expect(measure.median_value).toBe(3)
         if (measure.metric_name === 'Upload speed') expect(measure.median_value).toBe(5)
       }
@@ -174,6 +176,7 @@ const createContract = async (countryId: number, userId: number) => {
       status: 3,
       createdBy: userId,
       ispId: isp.id,
+      endDate: DateTime.now().plus({ months: 2 }),
     },
   ])
     .with('currency')

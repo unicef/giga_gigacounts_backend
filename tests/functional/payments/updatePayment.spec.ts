@@ -12,18 +12,20 @@ import testUtils from '../../utils'
 import Payment from 'App/Models/Payment'
 import Contract from 'App/Models/Contract'
 import User from 'App/Models/User'
+import { GetPayment } from 'App/DTOs/Payment'
+import { PaymentStatus } from 'App/Helpers/constants'
 
 interface CheckPaymentData {
   dateFrom: string
   dateTo: string
-  invoiceId: number | null
-  receiptId: number | null
+  invoiceId: number | undefined
+  receiptId: number | undefined
   amount: number
   description: string
   withoutConnection: number
   atLeastOneBellowAvg: number
   allEqualOrAboveAvg: number
-  payment: Payment
+  payment: GetPayment
 }
 
 test.group('Update Payment', (group) => {
@@ -45,8 +47,8 @@ test.group('Update Payment', (group) => {
         allEqualOrAboveAvg: 33.33,
         withoutConnection: 33.33,
         atLeastOneBellowAvg: 33.33,
-        invoiceId: null,
-        receiptId: null,
+        invoiceId: undefined,
+        receiptId: undefined,
       },
       expect
     )
@@ -59,7 +61,7 @@ test.group('Update Payment', (group) => {
       true
     )
     const response = await client.put('/payment').json(body).loginAs(user)
-    const payment = response.body() as Payment
+    const payment = response.body() as GetPayment
     validatePayment(
       {
         payment,
@@ -70,8 +72,8 @@ test.group('Update Payment', (group) => {
         allEqualOrAboveAvg: 66.67,
         withoutConnection: 33.33,
         atLeastOneBellowAvg: 0,
-        invoiceId: createdPayment.invoiceId,
-        receiptId: createdPayment.receiptId,
+        invoiceId: createdPayment.invoice?.id,
+        receiptId: createdPayment.receipt?.id,
       },
       expect
     )
@@ -90,14 +92,14 @@ test.group('Update Payment', (group) => {
         allEqualOrAboveAvg: 33.33,
         withoutConnection: 33.33,
         atLeastOneBellowAvg: 33.33,
-        invoiceId: null,
-        receiptId: null,
+        invoiceId: undefined,
+        receiptId: undefined,
       },
       expect
     )
     const body = await testUtils.buildUpdatePaymentBody(createdPayment.id.toString(), 7, 2022)
     const response = await client.put('/payment').json(body).loginAs(user)
-    const payment = response.body() as Payment
+    const payment = response.body() as GetPayment
     validatePayment(
       {
         payment,
@@ -108,8 +110,8 @@ test.group('Update Payment', (group) => {
         allEqualOrAboveAvg: 66.67,
         withoutConnection: 33.33,
         atLeastOneBellowAvg: 0,
-        invoiceId: null,
-        receiptId: null,
+        invoiceId: undefined,
+        receiptId: undefined,
       },
       expect
     )
@@ -153,8 +155,8 @@ test.group('Update Payment', (group) => {
         allEqualOrAboveAvg: 33.33,
         withoutConnection: 33.33,
         atLeastOneBellowAvg: 33.33,
-        invoiceId: null,
-        receiptId: null,
+        invoiceId: undefined,
+        receiptId: undefined,
       },
       expect
     )
@@ -167,7 +169,7 @@ test.group('Update Payment', (group) => {
       true
     )
     const response = await client.put('/payment').json(body).loginAs(user)
-    const payment = response.body() as Payment
+    const payment = response.body() as GetPayment
     validatePayment(
       {
         payment,
@@ -178,12 +180,12 @@ test.group('Update Payment', (group) => {
         allEqualOrAboveAvg: 33.33,
         withoutConnection: 33.33,
         atLeastOneBellowAvg: 33.33,
-        invoiceId: null,
-        receiptId: null,
+        invoiceId: undefined,
+        receiptId: undefined,
       },
       expect
     )
-    expect(payment.receiptId).toBe(createdPayment.receiptId)
+    expect(payment.receipt?.id).toBe(createdPayment.receipt?.id)
   })
   test('Throw an error when trying to update month-year to a already taken month-year', async ({
     client,
@@ -203,8 +205,8 @@ test.group('Update Payment', (group) => {
         allEqualOrAboveAvg: 33.33,
         withoutConnection: 33.33,
         atLeastOneBellowAvg: 33.33,
-        invoiceId: null,
-        receiptId: null,
+        invoiceId: undefined,
+        receiptId: undefined,
       },
       expect
     )
@@ -292,8 +294,8 @@ test.group('Update Payment', (group) => {
         allEqualOrAboveAvg: 33.33,
         withoutConnection: 33.33,
         atLeastOneBellowAvg: 33.33,
-        invoiceId: null,
-        receiptId: null,
+        invoiceId: undefined,
+        receiptId: undefined,
       },
       expect
     )
@@ -308,7 +310,7 @@ test.group('Update Payment', (group) => {
       false
     )
     const response = await client.put('/payment').json(body).loginAs(user)
-    const payment = response.body() as Payment
+    const payment = response.body() as GetPayment
     validatePayment(
       {
         payment,
@@ -319,12 +321,12 @@ test.group('Update Payment', (group) => {
         allEqualOrAboveAvg: 66.67,
         withoutConnection: 33.33,
         atLeastOneBellowAvg: 0,
-        invoiceId: null,
-        receiptId: null,
+        invoiceId: undefined,
+        receiptId: undefined,
       },
       expect
     )
-    expect(payment.status).toBe(0)
+    expect(payment.status).toBe(PaymentStatus[0])
   })
 })
 
@@ -337,10 +339,10 @@ const validatePayment = async (data: CheckPaymentData, expect: any) => {
   expect(payment.metrics?.withoutConnection).toBe(data.withoutConnection)
   expect(payment.metrics?.atLeastOneBellowAvg).toBe(data.atLeastOneBellowAvg)
   expect(payment.metrics?.allEqualOrAboveAvg).toBe(data.allEqualOrAboveAvg)
-  expect(payment.invoiceId).not.toBeNull()
-  expect(payment.receiptId).not.toBeNull()
-  if (data.invoiceId) expect(payment.invoiceId).not.toBe(data.invoiceId)
-  if (data.receiptId) expect(payment.receiptId).not.toBe(data.receiptId)
+  expect(payment.invoice?.id).not.toBeNull()
+  expect(payment.receipt?.id).not.toBeNull()
+  if (data.invoiceId) expect(payment.invoice?.id).not.toBe(data.invoiceId)
+  if (data.receiptId) expect(payment.receipt?.id).not.toBe(data.receiptId)
 }
 
 const createPayment = async (
@@ -349,7 +351,7 @@ const createPayment = async (
   contract: Contract,
   user: User,
   client: ApiClient
-): Promise<Payment> => {
+): Promise<GetPayment> => {
   const body = await testUtils.buildCreatePaymentBody(
     month,
     year,
