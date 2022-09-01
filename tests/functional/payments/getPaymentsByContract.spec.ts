@@ -10,7 +10,7 @@ import MetricFactory from 'Database/factories/MetricFactory'
 
 import testUtils from '../../utils'
 import User from 'App/Models/User'
-import { PaymentsByContract } from 'App/DTOs/Payment'
+import { GetPayment } from 'App/DTOs/Payment'
 
 test.group('Get Payments by Contract', (group) => {
   group.each.setup(async () => {
@@ -26,12 +26,17 @@ test.group('Get Payments by Contract', (group) => {
     const contract = await setupModels(user.countryId, user.id)
     await createPayment(client, user, 8, contract.id, contract.currencyId)
     const response = await client.get(`/payment/contract/${contract.id}`).loginAs(user)
-    const payments = response.body() as PaymentsByContract[]
-    expect(payments[0].paidDate).toBe('2022-08-13')
+    const payments = response.body() as GetPayment[]
+    expect(payments[0].paidDate.month).toBe(8)
+    expect(payments[0].paidDate.year).toBe(2022)
     expect(payments[0].description).toBe('payment description')
     expect(payments[0].currency.name).toBe('US Dollar')
     expect(payments[0].amount).toBe(100000)
     expect(payments[0].status).toBe('Verified')
+    expect(payments[0].metrics?.connectionsMedian[0].median_value).toBe(100)
+    expect(payments[0].metrics?.connectionsMedian[1].median_value).toBe(10)
+    expect(payments[0].metrics?.connectionsMedian[2].median_value).toBe(10)
+    expect(payments[0].metrics?.connectionsMedian[3].median_value).toBe(10)
     expect(payments[0].metrics?.allEqualOrAboveAvg).toBe(33.33)
     expect(payments[0].metrics?.withoutConnection).toBe(33.33)
     expect(payments[0].metrics?.atLeastOneBellowAvg).toBe(33.33)
@@ -50,12 +55,17 @@ test.group('Get Payments by Contract', (group) => {
     const contract = await setupModels(user.countryId, user.id)
     await createPayment(client, user, 7, contract.id, contract.currencyId)
     const response = await client.get(`/payment/contract/${contract.id}`).loginAs(user)
-    const payments = response.body() as PaymentsByContract[]
-    expect(payments[0].paidDate).toBe('2022-07-31')
+    const payments = response.body() as GetPayment[]
+    expect(payments[0].paidDate.month).toBe(7)
+    expect(payments[0].paidDate.year).toBe(2022)
     expect(payments[0].description).toBe('payment description')
     expect(payments[0].currency.name).toBe('US Dollar')
     expect(payments[0].amount).toBe(100000)
     expect(payments[0].status).toBe('Verified')
+    expect(payments[0].metrics?.connectionsMedian[0].median_value).toBe(100)
+    expect(payments[0].metrics?.connectionsMedian[1].median_value).toBe(20)
+    expect(payments[0].metrics?.connectionsMedian[2].median_value).toBe(10)
+    expect(payments[0].metrics?.connectionsMedian[3].median_value).toBe(15)
     expect(payments[0].metrics?.allEqualOrAboveAvg).toBe(66.67)
     expect(payments[0].metrics?.withoutConnection).toBe(33.33)
     expect(payments[0].metrics?.atLeastOneBellowAvg).toBe(0)
@@ -75,12 +85,17 @@ test.group('Get Payments by Contract', (group) => {
     await createPayment(client, user, 8, contract.id, contract.currencyId)
     await createPayment(client, user, 7, contract.id, contract.currencyId)
     const response = await client.get(`/payment/contract/${contract.id}`).loginAs(user)
-    const payments = response.body() as PaymentsByContract[]
-    expect(payments[0].paidDate).toBe('2022-08-13')
+    const payments = response.body() as GetPayment[]
+    expect(payments[0].paidDate.month).toBe(8)
+    expect(payments[0].paidDate.year).toBe(2022)
     expect(payments[0].description).toBe('payment description')
     expect(payments[0].currency.name).toBe('US Dollar')
     expect(payments[0].amount).toBe(100000)
     expect(payments[0].status).toBe('Verified')
+    expect(payments[0].metrics?.connectionsMedian[0].median_value).toBe(100)
+    expect(payments[0].metrics?.connectionsMedian[1].median_value).toBe(10)
+    expect(payments[0].metrics?.connectionsMedian[2].median_value).toBe(10)
+    expect(payments[0].metrics?.connectionsMedian[3].median_value).toBe(10)
     expect(payments[0].metrics?.allEqualOrAboveAvg).toBe(33.33)
     expect(payments[0].metrics?.withoutConnection).toBe(33.33)
     expect(payments[0].metrics?.atLeastOneBellowAvg).toBe(33.33)
@@ -89,11 +104,16 @@ test.group('Get Payments by Contract', (group) => {
     expect(payments[0].dateFrom).toBe('2022-08-01')
     expect(payments[0].dateTo).toBe('2022-08-13')
     assert.isNotEmpty(payments[0].invoice)
-    expect(payments[1].paidDate).toBe('2022-07-31')
+    expect(payments[0].paidDate.month).toBe(8)
+    expect(payments[0].paidDate.year).toBe(2022)
     expect(payments[1].description).toBe('payment description')
     expect(payments[1].currency.name).toBe('US Dollar')
     expect(payments[1].amount).toBe(100000)
     expect(payments[1].status).toBe('Verified')
+    expect(payments[1].metrics?.connectionsMedian[0].median_value).toBe(100)
+    expect(payments[1].metrics?.connectionsMedian[1].median_value).toBe(20)
+    expect(payments[1].metrics?.connectionsMedian[2].median_value).toBe(10)
+    expect(payments[1].metrics?.connectionsMedian[3].median_value).toBe(15)
     expect(payments[1].metrics?.allEqualOrAboveAvg).toBe(66.67)
     expect(payments[1].metrics?.withoutConnection).toBe(33.33)
     expect(payments[1].metrics?.atLeastOneBellowAvg).toBe(0)
