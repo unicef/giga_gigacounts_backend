@@ -1,4 +1,4 @@
-import { schema, CustomMessages, rules } from '@ioc:Adonis/Core/Validator'
+import { schema, CustomMessages } from '@ioc:Adonis/Core/Validator'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 export default class ChangePaymentStatusValidator {
@@ -6,10 +6,10 @@ export default class ChangePaymentStatusValidator {
 
   public schema = schema.create({
     paymentId: schema.string(),
-    status: schema.number([rules.range(0, 2)]),
+    status: schema.enum(['Pending', 'Rejected', 'Verified']),
   })
 
   public messages: CustomMessages = {
-    'status.range': 'Invalid status, available status are: 0, 1, 2',
+    'status.enum': 'Invalid status, available status are: Pending, Rejected, Verified',
   }
 }

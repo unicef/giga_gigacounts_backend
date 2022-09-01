@@ -30,7 +30,7 @@ test.group('Change Payment Status', (group) => {
     const response = await client
       .post('/payment/change-status')
       .loginAs(user)
-      .json({ paymentId: payment.id, status: 2 })
+      .json({ paymentId: payment.id, status: 'Verified' })
     const paymentRes = response.body()
     expect(paymentRes.status).toBe(PaymentStatus[2])
     expect(paymentRes.id).toBe(payment.id)
@@ -53,7 +53,7 @@ test.group('Change Payment Status', (group) => {
     const response = await client
       .post('/payment/change-status')
       .loginAs(user)
-      .json({ paymentId: payment.id, status: 1 })
+      .json({ paymentId: payment.id, status: 'Rejected' })
     const paymentRes = response.body()
     expect(paymentRes.status).toBe(PaymentStatus[1])
     expect(paymentRes.id).toBe(payment.id)
@@ -76,7 +76,7 @@ test.group('Change Payment Status', (group) => {
     const response = await client
       .post('/payment/change-status')
       .loginAs(user)
-      .json({ paymentId: payment.id, status: 0 })
+      .json({ paymentId: payment.id, status: 'Pending' })
     const paymentRes = response.body()
     expect(paymentRes.status).toBe(PaymentStatus[0])
     expect(paymentRes.id).toBe(payment.id)
@@ -102,7 +102,7 @@ test.group('Change Payment Status', (group) => {
     const response = await client
       .post('/payment/change-status')
       .loginAs(user)
-      .json({ paymentId: payment.id, status: 2 })
+      .json({ paymentId: payment.id, status: 'Verified' })
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(400)
     expect(error.text).toBe('INVALID_STATUS: Rejected payment cant be verified')
@@ -130,7 +130,7 @@ test.group('Change Payment Status', (group) => {
     const response = await client
       .post('/payment/change-status')
       .loginAs(user)
-      .json({ paymentId: payment.id, status: 1 })
+      .json({ paymentId: payment.id, status: 'Rejected' })
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(400)
     expect(error.text).toBe('INVALID_STATUS: Payment already verified')
@@ -142,7 +142,7 @@ test.group('Change Payment Status', (group) => {
     const response = await client
       .post('/payment/change-status')
       .loginAs(user)
-      .json({ paymentId: '333', status: 1 })
+      .json({ paymentId: '333', status: 'Rejected' })
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(404)
     expect(error.text).toBe('NOT_FOUND: Payment not found')
@@ -165,12 +165,12 @@ test.group('Change Payment Status', (group) => {
     const response = await client
       .post('/payment/change-status')
       .loginAs(user)
-      .json({ paymentId: payment.id, status: 3 })
+      .json({ paymentId: payment.id, status: 'wrong' })
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(422)
     expect(JSON.parse(error.text).errors.length).toBe(1)
     expect(JSON.parse(error.text).errors[0].message).toBe(
-      'Invalid status, available status are: 0, 1, 2'
+      'Invalid status, available status are: Pending, Rejected, Verified'
     )
   })
 })
