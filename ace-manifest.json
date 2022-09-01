@@ -1,12 +1,13 @@
 {
   "commands": {
-    "load:models": {
+    "deploy:safes": {
       "settings": {
-        "loadApp": true
+        "loadApp": true,
+        "stayAlive": false
       },
-      "commandPath": "./commands/LoadModels",
-      "commandName": "load:models",
-      "description": "Fetchs a couple of models from the unicef api to our database",
+      "commandPath": "./commands/DeploySafes",
+      "commandName": "deploy:safes",
+      "description": "",
       "args": [],
       "aliases": [],
       "flags": []
