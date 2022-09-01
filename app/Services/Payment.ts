@@ -37,7 +37,7 @@ export interface CreatePaymentData {
 
 export interface ChangePaymentStatusData {
   paymentId: number
-  status: PaymentStatus
+  status: string
 }
 
 export interface UpdatePaymentData {
@@ -178,9 +178,9 @@ const changePaymentStatus = async ({ paymentId, status }: ChangePaymentStatusDat
   if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
   if (payment.status === PaymentStatus.Verified)
     throw new InvalidStatusException('Payment already verified', 400, 'INVALID_STATUS')
-  if (payment.status === PaymentStatus.Rejected && status === PaymentStatus.Verified)
+  if (payment.status === PaymentStatus.Rejected && PaymentStatus[status] === PaymentStatus.Verified)
     throw new InvalidStatusException('Rejected payment cant be verified', 400, 'INVALID_STATUS')
-  payment.status = status
+  payment.status = PaymentStatus[status]
   payment.isVerified = true
 
   await payment.save()
