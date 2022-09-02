@@ -3,26 +3,13 @@ import Payment from 'App/Models/Payment'
 import { PaymentStatus } from 'App/Helpers/constants'
 import Currency from 'App/Models/Currency'
 import Attachment from 'App/Models/Attachment'
-
-export interface PaymentsByContract {
-  id: number
-  paidDate: string
-  description?: string
-  currency: Currency
-  amount: number
-  status: string
-  metrics?: {
-    withoutConnection: number
-    atLeastOneBellowAvg: number
-    allEqualOrAboveAvg: number
-  }
-  invoice?: Attachment
-  receipt?: Attachment
-}
+import { ConnectionMedian } from './Contract'
 
 export interface GetPayment {
   id: number
   description?: string
+  dateFrom: string
+  dateTo?: string
   paidDate: {
     month?: number
     year?: number
@@ -31,6 +18,7 @@ export interface GetPayment {
   amount: number
   status: string
   metrics?: {
+    connectionsMedian: ConnectionMedian[]
     withoutConnection: number
     atLeastOneBellowAvg: number
     allEqualOrAboveAvg: number
@@ -40,21 +28,8 @@ export interface GetPayment {
   createdBy?: {
     name: string
     role: string
+    id: number
   }
-}
-
-const getPaymentsByContractDTO = (payments: Payment[]): PaymentsByContract[] => {
-  return payments.map((payment) => ({
-    id: payment.id,
-    paidDate: payment.dateTo?.toISODate() || '',
-    description: payment.description,
-    currency: payment.currency,
-    amount: payment.amount,
-    status: PaymentStatus[payment.status],
-    metrics: payment?.metrics,
-    invoice: payment?.invoice,
-    receipt: payment?.receipt,
-  }))
 }
 
 const getPaymentDTO = (payment: Payment): GetPayment => ({
@@ -64,6 +39,8 @@ const getPaymentDTO = (payment: Payment): GetPayment => ({
     month: payment.dateTo?.get('month'),
     year: payment.dateTo?.get('year'),
   },
+  dateFrom: payment.dateFrom.toISODate(),
+  dateTo: payment.dateTo?.toISODate(),
   currency: payment.currency,
   amount: payment.amount,
   status: PaymentStatus[payment.status],
@@ -73,8 +50,13 @@ const getPaymentDTO = (payment: Payment): GetPayment => ({
   createdBy: {
     name: payment?.creator?.name,
     role: payment?.creator?.roles[0]?.name,
+    id: payment?.creator?.id,
   },
 })
+
+const getPaymentsByContractDTO = (payments: Payment[]): GetPayment[] => {
+  return payments.map(getPaymentDTO)
+}
 
 export default {
   getPaymentsByContractDTO,

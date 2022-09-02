@@ -69,7 +69,9 @@ test.group('Profile', (group) => {
           name: 'ISP',
         })
         .with('permissions', 1)
-    }).create()
+    })
+      .with('isp')
+      .create()
     const response = await client.get('/user/profile').loginAs(user)
     const profile = response.body()
     assert.notEmpty(profile?.name)
@@ -77,6 +79,7 @@ test.group('Profile', (group) => {
     assert.notEmpty(profile?.email)
     assert.notExists(profile?.country)
     expect(profile?.role).toBe('ISP')
+    expect(profile?.isp?.name).toBe('T-Mobile')
   })
   test('Throw a UnAuthorized error if user is not authenticated', async ({ client, expect }) => {
     const response = await client.get('/user/profile')

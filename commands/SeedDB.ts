@@ -32,8 +32,8 @@ export default class CreateUsers extends BaseCommand {
     const roles = await createRoles(permissions)
     const brazil = await Country.findBy('name', 'Brazil')
     const botswana = await Country.findBy('name', 'Botswana')
-    const users = await createUser(brazil?.id || 1, botswana?.id || 2, roles)
     const isps = await createIsps(brazil?.id || 1, botswana?.id || 2)
+    const users = await createUser(brazil?.id || 1, botswana?.id || 2, roles, isps)
     const ltas = await createLtas(brazil?.id || 1, botswana?.id || 2)
     if (NODE_ENV !== 'uat') {
       return createContracts(

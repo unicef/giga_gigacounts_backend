@@ -114,7 +114,13 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
     await payment.useTransaction(trx).save()
     await trx.commit()
 
-    return payment
+    await payment.load('currency')
+    await payment.load('creator')
+    await payment.creator.load('roles')
+    if (payment.invoiceId) await payment.load('invoice')
+    if (payment.receiptId) await payment.load('receipt')
+
+    return dto.getPaymentDTO(payment)
   } catch (error) {
     await trx.rollback()
     if ([404, 422, 400, 413].some((status) => status === error?.status)) throw error
@@ -144,6 +150,7 @@ const getPaymentsByContract = async (contractId: string) => {
   const payments = await Payment.query()
     .where('contract_id', contractId)
     .preload('currency')
+    .preload('creator', (builder) => builder.preload('roles'))
     .orderBy('date_to', 'desc')
 
   await Promise.all(
@@ -175,7 +182,15 @@ const changePaymentStatus = async ({ paymentId, status }: ChangePaymentStatusDat
     throw new InvalidStatusException('Rejected payment cant be verified', 400, 'INVALID_STATUS')
   payment.status = status
   payment.isVerified = true
-  return payment.save()
+
+  await payment.save()
+  await payment.load('currency')
+  await payment.load('creator')
+  await payment.creator.load('roles')
+  if (payment.invoiceId) await payment.load('invoice')
+  if (payment.receiptId) await payment.load('receipt')
+
+  return dto.getPaymentDTO(payment)
 }
 
 const updatePayment = async (data: UpdatePaymentData, user: User) => {
@@ -184,12 +199,16 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
     const payment = await Payment.find(data.paymentId, { client: trx })
     if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
 
+    const contract = await Contract.find(payment.contractId, { client: trx })
+    if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+    if (contract.status === ContractStatus.Completed) {
+      throw new InvalidStatusException('Contract already completed', 400, 'INVALID_STATUS')
+    }
+
     payment.description = data.description || payment.description
     payment.amount = data.amount || payment.amount
 
     if (data.month && data.year) {
-      const contract = await Contract.find(payment.contractId, { client: trx })
-      if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
       const { dateFrom, dateTo, metrics } = await checkAndSavePaymentMetrics(
         data.month,
         data.year,
@@ -226,10 +245,20 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
       payment.receiptId = receipt.id
     }
 
+    if (userService.checkUserRole(user, [roles.isp]) && payment.status === PaymentStatus.Rejected) {
+      payment.status = PaymentStatus.Pending
+    }
+
     const updatedPayment = await payment.useTransaction(trx).save()
     await trx.commit()
 
-    return updatedPayment
+    await updatedPayment.load('currency')
+    await updatedPayment.load('creator')
+    await updatedPayment.creator.load('roles')
+    if (updatedPayment.invoiceId) await updatedPayment.load('invoice')
+    if (updatedPayment.receiptId) await updatedPayment.load('receipt')
+
+    return dto.getPaymentDTO(updatedPayment)
   } catch (error) {
     await trx.rollback()
     if ([404, 422, 400, 413].some((status) => status === error?.status)) throw error
