@@ -1,4 +1,4 @@
-import Database from '@ioc:Adonis/Lucid/Database'
+import Database, { TransactionClientContract } from '@ioc:Adonis/Lucid/Database'
 import { DateTime } from 'luxon/src/luxon'
 
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
@@ -221,7 +221,7 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
     }
 
     if (data.invoice) {
-      if (payment.invoiceId) await attachmentService.deleteAttachment(payment.invoiceId, trx)
+      if (payment.invoiceId) await attachmentService.deleteAttachment(payment.invoiceId, user, trx)
       const invoice = await attachmentService.uploadAttachment(
         { ...data.invoice, type: AttachmentsType.INVOICE, typeId: payment.id },
         trx
@@ -233,7 +233,7 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
       data.receipt &&
       userService.checkUserRole(user, [roles.government, roles.countryOffice, roles.gigaAdmin])
     ) {
-      if (payment.receiptId) await attachmentService.deleteAttachment(payment.receiptId, trx)
+      if (payment.receiptId) await attachmentService.deleteAttachment(payment.receiptId, user, trx)
       const receipt = await attachmentService.uploadAttachment(
         {
           ...data.receipt,
@@ -289,6 +289,21 @@ const checkAndSavePaymentMetrics = async (month: number, year: number, contract:
   return { dateFrom, dateTo, metrics }
 }
 
+const checkPaymentFileEdit = async (
+  paymentId: number,
+  userId: number,
+  trx: TransactionClientContract
+) => {
+  const user = await User.query().useTransaction(trx).where('id', userId).preload('roles')
+  if (userService.checkUserRole(user[0], [roles.isp])) {
+    const payment = await Payment.find(paymentId, { client: trx })
+    if (payment?.status === PaymentStatus.Rejected) {
+      payment.status = PaymentStatus.Pending
+      await payment.useTransaction(trx).save()
+    }
+  }
+}
+
 export default {
   listFrequencies,
   createPayment,
@@ -296,4 +311,5 @@ export default {
   getPayment,
   changePaymentStatus,
   updatePayment,
+  checkPaymentFileEdit,
 }
