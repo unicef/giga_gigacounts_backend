@@ -89,7 +89,7 @@ test.group('Contract List', (group) => {
     assert,
   }) => {
     const [country1, country2] = await setupCountries()
-    const user = await UserFactory.merge({ name: 'Verizon', countryId: country1.id })
+    const user = await UserFactory.merge({ name: 'Verizon User', countryId: country1.id })
       .with('roles', 1, (role) => {
         role
           .merge({
@@ -97,6 +97,7 @@ test.group('Contract List', (group) => {
           })
           .with('permissions', 1, (permission) => permission.merge({ name: 'contract.read' }))
       })
+      .with('isp')
       .create()
     await setupModels(country1.id, country2.id, user.id)
     const response = await client.get('/contract').loginAs(user)
@@ -424,4 +425,6 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
       contractId: ctc2.id,
     },
   ]).createMany(4)
+
+  return { isp }
 }
