@@ -328,6 +328,26 @@ test.group('Update Payment', (group) => {
     )
     expect(payment.status).toBe(PaymentStatus[0])
   })
+  test('Throw an error when ISP tries to update an Verified payment', async ({
+    client,
+    expect,
+  }) => {
+    const user = await setupUser('ISP')
+    const contract = await setupModels(user.countryId, user.id)
+    const createdPayment = await createPayment(8, 2022, contract, user, client)
+    const updatedPayment = await Payment.updateOrCreate({ id: createdPayment.id }, { status: 2 })
+    expect(updatedPayment.status).toBe(2)
+    const body = await testUtils.buildUpdatePaymentBody(
+      createdPayment.id.toString(),
+      7,
+      2022,
+      undefined
+    )
+    const response = await client.put('/payment').loginAs(user).json(body)
+    const error = response.error() as import('superagent').HTTPError
+    expect(error.status).toBe(400)
+    expect(error.text).toBe('INVALID_STATUS: ISPs cant update an verified payment')
+  })
 })
 
 const validatePayment = async (data: CheckPaymentData, expect: any) => {

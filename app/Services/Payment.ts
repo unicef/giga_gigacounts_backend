@@ -199,6 +199,14 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
     const payment = await Payment.find(data.paymentId, { client: trx })
     if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
 
+    if (userService.checkUserRole(user, [roles.isp]) && payment.status === PaymentStatus.Verified) {
+      throw new InvalidStatusException(
+        'ISPs cant update an verified payment',
+        400,
+        'INVALID_STATUS'
+      )
+    }
+
     const contract = await Contract.find(payment.contractId, { client: trx })
     if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
     if (contract.status === ContractStatus.Completed) {
