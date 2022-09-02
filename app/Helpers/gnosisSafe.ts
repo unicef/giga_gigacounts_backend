@@ -3,6 +3,7 @@ import Safe, { SafeFactory, SafeAccountConfig } from '@gnosis.pm/safe-core-sdk'
 import { ethers } from 'ethers'
 
 import Ethers from 'App/Helpers/ethers'
+import utils from 'App/Helpers/utils'
 
 interface DeploySafeData {
   owners: string[]
@@ -44,10 +45,11 @@ const addOwnerToSafe = async ({ newOwner, safeAddress, newThreshold }: AddOwners
   })
 
   const safeSdk = await Safe.create({ ethAdapter, safeAddress })
-  return safeSdk.getAddOwnerTx({ ownerAddress: newOwner, threshold: newThreshold })
+  const tx = await safeSdk.getAddOwnerTx({ ownerAddress: newOwner, threshold: newThreshold })
+  return safeSdk.executeTransaction(tx)
 }
 
-const getSafeBalance = async (safeAddress: string) => {
+const getSafeInfo = async (safeAddress: string) => {
   const provider = Ethers.getProvider()
   const signer = await Ethers.getWalletAndConnect(provider)
   const ethAdapter = new EthersAdapter({
@@ -56,12 +58,15 @@ const getSafeBalance = async (safeAddress: string) => {
   })
 
   const safeSdk = await Safe.create({ ethAdapter, safeAddress })
-  console.log(await safeSdk.getOwners())
-  return safeSdk.getBalance()
+
+  return {
+    balance: utils.toNormalNumber(await safeSdk.getBalance()),
+    owners: await safeSdk.getOwners(),
+  }
 }
 
 export default {
   deploySafe,
   addOwnerToSafe,
-  getSafeBalance,
+  getSafeInfo,
 }

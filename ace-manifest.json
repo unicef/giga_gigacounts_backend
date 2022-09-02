@@ -2,7 +2,7 @@
   "commands": {
     "add:user_safe": {
       "settings": {
-        "loadApp": false,
+        "loadApp": true,
         "stayAlive": false
       },
       "commandPath": "./commands/AddUserSafe",

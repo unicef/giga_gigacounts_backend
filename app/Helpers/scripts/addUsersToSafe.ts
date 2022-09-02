@@ -4,7 +4,7 @@ import User from 'App/Models/User'
 import gnosisSafe from 'App/Helpers/gnosisSafe'
 import Ethers from 'App/Helpers/ethers'
 import { roles } from 'App/Helpers/constants'
-import Database from '@ioc:Adonis/Lucid/Database'
+import Database, { TransactionClientContract } from '@ioc:Adonis/Lucid/Database'
 
 export const execute = async () => {
   const trx = await Database.transaction()
@@ -35,15 +35,25 @@ export const execute = async () => {
         safeName = `${userRole}${user.country?.name ? `.${user.country?.name}` : ''}`
       }
 
-      await findAndAddToSafe(safes, safeName, user)
+      await findAndAddToSafe(safes, safeName, user, trx)
     }
-  } catch (error) {}
+    await trx.commit()
+  } catch (error) {
+    await trx.rollback()
+    console.log(error)
+  }
 }
 
-const findAndAddToSafe = async (safes: Safe[], safeName: string, user: User) => {
+export const findAndAddToSafe = async (
+  safes: Safe[],
+  safeName: string,
+  user: User,
+  trx: TransactionClientContract
+) => {
   const safe = safes.find(({ name }) => name === safeName)
   if (safe) {
     user.safeId = safe.id
+    await user.useTransaction(trx).save()
     return gnosisSafe.addOwnerToSafe({
       newOwner: user.walletAddress || '',
       safeAddress: safe.address,

@@ -210,5 +210,3 @@ Route.get('/test/one-permission', ({ response }) => {
 Route.get('/test/two-permission', ({ response }) => {
   response.send({ message: 'Authorized!' })
 }).middleware(['auth:api', 'acl:test1.read,test2.read'])
-
-Route.get('/safe', 'SafeController.test')

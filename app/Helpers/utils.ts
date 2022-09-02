@@ -1,5 +1,6 @@
 import { DateTime as DateTimeLBD } from 'luxon-business-days'
 import { DateTime } from 'luxon'
+import { BigNumber, ethers } from 'ethers'
 
 interface DiffMonths {
   months: number
@@ -73,6 +74,11 @@ const makeFromAndToDate = (month: number, year: number, contractEndDate: DateTim
   return { dateFrom: startMonth, dateTo }
 }
 
+const toNormalNumber = (bigNumber: BigNumber) => {
+  const etherNumber = ethers.utils.formatEther(bigNumber)
+  return Math.round(parseFloat(etherNumber) * 10 ** 18)
+}
+
 export default {
   destructObjArrayWithId,
   removeProperty,
@@ -87,4 +93,5 @@ export default {
   toFixedFloat,
   makeFromAndToDate,
   diffOfDays,
+  toNormalNumber,
 }
