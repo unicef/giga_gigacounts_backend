@@ -7,6 +7,8 @@ import NotFoundException from 'App/Exceptions/NotFoundException'
 import storage from 'App/Services/Storage'
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
 import Contract from 'App/Models/Contract'
+import User from 'App/Models/User'
+import paymentService from 'App/Services/Payment'
 
 export enum AttachmentsType {
   INVOICE = 'invoice',
@@ -26,7 +28,11 @@ export interface DeleteRequest {
   paymentId: number
 }
 
-const deleteAttachment = async (attachmentId: number, trx?: TransactionClientContract) => {
+const deleteAttachment = async (
+  attachmentId: number,
+  user: User,
+  trx?: TransactionClientContract
+) => {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   const _trx = trx || (await Database.transaction())
   try {
@@ -36,11 +42,15 @@ const deleteAttachment = async (attachmentId: number, trx?: TransactionClientCon
     await attachment.useTransaction(_trx).load('paymentInvoice')
     await attachment.useTransaction(_trx).load('paymentReceipt')
 
-    if (attachment.paymentInvoice.length)
+    if (attachment.paymentInvoice.length) {
       await deletefromPayment(attachment.paymentInvoice[0].id, 'invoice', _trx)
+      await paymentService.checkPaymentFileEdit(attachment.paymentInvoice[0].id, user.id, _trx)
+    }
 
-    if (attachment.paymentReceipt.length)
+    if (attachment.paymentReceipt.length) {
       await deletefromPayment(attachment.paymentReceipt[0].id, 'receipt', _trx)
+      await paymentService.checkPaymentFileEdit(attachment.paymentReceipt[0].id, user.id, _trx)
+    }
 
     await attachment.related('drafts').detach()
     await attachment.related('contracts').detach()

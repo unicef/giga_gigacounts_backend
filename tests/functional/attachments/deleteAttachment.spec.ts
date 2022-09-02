@@ -81,7 +81,7 @@ test.group('Delete Attachments', (group) => {
     const user = await UserFactory.with('roles', 1, (role) =>
       role.with('permissions', 1, (permission) => permission.merge({ name: 'attachment.write' }))
     ).create()
-    const payment = await PaymentFactory.merge({ amount: 100, createdBy: user.id })
+    const payment = await PaymentFactory.merge({ amount: 100, createdBy: user.id, status: 1 })
       .with('contract', 1, (ctc) => {
         ctc.with('country').with('currency').with('frequency').with('isp').merge({
           createdBy: user.id,
@@ -91,6 +91,7 @@ test.group('Delete Attachments', (group) => {
     const attachment = await createAttachment(client, user, 'receipt', payment.id)
     let foundPayment = await Payment.find(payment.id)
     expect(foundPayment?.receiptId).toBe(attachment.id)
+    expect(foundPayment?.status).toBe(1)
     const response = await client.delete(`/attachments/${attachment.id}`).loginAs(user)
     const body = response.body() as Attachment
     assert.isEmpty(body)
@@ -98,6 +99,7 @@ test.group('Delete Attachments', (group) => {
     assert.isNull(attachmentFound)
     foundPayment = await Payment.find(payment.id)
     assert.isNull(foundPayment?.receiptId)
+    expect(foundPayment?.status).toBe(1)
   })
   test('Successfully delete a attachment related to an payment invoice', async ({
     client,
@@ -107,7 +109,7 @@ test.group('Delete Attachments', (group) => {
     const user = await UserFactory.with('roles', 1, (role) =>
       role.with('permissions', 1, (permission) => permission.merge({ name: 'attachment.write' }))
     ).create()
-    const payment = await PaymentFactory.merge({ amount: 100, createdBy: user.id })
+    const payment = await PaymentFactory.merge({ amount: 100, createdBy: user.id, status: 1 })
       .with('contract', 1, (ctc) => {
         ctc.with('country').with('currency').with('frequency').with('isp').merge({
           createdBy: user.id,
@@ -117,6 +119,7 @@ test.group('Delete Attachments', (group) => {
     const attachment = await createAttachment(client, user, 'invoice', payment.id)
     let foundPayment = await Payment.find(payment.id)
     expect(foundPayment?.invoiceId).toBe(attachment.id)
+    expect(foundPayment?.status).toBe(1)
     const response = await client.delete(`/attachments/${attachment.id}`).loginAs(user)
     const body = response.body() as Attachment
     assert.isEmpty(body)
@@ -124,6 +127,7 @@ test.group('Delete Attachments', (group) => {
     assert.isNull(attachmentFound)
     foundPayment = await Payment.find(payment.id)
     assert.isNull(foundPayment?.invoiceId)
+    expect(foundPayment?.status).toBe(1)
   })
   test('Throw an error if tries to delete a attachment that doesnt exist', async ({
     client,
@@ -136,6 +140,66 @@ test.group('Delete Attachments', (group) => {
     const error = response.error() as import('superagent').HTTPError
     expect(error.status).toBe(404)
     expect(error.text).toBe('NOT_FOUND: Attachment not found')
+  })
+  test('Successfully delete a attach by a ISP of an invoice and changes the status rejected to pending', async ({
+    client,
+    assert,
+    expect,
+  }) => {
+    const user = await UserFactory.with('roles', 1, (role) =>
+      role
+        .merge({ name: 'ISP' })
+        .with('permissions', 1, (permission) => permission.merge({ name: 'attachment.write' }))
+    ).create()
+    const payment = await PaymentFactory.merge({ amount: 100, createdBy: user.id, status: 1 })
+      .with('contract', 1, (ctc) => {
+        ctc.with('country').with('currency').with('frequency').with('isp').merge({
+          createdBy: user.id,
+        })
+      })
+      .create()
+    const attachment = await createAttachment(client, user, 'invoice', payment.id)
+    let foundPayment = await Payment.find(payment.id)
+    expect(foundPayment?.invoiceId).toBe(attachment.id)
+    expect(foundPayment?.status).toBe(1)
+    const response = await client.delete(`/attachments/${attachment.id}`).loginAs(user)
+    const body = response.body() as Attachment
+    assert.isEmpty(body)
+    const attachmentFound = await Attachment.find(attachment.id)
+    assert.isNull(attachmentFound)
+    foundPayment = await Payment.find(payment.id)
+    assert.isNull(foundPayment?.invoiceId)
+    expect(foundPayment?.status).toBe(0)
+  })
+  test('Successfully delete a attach by a ISP of an receipt and changes the status rejected to pending', async ({
+    client,
+    assert,
+    expect,
+  }) => {
+    const user = await UserFactory.with('roles', 1, (role) =>
+      role
+        .merge({ name: 'ISP' })
+        .with('permissions', 1, (permission) => permission.merge({ name: 'attachment.write' }))
+    ).create()
+    const payment = await PaymentFactory.merge({ amount: 100, createdBy: user.id, status: 1 })
+      .with('contract', 1, (ctc) => {
+        ctc.with('country').with('currency').with('frequency').with('isp').merge({
+          createdBy: user.id,
+        })
+      })
+      .create()
+    const attachment = await createAttachment(client, user, 'receipt', payment.id)
+    let foundPayment = await Payment.find(payment.id)
+    expect(foundPayment?.receiptId).toBe(attachment.id)
+    expect(foundPayment?.status).toBe(1)
+    const response = await client.delete(`/attachments/${attachment.id}`).loginAs(user)
+    const body = response.body() as Attachment
+    assert.isEmpty(body)
+    const attachmentFound = await Attachment.find(attachment.id)
+    assert.isNull(attachmentFound)
+    foundPayment = await Payment.find(payment.id)
+    assert.isNull(foundPayment?.receiptId)
+    expect(foundPayment?.status).toBe(0)
   })
 })
 
