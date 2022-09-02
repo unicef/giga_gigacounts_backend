@@ -1,12 +1,24 @@
 {
   "commands": {
-    "deploy:safes": {
+    "add:user_safe": {
+      "settings": {
+        "loadApp": false,
+        "stayAlive": false
+      },
+      "commandPath": "./commands/AddUserSafe",
+      "commandName": "add:user_safe",
+      "description": "",
+      "args": [],
+      "aliases": [],
+      "flags": []
+    },
+    "deploy:safe": {
       "settings": {
         "loadApp": true,
         "stayAlive": false
       },
-      "commandPath": "./commands/DeploySafes",
-      "commandName": "deploy:safes",
+      "commandPath": "./commands/DeploySafe",
+      "commandName": "deploy:safe",
       "description": "",
       "args": [],
       "aliases": [],

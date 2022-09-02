@@ -47,7 +47,21 @@ const addOwnerToSafe = async ({ newOwner, safeAddress, newThreshold }: AddOwners
   return safeSdk.getAddOwnerTx({ ownerAddress: newOwner, threshold: newThreshold })
 }
 
+const getSafeBalance = async (safeAddress: string) => {
+  const provider = Ethers.getProvider()
+  const signer = await Ethers.getWalletAndConnect(provider)
+  const ethAdapter = new EthersAdapter({
+    ethers,
+    signer: signer,
+  })
+
+  const safeSdk = await Safe.create({ ethAdapter, safeAddress })
+  console.log(await safeSdk.getOwners())
+  return safeSdk.getBalance()
+}
+
 export default {
   deploySafe,
   addOwnerToSafe,
+  getSafeBalance,
 }
