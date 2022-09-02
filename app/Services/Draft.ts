@@ -66,7 +66,16 @@ const getDraft = async (draftId: number) => {
 
 const saveDraft = async (draftData: DraftData, user: User): Promise<Draft> => {
   return Draft.create({
-    ...draftData,
+    name: draftData.name,
+    countryId: draftData.countryId,
+    ltaId: draftData.ltaId,
+    currencyId: draftData.currencyId,
+    budget: draftData.budget,
+    frequencyId: draftData.frequencyId,
+    ispId: draftData.ispId,
+    createdBy: draftData.createdBy,
+    schools: draftData.schools,
+    expectedMetrics: draftData.expectedMetrics,
     governmentBehalf: isGovernmentBehalf(user, draftData.governmentBehalf),
     startDate: draftData.startDate
       ? utils.formatContractDate(draftData?.startDate, true)
