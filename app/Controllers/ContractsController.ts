@@ -31,6 +31,7 @@ export default class ContractsController {
       const draft = await draftService.saveDraft(draftData, auth.user)
       response.ok(draft)
     } catch (error) {
+      console.log(error)
       return response.status(error.status).send(error.message)
     }
   }

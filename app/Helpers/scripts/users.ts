@@ -1,8 +1,9 @@
 import Role from 'App/Models/Role'
 import User from 'App/Models/User'
 import { roles } from 'App/Helpers/constants'
+import Isp from 'App/Models/Isp'
 
-export const createUser = (brazilId: number, botswanaId: number, _roles: Role[]) => {
+export const createUser = (brazilId: number, botswanaId: number, _roles: Role[], isps: Isp[]) => {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   const _getRoleByName = getRoleByName(_roles)
   return Promise.all([
@@ -68,19 +69,25 @@ export const createUser = (brazilId: number, botswanaId: number, _roles: Role[])
       password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
     }).then((user) => user.related('roles').save(_getRoleByName(roles.gigaAdmin))),
     User.firstOrCreate({
-      name: 'Vivo',
-      lastName: 'Provider',
+      name: 'Provider',
+      lastName: 'Brazil',
       email: 'provider_br@giga.com',
       password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
       countryId: brazilId,
-    }).then((user) => user.related('roles').save(_getRoleByName(roles.isp))),
+    }).then(async (user) => {
+      await user.related('roles').save(_getRoleByName(roles.isp))
+      await user.related('isp').save(isps[10])
+    }),
     User.firstOrCreate({
-      name: 'AT&T',
-      lastName: 'Provider',
+      name: 'Provider',
+      lastName: 'Botswana',
       email: 'provider_bw@giga.com',
       password: '0xc888c9ce9e098d5864d3ded6ebcc140a12142263bace3a23a36f9905f12bd64a',
       countryId: botswanaId,
-    }).then((user) => user.related('roles').save(_getRoleByName(roles.isp))),
+    }).then(async (user) => {
+      await user.related('roles').save(_getRoleByName(roles.isp))
+      await user.related('isp').save(isps[17])
+    }),
   ])
 }
 

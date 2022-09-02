@@ -89,7 +89,7 @@ test.group('Contract List', (group) => {
     assert,
   }) => {
     const [country1, country2] = await setupCountries()
-    const user = await UserFactory.merge({ name: 'Verizon User', countryId: country1.id })
+    const user = await UserFactory.merge({ countryId: country1.id })
       .with('roles', 1, (role) => {
         role
           .merge({
@@ -99,7 +99,7 @@ test.group('Contract List', (group) => {
       })
       .with('isp')
       .create()
-    await setupModels(country1.id, country2.id, user.id)
+    await setupModels(country1.id, country2.id, user.id, user.isp[0].id)
     const response = await client.get('/contract').loginAs(user)
     const contractList = response.body() as ContractListDTO
     assert.isEmpty(contractList.ltas)
@@ -109,9 +109,9 @@ test.group('Contract List', (group) => {
     }
     expect(contractList.contracts.length).toBe(2)
     expect(contractList.contracts[0].status).toBe('Draft')
-    expect(contractList.contracts[0].isp).toBe('Verizon')
+    expect(contractList.contracts[0].isp).toBe('T-Mobile')
     expect(contractList.contracts[1].status).toBe('Ongoing')
-    expect(contractList.contracts[1].isp).toBe('Verizon')
+    expect(contractList.contracts[1].isp).toBe('T-Mobile')
     expect(contractList.contracts[1].schoolsConnection?.withoutConnection).toBe(0)
     expect(contractList.contracts[1].schoolsConnection?.atLeastOneBellowAvg).toBe(0)
     expect(contractList.contracts[1].schoolsConnection?.allEqualOrAboveAvg).toBe(100)
@@ -200,7 +200,12 @@ const setupCountries = async () => {
   return [country1, country2]
 }
 
-const setupModels = async (countryId: number, otherCountry: number, userId: number) => {
+const setupModels = async (
+  countryId: number,
+  otherCountry: number,
+  userId: number,
+  ispId?: number
+) => {
   const isp = await IspFactory.merge({ name: 'Verizon' }).create()
   const isp1 = await IspFactory.create()
 
@@ -215,7 +220,7 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
     {
       countryId: countryId,
       createdBy: userId,
-      ispId: isp.id,
+      ispId: ispId || isp.id,
     },
     {
       countryId: otherCountry,
@@ -246,7 +251,7 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
       countryId: countryId,
       status: 3,
       createdBy: userId,
-      ispId: isp.id,
+      ispId: ispId || isp.id,
       governmentBehalf: true,
     },
   ])
@@ -339,7 +344,7 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
       countryId: otherCountry,
       status: 3,
       createdBy: userId,
-      ispId: isp.id,
+      ispId: ispId || isp.id,
       ltaId: ltaTwo.id,
     },
   ])
@@ -425,6 +430,4 @@ const setupModels = async (countryId: number, otherCountry: number, userId: numb
       contractId: ctc2.id,
     },
   ]).createMany(4)
-
-  return { isp }
 }
