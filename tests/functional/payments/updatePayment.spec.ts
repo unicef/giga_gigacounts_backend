@@ -345,8 +345,8 @@ test.group('Update Payment', (group) => {
     )
     const response = await client.put('/payment').loginAs(user).json(body)
     const error = response.error() as import('superagent').HTTPError
-    expect(error.status).toBe(400)
-    expect(error.text).toBe('INVALID_STATUS: ISPs cant update an verified payment')
+    expect(error.status).toBe(401)
+    expect(error.text).toBe('E_UNAUTHORIZED_ACCESS: ISPs cant update an verified payment')
   })
 })
 
