@@ -199,6 +199,14 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
     const payment = await Payment.find(data.paymentId, { client: trx })
     if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
 
+    if (userService.checkUserRole(user, [roles.isp]) && payment.status === PaymentStatus.Verified) {
+      throw new InvalidStatusException(
+        'ISPs cant update an verified payment',
+        401,
+        'E_UNAUTHORIZED_ACCESS'
+      )
+    }
+
     const contract = await Contract.find(payment.contractId, { client: trx })
     if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
     if (contract.status === ContractStatus.Completed) {
@@ -261,7 +269,7 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
     return dto.getPaymentDTO(updatedPayment)
   } catch (error) {
     await trx.rollback()
-    if ([404, 422, 400, 413].some((status) => status === error?.status)) throw error
+    if ([404, 422, 400, 413, 401].some((status) => status === error?.status)) throw error
     throw new FailedDependencyException(
       'Some dependency failed while uploading attachment',
       424,
