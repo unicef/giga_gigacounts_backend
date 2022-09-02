@@ -1,5 +1,4 @@
 import Database, { TransactionClientContract } from '@ioc:Adonis/Lucid/Database'
-import Event from '@ioc:Adonis/Core/Event'
 import Attachment from 'App/Models/Attachment'
 import Draft from 'App/Models/Draft'
 import Payment from 'App/Models/Payment'
