@@ -5,6 +5,8 @@ import roleService from 'App/Services/Role'
 import Country from 'App/Models/Country'
 import Safe from 'App/Models/Safe'
 
+import { v1 } from 'uuid'
+
 interface UserProfile {
   name: string
   lastName: string
@@ -52,7 +54,15 @@ const checkUserRole = (user: User, rolesToCheck: string[]): boolean => {
   return user.roles.some((v) => rolesToCheck.indexOf(v.name) >= 0)
 }
 
+const generateWalletRandomString = async (user: User) => {
+  const randomString = v1()
+  user.walletRequestString = randomString
+  await user.save()
+  return randomString
+}
+
 export default {
   getProfile,
   checkUserRole,
+  generateWalletRandomString,
 }
