@@ -298,14 +298,15 @@ const queryBuilder = async (
     }
 
     if (userService.checkUserRole(user, [roles.isp])) {
+      await user.load('isp')
       query.whereHas('isp', (qry) => {
-        qry.where('name', user.name)
+        qry.where('isp_id', user.isp[0].id)
       })
       draftQuery.whereHas('isp', (qry) => {
-        qry.where('name', user.name)
+        qry.where('isp_id', user.isp[0].id)
       })
       ltaQuery.whereHas('isps', (qry) => {
-        qry.where('name', user.name)
+        qry.where('isp_id', user.isp[0].id)
       })
     }
   }

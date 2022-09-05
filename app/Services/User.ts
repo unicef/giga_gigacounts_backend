@@ -1,6 +1,6 @@
 import User from 'App/Models/User'
 
-import { permissions } from 'App/Helpers/constants'
+import { permissions, roles } from 'App/Helpers/constants'
 import roleService from 'App/Services/Role'
 import Country from 'App/Models/Country'
 import Safe from 'App/Models/Safe'
@@ -14,12 +14,14 @@ interface UserProfile {
   safeId?: number
   safe?: Safe
   walletAddress?: string
+  isp?: { id: number; name: string }
 }
 
 const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
   if (!user) return
   const userPermissions = await roleService.getRolesPermission(user.roles)
   if (user.safeId) await user.load('safe')
+  if (checkUserRole(user, [roles.isp])) await user.load('isp')
   return {
     name: user.name,
     email: user.email,
@@ -36,6 +38,13 @@ const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
     safeId: user?.safeId,
     safe: user?.safe,
     walletAddress: user?.walletAddress,
+    isp:
+      user.isp?.length > 0
+        ? {
+            id: user.isp[0].id,
+            name: user.isp[0].name,
+          }
+        : undefined,
   }
 }
 

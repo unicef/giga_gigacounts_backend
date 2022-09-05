@@ -4,6 +4,7 @@ import Factory from '@ioc:Adonis/Lucid/Factory'
 import CountryFactory from './CountryFactory'
 import RoleFactory from './RoleFactory'
 import SafeFactory from './SafeFactory'
+import IspFactory from './IspFactory'
 
 export default Factory.define(User, ({ faker }) => {
   return {
@@ -16,4 +17,5 @@ export default Factory.define(User, ({ faker }) => {
   .relation('roles', () => RoleFactory)
   .relation('country', () => CountryFactory)
   .relation('safe', () => SafeFactory)
+  .relation('isp', () => IspFactory)
   .build()

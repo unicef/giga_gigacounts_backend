@@ -21,7 +21,8 @@ import Country from 'App/Models/Country'
 import Lta from 'App/Models/Lta'
 import Contract from 'App/Models/Contract'
 import Payment from 'App/Models/Payment'
-import Safe from './Safe'
+import Safe from 'App/Models/Safe'
+import Isp from 'App/Models/Isp'
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -114,4 +115,13 @@ export default class User extends BaseModel {
     foreignKey: 'id',
   })
   public safe: HasOne<typeof Safe>
+
+  @manyToMany(() => Isp, {
+    pivotTable: 'isp_users',
+    localKey: 'id',
+    pivotForeignKey: 'user_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'isp_id',
+  })
+  public isp: ManyToMany<typeof Isp>
 }

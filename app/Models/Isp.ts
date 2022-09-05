@@ -13,6 +13,7 @@ import {
 import Lta from 'App/Models/Lta'
 import Contract from 'App/Models/Contract'
 import Country from 'App/Models/Country'
+import User from 'App/Models/User'
 
 export default class Isp extends BaseModel {
   @column({ isPrimary: true })
@@ -48,4 +49,13 @@ export default class Isp extends BaseModel {
 
   @belongsTo(() => Country)
   public country: BelongsTo<typeof Country>
+
+  @manyToMany(() => User, {
+    pivotTable: 'isp_users',
+    localKey: 'id',
+    pivotForeignKey: 'isp_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'user_id',
+  })
+  public users: ManyToMany<typeof User>
 }

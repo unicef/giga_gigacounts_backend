@@ -59,7 +59,7 @@ test.group('Contract count by status', (group) => {
     expect,
   }) => {
     const [country1, country2] = await setupCountries()
-    const user = await UserFactory.merge({ name: 'Verizon', countryId: country1.id })
+    const user = await UserFactory.merge({ countryId: country1.id })
       .with('roles', 1, (role) => {
         role
           .merge({
@@ -67,8 +67,9 @@ test.group('Contract count by status', (group) => {
           })
           .with('permissions', 1, (permission) => permission.merge({ name: 'contract.read' }))
       })
+      .with('isp')
       .create()
-    await setupModels(country1.id, country2.id, user.id)
+    await setupModels(country1.id, country2.id, user.id, user.isp[0].id)
     const response = await client.get('/contract/count/status').loginAs(user)
     const statusCount = response.body() as ContractsStatusCount
     expect(statusCount.totalCount).toBe(1)
@@ -104,14 +105,19 @@ const setupCountries = async () => {
   return [country1, country2]
 }
 
-const setupModels = async (countryId: number, otherCountry: number, userId: number) => {
+const setupModels = async (
+  countryId: number,
+  otherCountry: number,
+  userId: number,
+  ispId?: number
+) => {
   const isp = await IspFactory.merge({ name: 'Verizon' }).create()
   const isp1 = await IspFactory.create()
   await DraftFactory.merge([
     {
       countryId: countryId,
       createdBy: userId,
-      ispId: isp.id,
+      ispId: ispId || isp.id,
     },
     {
       countryId: otherCountry,
