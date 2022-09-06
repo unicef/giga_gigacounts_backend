@@ -12,6 +12,6 @@ export default class AddUserSafe extends BaseCommand {
 
   public async run() {
     const addUsersToSafe = await import('App/Helpers/scripts/addUsersToSafe')
-    await addUsersToSafe.execute()
+    await addUsersToSafe.execute(process.env.EMAIL)
   }
 }

@@ -31,7 +31,6 @@ export default class ContractsController {
       const draft = await draftService.saveDraft(draftData, auth.user)
       response.ok(draft)
     } catch (error) {
-      console.log(error)
       return response.status(error.status).send(error.message)
     }
   }
@@ -143,7 +142,6 @@ export default class ContractsController {
       const result = await service.getContractAvailablePayments(contract_id)
       response.ok(result)
     } catch (error) {
-      console.log(error)
       return response.status(error?.status || error.statusCode).send(error.message)
     }
   }

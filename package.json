@@ -7,7 +7,9 @@
     "build": "node ace build --production --ignore-ts-errors",
     "start": "node server.js",
     "lint": "eslint . --ext=.ts",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "deploy:safe": "PRIVATE_KEY=$npm_config_private_key NAME=$npm_config_name node ace deploy:safe",
+    "add:user_safe": "NODE_ENV=$npm_config_env EMAIL=$npm_config_email node ace add:user_safe"
   },
   "eslintConfig": {
     "extends": [
