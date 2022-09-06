@@ -49,6 +49,9 @@ export default class User extends BaseModel {
   @column()
   public walletAddress?: string
 
+  @column()
+  public walletRequestString?: string
+
   @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
 

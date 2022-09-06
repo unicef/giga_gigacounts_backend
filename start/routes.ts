@@ -7,7 +7,12 @@ import { permissions } from 'App/Helpers/constants'
  */
 
 Route.get('/user/profile', 'UsersController.profile').middleware('auth:api')
+
 Route.post('/login', 'UsersController.login').middleware('validator:LoginValidator')
+
+Route.get('/wallet-random-string', 'UsersController.generateWalletRandomString').middleware(
+  'auth:api'
+)
 
 /**
  * PAYMENT ROUTES

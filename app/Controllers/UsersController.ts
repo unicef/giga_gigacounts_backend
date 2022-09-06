@@ -17,4 +17,14 @@ export default class UsersController {
       return response.badRequest({ errors: [{ message: 'Wrong email or password' }] })
     }
   }
+
+  public async generateWalletRandomString({ response, auth }: HttpContextContract) {
+    try {
+      if (!auth.user) return
+      const randomString = await service.generateWalletRandomString(auth.user)
+      return response.ok(randomString)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
 }
