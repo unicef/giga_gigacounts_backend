@@ -1,12 +1,25 @@
 {
   "commands": {
-    "load:models": {
+    "add:user_safe": {
       "settings": {
-        "loadApp": true
+        "loadApp": true,
+        "stayAlive": false
       },
-      "commandPath": "./commands/LoadModels",
-      "commandName": "load:models",
-      "description": "Fetchs a couple of models from the unicef api to our database",
+      "commandPath": "./commands/AddUserSafe",
+      "commandName": "add:user_safe",
+      "description": "",
+      "args": [],
+      "aliases": [],
+      "flags": []
+    },
+    "deploy:safe": {
+      "settings": {
+        "loadApp": true,
+        "stayAlive": false
+      },
+      "commandPath": "./commands/DeploySafe",
+      "commandName": "deploy:safe",
+      "description": "",
       "args": [],
       "aliases": [],
       "flags": []
