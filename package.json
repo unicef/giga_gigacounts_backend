@@ -7,7 +7,9 @@
     "build": "node ace build --production --ignore-ts-errors",
     "start": "node server.js",
     "lint": "eslint . --ext=.ts",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "deploy:safe": "PRIVATE_KEY=$npm_config_private_key NAME=$npm_config_name node ace deploy:safe",
+    "add:user_safe": "NODE_ENV=$npm_config_env EMAIL=$npm_config_email node ace add:user_safe"
   },
   "eslintConfig": {
     "extends": [
@@ -62,7 +64,12 @@
     "@adonisjs/lucid": "^18.0.0",
     "@adonisjs/repl": "^3.1.11",
     "@azure/storage-blob": "^12.10.0",
+    "@gnosis.pm/safe-core-sdk": "^2.3.2",
+    "@gnosis.pm/safe-core-sdk-types": "^1.4.0",
+    "@gnosis.pm/safe-ethers-lib": "^1.4.0",
+    "@gnosis.pm/safe-service-client": "^1.2.0",
     "axios": "^0.27.2",
+    "ethers": "^5.7.0",
     "luxon": "^2.4.0",
     "luxon-business-days": "^2.8.3",
     "pg": "^8.7.3",

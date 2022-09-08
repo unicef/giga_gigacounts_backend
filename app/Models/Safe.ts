@@ -8,6 +8,9 @@ export default class Safe extends BaseModel {
   public id: number
 
   @column()
+  public name: string
+
+  @column()
   public address: string
 
   @column.dateTime({ autoCreate: true })
