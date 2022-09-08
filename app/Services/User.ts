@@ -7,6 +7,7 @@ import Country from 'App/Models/Country'
 import Safe from 'App/Models/Safe'
 import safeService from 'App/Services/Safe'
 import gnosisSafe from 'App/Helpers/gnosisSafe'
+import Ethers from 'App/Helpers/ethers'
 
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
 import NotFoundException from 'App/Exceptions/NotFoundException'
@@ -77,21 +78,24 @@ const generateWalletRandomString = async (user: User) => {
 const attachWallet = async ({ user, address, message }: AttachWalletData) => {
   const trx = await Database.transaction()
   try {
-    if (user.walletRequestString !== message)
+    if (Ethers.recoverAddress(user.walletRequestString, message) !== address)
       throw new SignedMessageException('Invalid signed message', 400, 'INVALID_MESSAGE')
 
-    if (user.safeId) {
+    if (user.safeId && user?.walletAddress) {
       const safe = await Safe.find(user.safeId, { client: trx })
       if (!safe) throw new NotFoundException('Safe not found', 404, 'NOT_FOUND')
-      await gnosisSafe.removeOwnerOfSafe(safe.address, user?.walletAddress || '')
+      await gnosisSafe.removeOwnerOfSafe(safe.address, user?.walletAddress)
     }
 
     const safe = await safeService.getSafeByUserRole(user)
-    user.safeId = safe.id
-    user.walletAddress = address
-    await user.useTransaction(trx).save()
+    if (safe) {
+      await gnosisSafe.addOwnerToSafe({ newOwner: address, safeAddress: safe.address })
+      user.safeId = safe.id
+    }
 
-    await gnosisSafe.addOwnerToSafe({ newOwner: address, safeAddress: safe.address })
+    user.walletAddress = address
+    user.walletRequestString = undefined
+    await user.useTransaction(trx).save()
 
     await trx.commit()
     return user

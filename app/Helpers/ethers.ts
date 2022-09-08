@@ -1,4 +1,5 @@
 import { ethers } from 'ethers'
+import { hashMessage } from 'ethers/lib/utils'
 
 type Provider = ethers.providers.Provider
 
@@ -15,8 +16,12 @@ const getWalletAndConnect = async (provider: Provider) => {
 
 const createWallet = () => ethers.Wallet.createRandom()
 
+const recoverAddress = (walletRequestString: string = '', message: string) =>
+  ethers.utils.recoverAddress(hashMessage(walletRequestString), message)
+
 export default {
   getProvider,
   getWalletAndConnect,
   createWallet,
+  recoverAddress,
 }
