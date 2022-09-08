@@ -62,11 +62,26 @@ const getSafeInfo = async (safeAddress: string) => {
   return {
     balance: utils.toNormalNumber(await safeSdk.getBalance()),
     owners: await safeSdk.getOwners(),
+    threshold: await safeSdk.getThreshold(),
   }
+}
+
+const removeOwnerOfSafe = async (safeAddress: string, ownerAddress: string) => {
+  const provider = Ethers.getProvider()
+  const signer = await Ethers.getWalletAndConnect(provider)
+  const ethAdapter = new EthersAdapter({
+    ethers,
+    signer: signer,
+  })
+
+  const safeSdk = await Safe.create({ ethAdapter, safeAddress })
+  const tx = await safeSdk.getRemoveOwnerTx({ ownerAddress })
+  return safeSdk.executeTransaction(tx)
 }
 
 export default {
   deploySafe,
   addOwnerToSafe,
   getSafeInfo,
+  removeOwnerOfSafe,
 }
