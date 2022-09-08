@@ -42,3 +42,8 @@ export enum PaymentStatus {
   Rejected,
   Verified,
 }
+
+export enum CurrenncyType {
+  Fiat,
+  Crypto,
+}

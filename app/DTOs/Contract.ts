@@ -130,6 +130,7 @@ export interface ContractDTO {
     id: string
     name: string
     code: string
+    type: number
   }
   schools: {
     id: string
@@ -203,6 +204,7 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
       id: contract.currency.id.toString(),
       name: contract.currency.name,
       code: contract.currency.code,
+      type: contract.currency.type,
     },
     schools: contract?.schools.map((school) => ({
       id: school.id.toString(),
