@@ -5,6 +5,8 @@ import { ethers } from 'ethers'
 import Ethers from 'App/Helpers/ethers'
 import utils from 'App/Helpers/utils'
 
+import { SafeTransaction, TransactionResult } from '@gnosis.pm/safe-core-sdk-types'
+
 interface DeploySafeData {
   owners: string[]
   threshold?: number
@@ -14,6 +16,11 @@ interface AddOwnersToSafe {
   newOwner: string
   safeAddress: string
   newThreshold?: number
+}
+
+export interface Tx {
+  safeSdk: Safe
+  tx: SafeTransaction
 }
 
 const deploySafe = async ({ owners, threshold = 1 }: DeploySafeData) => {
@@ -36,7 +43,10 @@ const deploySafe = async ({ owners, threshold = 1 }: DeploySafeData) => {
   return safeSdk.getAddress()
 }
 
-const addOwnerToSafe = async ({ newOwner, safeAddress, newThreshold }: AddOwnersToSafe) => {
+const addOwnerToSafe = async (
+  { newOwner, safeAddress, newThreshold }: AddOwnersToSafe,
+  trx: boolean = false
+): Promise<TransactionResult | Tx> => {
   const provider = Ethers.getProvider()
   const signer = await Ethers.getWalletAndConnect(provider)
   const ethAdapter = new EthersAdapter({
@@ -46,7 +56,7 @@ const addOwnerToSafe = async ({ newOwner, safeAddress, newThreshold }: AddOwners
 
   const safeSdk = await Safe.create({ ethAdapter, safeAddress })
   const tx = await safeSdk.getAddOwnerTx({ ownerAddress: newOwner, threshold: newThreshold })
-  return safeSdk.executeTransaction(tx)
+  return trx ? { safeSdk, tx } : safeSdk.executeTransaction(tx)
 }
 
 const getSafeInfo = async (safeAddress: string) => {
@@ -66,7 +76,11 @@ const getSafeInfo = async (safeAddress: string) => {
   }
 }
 
-const removeOwnerOfSafe = async (safeAddress: string, ownerAddress: string) => {
+const removeOwnerOfSafe = async (
+  safeAddress: string,
+  ownerAddress: string,
+  trx: boolean = false
+): Promise<TransactionResult | Tx> => {
   const provider = Ethers.getProvider()
   const signer = await Ethers.getWalletAndConnect(provider)
   const ethAdapter = new EthersAdapter({
@@ -76,7 +90,7 @@ const removeOwnerOfSafe = async (safeAddress: string, ownerAddress: string) => {
 
   const safeSdk = await Safe.create({ ethAdapter, safeAddress })
   const tx = await safeSdk.getRemoveOwnerTx({ ownerAddress })
-  return safeSdk.executeTransaction(tx)
+  return trx ? { safeSdk, tx } : safeSdk.executeTransaction(tx)
 }
 
 export default {

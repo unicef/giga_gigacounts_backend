@@ -1,4 +1,4 @@
-import Database from '@ioc:Adonis/Lucid/Database'
+import Database, { TransactionClientContract } from '@ioc:Adonis/Lucid/Database'
 
 import User from 'App/Models/User'
 import { permissions, roles } from 'App/Helpers/constants'
@@ -6,7 +6,7 @@ import roleService from 'App/Services/Role'
 import Country from 'App/Models/Country'
 import Safe from 'App/Models/Safe'
 import safeService from 'App/Services/Safe'
-import gnosisSafe from 'App/Helpers/gnosisSafe'
+import gnosisSafe, { Tx } from 'App/Helpers/gnosisSafe'
 import Ethers from 'App/Helpers/ethers'
 
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
@@ -78,18 +78,28 @@ const generateWalletRandomString = async (user: User) => {
 const attachWallet = async ({ user, address, message }: AttachWalletData) => {
   const trx = await Database.transaction()
   try {
+    let removeTx: Tx | undefined
+    let addTx: Tx | undefined
+
     if (Ethers.recoverAddress(user.walletRequestString, message) !== address)
       throw new SignedMessageException('Invalid signed message', 400, 'INVALID_MESSAGE')
 
     if (user.safeId && user?.walletAddress) {
-      const safe = await Safe.find(user.safeId, { client: trx })
-      if (!safe) throw new NotFoundException('Safe not found', 404, 'NOT_FOUND')
-      await gnosisSafe.removeOwnerOfSafe(safe.address, user?.walletAddress)
+      const userSafe = await Safe.find(user.safeId, { client: trx })
+      if (!userSafe) throw new NotFoundException('Safe not found', 404, 'NOT_FOUND')
+      removeTx = (await gnosisSafe.removeOwnerOfSafe(
+        userSafe.address,
+        user?.walletAddress,
+        true
+      )) as Tx
     }
 
     const safe = await safeService.getSafeByUserRole(user)
     if (safe) {
-      await gnosisSafe.addOwnerToSafe({ newOwner: address, safeAddress: safe.address })
+      addTx = (await gnosisSafe.addOwnerToSafe(
+        { newOwner: address, safeAddress: safe.address },
+        true
+      )) as Tx
       user.safeId = safe.id
     }
 
@@ -97,9 +107,10 @@ const attachWallet = async ({ user, address, message }: AttachWalletData) => {
     user.walletRequestString = undefined
     await user.useTransaction(trx).save()
 
-    await trx.commit()
+    await commitAttachWallet(trx, addTx, removeTx)
     return user
   } catch (error) {
+    console.log(error)
     await trx.rollback()
     if ([404, 400].some((status) => status === error?.status)) throw error
     throw new FailedDependencyException(
@@ -107,6 +118,16 @@ const attachWallet = async ({ user, address, message }: AttachWalletData) => {
       424,
       'FAILED_DEPENDENCY'
     )
+  }
+}
+
+const commitAttachWallet = async (trx: TransactionClientContract, addTx?: Tx, removeTx?: Tx) => {
+  try {
+    if (addTx) await addTx.safeSdk.executeTransaction(addTx.tx)
+    if (removeTx) await removeTx.safeSdk.executeTransaction(removeTx.tx)
+    return trx.commit()
+  } catch (error) {
+    throw error
   }
 }
 
