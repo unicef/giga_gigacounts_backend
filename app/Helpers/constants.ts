@@ -43,7 +43,7 @@ export enum PaymentStatus {
   Verified,
 }
 
-export enum CurrenncyType {
-  Fiat,
-  Crypto,
+export enum CurrencyType {
+  fiat,
+  crypto,
 }

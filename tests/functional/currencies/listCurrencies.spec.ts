@@ -27,7 +27,7 @@ test.group('List Currencies', (group) => {
     await createFiatCurrencies()
     await createCryptoCurrencies()
     const user = await UserFactory.with('country', 1).with('roles', 1).create()
-    const response = await client.get('/currency?type=0').loginAs(user)
+    const response = await client.get('/currency?type=fiat').loginAs(user)
     const currencies = response.body()
     expect(currencies.length).toBe(5)
     currencies.map((c) => {
@@ -41,7 +41,7 @@ test.group('List Currencies', (group) => {
     await createFiatCurrencies()
     await createCryptoCurrencies()
     const user = await UserFactory.with('country', 1).with('roles', 1).create()
-    const response = await client.get('/currency?type=1').loginAs(user)
+    const response = await client.get('/currency?type=crypto').loginAs(user)
     const currencies = response.body()
     expect(currencies.length).toBe(3)
     currencies.map((c) => {
@@ -55,9 +55,10 @@ test.group('List Currencies', (group) => {
     await createFiatCurrencies()
     await createCryptoCurrencies()
     const user = await UserFactory.with('country', 1).with('roles', 1).create()
-    const response = await client.get('/currency?type=2').loginAs(user)
-    const currencies = response.body()
-    expect(currencies.length).toBe(0)
+    const response = await client.get('/currency?type=fake').loginAs(user)
+    const error = response.error() as import('superagent').HTTPError
+    expect(error.status).toBe(400)
+    expect(error.text).toBe('INVALID_TYPE: Invalid currency type')
   })
 })
 
