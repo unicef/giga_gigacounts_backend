@@ -20,8 +20,7 @@ test.group('Generate Random String', (group) => {
     const randomString = response.text() as string
     assert.include(randomString, message)
     const foundUser = await User.find(user.id)
-    const uuid = randomString.split(message)[1]
-    expect(foundUser?.walletRequestString).toBe(uuid)
+    expect(foundUser?.walletRequestString).toBe(randomString)
   })
   test('Successfully generate random string and updates if an user already has a random string', async ({
     client,
@@ -35,13 +34,11 @@ test.group('Generate Random String', (group) => {
     let randomString = response.text() as string
     assert.include(randomString, message)
     let foundUser = await User.find(user.id)
-    let uuid = randomString.split(message)[1]
-    expect(foundUser?.walletRequestString).toBe(uuid)
+    expect(foundUser?.walletRequestString).toBe(randomString)
     response = await client.get('/wallet-random-string').loginAs(user)
     randomString = response.text() as string
     assert.include(randomString, message)
     const updatedUser = await User.find(user.id)
-    uuid = randomString.split(message)[1]
-    expect(updatedUser?.walletRequestString).toBe(uuid)
+    expect(updatedUser?.walletRequestString).toBe(randomString)
   })
 })
