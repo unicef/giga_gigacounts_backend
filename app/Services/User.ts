@@ -69,7 +69,7 @@ const checkUserRole = (user: User, rolesToCheck: string[]): boolean => {
 }
 
 const generateWalletRandomString = async (user: User) => {
-  const randomString = v1()
+  const randomString = `This is a verification message. Please sign it with your wallet to verify ownership \n${v1()}`
   user.walletRequestString = randomString
   await user.save()
   return randomString
