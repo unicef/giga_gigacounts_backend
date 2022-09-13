@@ -14,6 +14,11 @@ Route.get('/wallet-random-string', 'UsersController.generateWalletRandomString')
   'auth:api'
 )
 
+Route.post('/user/attach-wallet', 'UsersController.attachWallet').middleware([
+  'auth:api',
+  'validator:AttachWalletValidator',
+])
+
 /**
  * PAYMENT ROUTES
  */

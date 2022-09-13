@@ -27,4 +27,15 @@ export default class UsersController {
       return response.status(error.status).send(error.message)
     }
   }
+
+  public async attachWallet({ response, auth, request }: HttpContextContract) {
+    try {
+      if (!auth.user) return
+      const { message, address } = request.all()
+      const user = await service.attachWallet({ user: auth.user, address, message })
+      return response.ok(user)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
 }
