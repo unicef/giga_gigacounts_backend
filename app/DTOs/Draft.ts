@@ -1,6 +1,6 @@
+import { CurrencyType } from 'App/Helpers/constants'
 import Attachment from 'App/Models/Attachment'
 import Country from 'App/Models/Country'
-import Currency from 'App/Models/Currency'
 import Draft from 'App/Models/Draft'
 import Frequency from 'App/Models/Frequency'
 import Isp from 'App/Models/Isp'
@@ -26,7 +26,12 @@ export interface GetDraftDTOResponse {
   startDate?: DateTime
   endDate?: DateTime
   country?: Country
-  currency?: Currency
+  currency?: {
+    id: string
+    name: string
+    code: string
+    type: string
+  }
   frequency?: Frequency
   isp?: Isp
   lta?: {
@@ -61,7 +66,14 @@ const getDraftDTO = ({
     startDate: draft.startDate,
     endDate: draft.endDate,
     country: draft.country,
-    currency: draft.currency,
+    currency: draft.currency
+      ? {
+          id: draft.currency.id.toString(),
+          name: draft.currency.name,
+          code: draft.currency.code,
+          type: CurrencyType[draft.currency.type],
+        }
+      : undefined,
     frequency: draft.frequency,
     isp: draft.isp,
     lta: draft.lta

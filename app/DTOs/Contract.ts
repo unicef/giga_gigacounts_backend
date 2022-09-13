@@ -3,11 +3,10 @@ import Draft from 'App/Models/Draft'
 import ExpectedMetric from 'App/Models/ExpectedMetric'
 import Lta from 'App/Models/Lta'
 
-import { ContractStatus } from 'App/Helpers/constants'
+import { ContractStatus, CurrencyType } from 'App/Helpers/constants'
 import utils from 'App/Helpers/utils'
 import { DateTime } from 'luxon'
 import { v1 } from 'uuid'
-import Currency from 'App/Models/Currency'
 
 interface StatusCount {
   status: string
@@ -77,7 +76,12 @@ export interface ContractDetails {
   connectionsMedian: ConnectionMedian[]
   budget: string
   numberOfPayments: number
-  currency: Currency
+  currency: {
+    id: string
+    name: string
+    code: string
+    type: string
+  }
   totalSpent: {
     amount: string
     percentage: number
@@ -130,6 +134,7 @@ export interface ContractDTO {
     id: string
     name: string
     code: string
+    type: string
   }
   schools: {
     id: string
@@ -203,6 +208,7 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
       id: contract.currency.id.toString(),
       name: contract.currency.name,
       code: contract.currency.code,
+      type: CurrencyType[contract.currency.type],
     },
     schools: contract?.schools.map((school) => ({
       id: school.id.toString(),
@@ -271,7 +277,12 @@ const contractDeatilsDTO = (
     connectionsMedian,
     budget: contract.budget,
     numberOfPayments: contract.$extras.payments_count,
-    currency: contract.currency,
+    currency: {
+      id: contract.currency.id.toString(),
+      name: contract.currency.name,
+      code: contract.currency.code,
+      type: CurrencyType[contract.currency.type],
+    },
     totalSpent: {
       amount: contract.$extras.total_payments,
       percentage: Math.round(
