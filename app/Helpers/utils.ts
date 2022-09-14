@@ -79,6 +79,8 @@ const toNormalNumber = (bigNumber: BigNumber) => {
   return Math.round(parseFloat(etherNumber) * 10 ** 18)
 }
 
+const handleDBError = (message: string, status: number) => ({ status, message })
+
 export default {
   destructObjArrayWithId,
   removeProperty,
@@ -94,4 +96,5 @@ export default {
   makeFromAndToDate,
   diffOfDays,
   toNormalNumber,
+  handleDBError,
 }
