@@ -114,7 +114,7 @@ const attachWallet = async ({ user, address, message }: AttachWalletData) => {
     await trx.rollback()
     if ([404, 400].some((status) => status === error?.status)) throw error
     throw new FailedDependencyException(
-      'Some dependency failed while creating contract',
+      'Some dependency failed while attaching wallet',
       424,
       'FAILED_DEPENDENCY'
     )

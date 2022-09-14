@@ -79,7 +79,8 @@ const getSafeInfo = async (safeAddress: string) => {
 const removeOwnerOfSafe = async (
   safeAddress: string,
   ownerAddress: string,
-  trx: boolean = false
+  trx: boolean = false,
+  threshold: number = 1
 ): Promise<TransactionResult | Tx> => {
   const provider = Ethers.getProvider()
   const signer = await Ethers.getWalletAndConnect(provider)
@@ -89,7 +90,7 @@ const removeOwnerOfSafe = async (
   })
 
   const safeSdk = await Safe.create({ ethAdapter, safeAddress })
-  const tx = await safeSdk.getRemoveOwnerTx({ ownerAddress })
+  const tx = await safeSdk.getRemoveOwnerTx({ ownerAddress, threshold })
   return trx ? { safeSdk, tx } : safeSdk.executeTransaction(tx)
 }
 
