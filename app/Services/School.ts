@@ -2,12 +2,15 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import { DateTime } from 'luxon'
 
 import School from 'App/Models/School'
+import User from 'App/Models/User'
 import unicefApi from 'App/Helpers/unicefApi'
 import Metric from 'App/Models/Metric'
 import measureService from 'App/Services/Measure'
+import userService from 'App/Services/User'
 
 import utils from 'App/Helpers/utils'
 import { LoadMeasuresType } from './Contract'
+import { roles } from 'App/Helpers/constants'
 
 export type TimeInterval = 'day' | 'week' | 'month'
 
@@ -42,8 +45,11 @@ const getSchoolsMeasures = async (
   return measures.rows as SchoolMeasure[]
 }
 
-const listSchoolByCountry = async (countryId?: number): Promise<School[]> => {
+const listSchoolByCountry = async (user: User, countryId?: number): Promise<School[]> => {
   const query = School.query()
+  if (userService.checkUserRole(user, [roles.countryOffice, roles.government])) {
+    countryId = user.countryId
+  }
   if (countryId) query.where('country_id', countryId)
   return query
 }
