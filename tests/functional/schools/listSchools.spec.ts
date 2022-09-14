@@ -32,7 +32,9 @@ test.group('List Schools', (group) => {
     const [country1, country2] = await setupCountries()
     await setupSchools(country1.id, country2.id)
     const user = await UserFactory.with('roles', 1, (role) =>
-      role.with('permissions', 1, (permission) => permission.merge({ name: 'school.read' }))
+      role
+        .merge({ name: 'Giga Admin' })
+        .with('permissions', 1, (permission) => permission.merge({ name: 'school.read' }))
     ).create()
     let response = await client.get(`/school?countryId=${country1.id}`).loginAs(user)
     const schools = response.body() as any[]
@@ -46,6 +48,52 @@ test.group('List Schools', (group) => {
     const schools2 = response.body() as any[]
     expect(schools2.length).toBe(2)
     schools2.map((s) => {
+      assert.notEmpty(s.id)
+      assert.notEmpty(s.name)
+      expect(s.country_id).toBe(country2.id)
+    })
+  })
+  test('Successfully return all schools from a certain country if a user is country office', async ({
+    client,
+    expect,
+    assert,
+  }) => {
+    const [country1, country2] = await setupCountries()
+    await setupSchools(country1.id, country2.id)
+    const user = await UserFactory.merge({ countryId: country1.id })
+      .with('roles', 1, (role) =>
+        role
+          .merge({ name: 'Country Office' })
+          .with('permissions', 1, (permission) => permission.merge({ name: 'school.read' }))
+      )
+      .create()
+    const response = await client.get('/school').loginAs(user)
+    const schools = response.body() as any[]
+    expect(schools.length).toBe(4)
+    schools.map((s) => {
+      assert.notEmpty(s.id)
+      assert.notEmpty(s.name)
+      expect(s.country_id).toBe(country1.id)
+    })
+  })
+  test('Successfully return all schools from a certain country if a user is gov', async ({
+    client,
+    expect,
+    assert,
+  }) => {
+    const [country1, country2] = await setupCountries()
+    await setupSchools(country1.id, country2.id)
+    const user = await UserFactory.merge({ countryId: country2.id })
+      .with('roles', 1, (role) =>
+        role
+          .merge({ name: 'Government' })
+          .with('permissions', 1, (permission) => permission.merge({ name: 'school.read' }))
+      )
+      .create()
+    const response = await client.get('/school').loginAs(user)
+    const schools = response.body() as any[]
+    expect(schools.length).toBe(2)
+    schools.map((s) => {
       assert.notEmpty(s.id)
       assert.notEmpty(s.name)
       expect(s.country_id).toBe(country2.id)

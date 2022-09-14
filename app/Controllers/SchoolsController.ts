@@ -3,9 +3,10 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import service from 'App/Services/School'
 
 export default class SchoolsController {
-  public async listSchoolByCountry({ response, request }: HttpContextContract) {
+  public async listSchoolByCountry({ response, request, auth }: HttpContextContract) {
+    if (!auth.user) return
     const { countryId } = request.qs()
-    const schools = await service.listSchoolByCountry(countryId)
+    const schools = await service.listSchoolByCountry(auth.user, countryId)
     return response.ok(schools)
   }
 
