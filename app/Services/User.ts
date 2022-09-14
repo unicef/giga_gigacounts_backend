@@ -8,6 +8,7 @@ import Safe from 'App/Models/Safe'
 import safeService from 'App/Services/Safe'
 import gnosisSafe, { Tx } from 'App/Helpers/gnosisSafe'
 import Ethers from 'App/Helpers/ethers'
+import utils from 'App/Helpers/utils'
 
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
 import NotFoundException from 'App/Exceptions/NotFoundException'
@@ -110,8 +111,8 @@ const attachWallet = async ({ user, address, message }: AttachWalletData) => {
     await commitAttachWallet(trx, addTx, removeTx)
     return user
   } catch (error) {
-    console.log(error)
     await trx.rollback()
+    if (error?.code) throw utils.handleDBError(error.detail, 400)
     if ([404, 400].some((status) => status === error?.status)) throw error
     throw new FailedDependencyException(
       'Some dependency failed while attaching wallet',
