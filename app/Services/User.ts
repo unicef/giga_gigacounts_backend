@@ -114,7 +114,7 @@ const attachWallet = async ({ user, address, message }: AttachWalletData) => {
     await trx.rollback()
     if (error?.code === '23505')
       throw utils.handleDBError('Wallet address is attached to another existing user', 400)
-    if ([404, 400].some((status) => status === error?.status)) throw error
+    if ([404, 400, 424].some((status) => status === error?.status)) throw error
     throw new FailedDependencyException(
       'Some dependency failed while attaching wallet',
       424,
@@ -129,7 +129,7 @@ const commitAttachWallet = async (trx: TransactionClientContract, addTx?: Tx, re
     if (removeTx) await removeTx.safeSdk.executeTransaction(removeTx.tx)
     return trx.commit()
   } catch (error) {
-    throw error
+    throw { message: error.message, status: 424 }
   }
 }
 
