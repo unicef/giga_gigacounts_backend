@@ -2,6 +2,8 @@ import Safe from 'App/Models/Safe'
 import User from 'App/Models/User'
 import { roles } from 'App/Helpers/constants'
 
+import gnosisSafe from 'App/Helpers/gnosisSafe'
+
 import NotFoundException from 'App/Exceptions/NotFoundException'
 
 const getSafeByUserRole = async (user: User) => {
@@ -21,6 +23,12 @@ const getSafeByUserRole = async (user: User) => {
   return safe
 }
 
+const createSafe = async (name: string) => {
+  const safeAddress = await gnosisSafe.deploySafe({ owners: [] })
+  return Safe.create({ address: safeAddress, name })
+}
+
 export default {
   getSafeByUserRole,
+  createSafe,
 }

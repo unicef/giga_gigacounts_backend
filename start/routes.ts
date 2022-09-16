@@ -210,6 +210,16 @@ Route.post('/measure/calculate', 'MeasuresController.calculateMeasuresByMonthYea
 ])
 
 /**
+ * SAFE ROUTES
+ */
+
+Route.post('/safe', 'SafeController.createSafe').middleware([
+  'auth:api',
+  'validator:CreateSafeValidator',
+  `acl:${permissions.safeWrite}`,
+])
+
+/**
  * TESTING PURPOSE ONLY ROUTES
  */
 

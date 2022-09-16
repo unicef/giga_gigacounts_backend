@@ -28,6 +28,8 @@ export const permissions = {
   measureRead: 'measure.read',
   paymentRead: 'payment.read',
   paymentWrite: 'payment.write',
+  safeWrite: 'safe.write',
+  safeRead: 'safe.read',
 }
 
 export const Metrics = {
