@@ -47,16 +47,23 @@ const addOwnerToSafe = async (
   { newOwner, safeAddress, newThreshold }: AddOwnersToSafe,
   trx: boolean = false
 ): Promise<TransactionResult | Tx> => {
-  const provider = Ethers.getProvider()
-  const signer = await Ethers.getWalletAndConnect(provider)
-  const ethAdapter = new EthersAdapter({
-    ethers,
-    signer: signer,
-  })
+  try {
+    const provider = Ethers.getProvider()
+    const signer = await Ethers.getWalletAndConnect(provider)
+    const ethAdapter = new EthersAdapter({
+      ethers,
+      signer: signer,
+    })
 
-  const safeSdk = await Safe.create({ ethAdapter, safeAddress })
-  const tx = await safeSdk.getAddOwnerTx({ ownerAddress: newOwner, threshold: newThreshold })
-  return trx ? { safeSdk, tx } : safeSdk.executeTransaction(tx)
+    const safeSdk = await Safe.create({ ethAdapter, safeAddress })
+    const tx = await safeSdk.getAddOwnerTx({ ownerAddress: newOwner, threshold: newThreshold })
+    return trx ? { safeSdk, tx } : safeSdk.executeTransaction(tx)
+  } catch (error) {
+    if (error.message === 'Address provided is already an owner') {
+      error.message = 'Address provided is already attached to a safe'
+    }
+    throw { message: error.message, status: 424 }
+  }
 }
 
 const getSafeInfo = async (safeAddress: string) => {
@@ -82,16 +89,20 @@ const removeOwnerOfSafe = async (
   trx: boolean = false,
   threshold: number = 1
 ): Promise<TransactionResult | Tx> => {
-  const provider = Ethers.getProvider()
-  const signer = await Ethers.getWalletAndConnect(provider)
-  const ethAdapter = new EthersAdapter({
-    ethers,
-    signer: signer,
-  })
+  try {
+    const provider = Ethers.getProvider()
+    const signer = await Ethers.getWalletAndConnect(provider)
+    const ethAdapter = new EthersAdapter({
+      ethers,
+      signer: signer,
+    })
 
-  const safeSdk = await Safe.create({ ethAdapter, safeAddress })
-  const tx = await safeSdk.getRemoveOwnerTx({ ownerAddress, threshold })
-  return trx ? { safeSdk, tx } : safeSdk.executeTransaction(tx)
+    const safeSdk = await Safe.create({ ethAdapter, safeAddress })
+    const tx = await safeSdk.getRemoveOwnerTx({ ownerAddress, threshold })
+    return trx ? { safeSdk, tx } : safeSdk.executeTransaction(tx)
+  } catch (error) {
+    throw { message: error.message, status: 424 }
+  }
 }
 
 export default {
