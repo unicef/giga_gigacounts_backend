@@ -29,9 +29,9 @@ jobs:
     steps:
       - name: Get token
         run: |
-          export TOKEN=$(jq '.token' <(echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/login' -H 'Content-Type:application/json' -d '{"email":"${{ secrets.DEV_BACKEND_USERNAME }}","password":"${{ secrets.DEV_BACKEND_PASSWORD }}"}')") | sed "s/\"//g")
+          export TOKEN=$(jq '.token' <(echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.SAFE_TARGET_ENV }}.azurewebsites.net/login' -H 'Content-Type:application/json' -d '{"email":"${{ secrets.DEV_BACKEND_USERNAME }}","password":"${{ secrets.DEV_BACKEND_PASSWORD }}"}')") | sed "s/\"//g")
           echo "BEARER_TOKEN=$TOKEN" >> $GITHUB_ENV
 
       - name: Create safe
         run: |
-          echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.CRON_TARGET_ENV }}.azurewebsites.net/safe' -H 'Content-Type:application/json' -d '{"email":"${{ secrets.DEV_BACKEND_USERNAME }}","password":"${{ secrets.DEV_BACKEND_PASSWORD }}"}')"
+          echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.SAFE_TARGET_ENV }}.azurewebsites.net/safe' -H 'Content-Type:application/json' -d '{"email":"${{ secrets.DEV_BACKEND_USERNAME }}","password":"${{ secrets.DEV_BACKEND_PASSWORD }}"}')"
