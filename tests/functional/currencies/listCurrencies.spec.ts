@@ -33,7 +33,7 @@ test.group('List Currencies', (group) => {
     currencies.map((c) => {
       assert.notEmpty(c.id)
       assert.notEmpty(c.name)
-      expect(c.type).toBe(0)
+      expect(c.type).toBe('fiat')
       assert.notEmpty(c.code)
     })
   })
@@ -47,7 +47,7 @@ test.group('List Currencies', (group) => {
     currencies.map((c) => {
       assert.notEmpty(c.id)
       assert.notEmpty(c.name)
-      expect(c.type).toBe(1)
+      expect(c.type).toBe('crypto')
       assert.notEmpty(c.code)
     })
   })
