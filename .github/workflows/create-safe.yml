@@ -34,4 +34,4 @@ jobs:
 
       - name: Create safe
         run: |
-          echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.SAFE_TARGET_ENV }}.azurewebsites.net/safe' -H 'Content-Type:application/json' -d '{"email":"${{ secrets.DEV_BACKEND_USERNAME }}","password":"${{ secrets.DEV_BACKEND_PASSWORD }}"}')"
+          echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.SAFE_TARGET_ENV }}.azurewebsites.net/safe' -H 'Content-Type:application/json' -H 'Authorization:Bearer $BEARER_TOKEN' -d '{"email":"${{ secrets.DEV_BACKEND_USERNAME }}","password":"${{ secrets.DEV_BACKEND_PASSWORD }}"}')"
