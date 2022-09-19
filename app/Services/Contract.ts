@@ -254,7 +254,6 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
 
     return contract
   } catch (error) {
-    console.log(error)
     await trx.rollback()
     if (error.status === 404) throw error
     throw new FailedDependencyException(
