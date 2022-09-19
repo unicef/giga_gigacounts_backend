@@ -196,7 +196,12 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
 
     const contract = await Contract.create(
       {
-        ...utils.removeProperty(data, 'draftId'),
+        countryId: data.countryId,
+        name: data.name,
+        ltaId: data.ltaId,
+        currencyId: data.currencyId,
+        budget: data.budget,
+        ispId: data.ispId,
         status: ContractStatus.Sent,
         governmentBehalf: userService.checkUserRole(user, [roles.government])
           ? true
@@ -249,6 +254,7 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
 
     return contract
   } catch (error) {
+    console.log(error)
     await trx.rollback()
     if (error.status === 404) throw error
     throw new FailedDependencyException(
