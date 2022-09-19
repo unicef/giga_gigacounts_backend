@@ -11,6 +11,7 @@ import ChangePaymentStatusValidator from './ChangePaymentStatusValidator'
 import UpdatePaymentValidator from './UpdatePaymentValidator'
 import AttachWalletValidator from './AttachWalletValidator'
 import CreateSafeValidator from './CreateSafeValidator'
+import AddUserValidator from './AddUserValidator'
 
 export default (validator: string) => {
   switch (validator) {
@@ -40,6 +41,8 @@ export default (validator: string) => {
       return AttachWalletValidator
     case 'CreateSafeValidator':
       return CreateSafeValidator
+    case 'AddUserValidator':
+      return AddUserValidator
     default:
       return
   }

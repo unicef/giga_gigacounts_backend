@@ -1,12 +1,12 @@
-# The workflow for creating a gnosis safe on ethereum blockchain
+# The workflow for adding an user to a gnosis safe on ethereum blockchain
 
-name: Create Safe
+name: Assign User to Safe
 
 on:
   workflow_dispatch:
     inputs:
-      safe_name:
-        description: 'Safe name'
+      user_email:
+        description: 'User Email'
         required: true
       target_env:
         description: 'Target ENV'
@@ -23,7 +23,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     name: Build Job
     env:
-      SAFE_NAME: ${{ github.event.inputs.safe_name }}
+      USER_EMAIL: ${{ github.event.inputs.user_email }}
       SAFE_TARGET_ENV: ${{ github.event.inputs.target_env }}
 
     steps:
@@ -32,6 +32,6 @@ jobs:
           export TOKEN=$(jq '.token' <(echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.SAFE_TARGET_ENV }}.azurewebsites.net/login' -H 'Content-Type:application/json' -d '{"email":"${{ secrets.DEV_BACKEND_USERNAME }}","password":"${{ secrets.DEV_BACKEND_PASSWORD }}"}')") | sed "s/\"//g")
           echo "BEARER_TOKEN=$TOKEN" >> $GITHUB_ENV
 
-      - name: Create safe
+      - name: Add User to safe
         run: |
-          echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.SAFE_TARGET_ENV }}.azurewebsites.net/safe' -H "Authorization: Bearer $BEARER_TOKEN" -H "Content-Type:application/json" -d '{"name":"${{ env.SAFE_NAME }}"}')"
+          echo "$(curl -L -XPOST 'https://unicef-giga-backend-${{ env.SAFE_TARGET_ENV }}.azurewebsites.net/safe/add-user' -H "Authorization: Bearer $BEARER_TOKEN" -H "Content-Type:application/json" -d '{"email":"${{ env.USER_EMAIL }}"}')"

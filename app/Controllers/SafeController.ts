@@ -9,7 +9,17 @@ export default class SafeController {
       const safe = await service.createSafe(name)
       return response.ok(safe)
     } catch (error) {
-      return response.status(424).send(error.message)
+      return response.status(422).send(error.message)
+    }
+  }
+
+  public async addUsersToSafe({ response, request }: HttpContextContract) {
+    try {
+      const { email } = request.all()
+      const result = await service.addUsersToSafe(email)
+      return response.ok(result)
+    } catch (error) {
+      return response.status(422).send(error.message)
     }
   }
 }

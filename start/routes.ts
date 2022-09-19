@@ -219,6 +219,12 @@ Route.post('/safe', 'SafeController.createSafe').middleware([
   `acl:${permissions.safeWrite}`,
 ])
 
+Route.post('/safe/add-user', 'SafeController.addUsersToSafe').middleware([
+  'auth:api',
+  'validator:AddUserValidator',
+  `acl:${permissions.safeWrite}`,
+])
+
 /**
  * TESTING PURPOSE ONLY ROUTES
  */
