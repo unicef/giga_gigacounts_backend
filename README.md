@@ -10,11 +10,15 @@ PG_PASSWORD=p@ssword
 PG_DB_NAME=unicef-giga
 ```
 
+> Note: You can find more info about the others required `.env` variables inside the `.env.example` file.
+
 ## Instaling
 
 You need a couple of things to be installed in order to run this application:
 
 - [Node/NPM](https://nodejs.org/en/)
+
+  > Minimum Version: 16
 
 - [Docker](https://www.docker.com/products/docker-desktop/)
 
@@ -72,20 +76,36 @@ on:
 
 ### Create Safe
 
-This actions is responsible for creating a new gnosis safe on Ethereum blockchain.
+This action is responsible for creating a new gnosis safe on Ethereum blockchain.
 
-> Note: The exactly Ethereum chain and the private key of the master wallet has to be defined inside the .env file
+> Note: The exact chain and the private key of the master wallet has to be defined inside the .env file
 
 Before running this action you need to input an name for the Safe and the target environment.
+
+#### Running remotely
+
+Inside this repository's github page, go to `Actions` tab. Choose the `Create Safe` workflow and click `Run workflow`.
+
+#### Running locally
+
+`$ npm run deploy:safe --private_key='...' --name='name for the safe'`
 
 ### Assign a User to a Safe
 
 This actions is responsible for adding a users wallet to an gnosis safe.
 
-> Note: The exactly Ethereum chain and the private key of the master wallet has to be defined inside the .env file
+> Note: The exact chain and the private key of the master wallet has to be defined inside the .env file
 > Note: Make sure that the safe for the user's role is already created.
 
 Before running this action you need to input the User's email and the target environment.
+
+#### Running remotely
+
+Inside this repository's github page, go to `Actions` tab. Choose the `Assign User to Safe` workflow and click `Run workflow`.
+
+#### Running locally
+
+`$ npm run add:user_safe --env=dev --email='user email'`
 
 ## DEV/STAGE envs (Azure)
 
