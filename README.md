@@ -28,11 +28,9 @@ After installing these programs, run the following commands:
 
 ### Setting up the database image
 
+To set up a local database connection:
+
 `$ docker-compose up -d`
-
-### Installing project dependencies
-
-`$ yarn install`
 
 ### Setting up tables and some users
 
@@ -44,6 +42,10 @@ After installing these programs, run the following commands:
 
 > This command will create a couple of users/countries/roles on the database
 > Don't run this command on the test database
+
+### Installing project dependencies
+
+`$ yarn install`
 
 ## Running
 
