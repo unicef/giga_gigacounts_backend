@@ -5,7 +5,7 @@ import {
   column,
   hasMany,
   HasMany,
-  ModelQueryBuilderContract,
+  ModelQueryBuilderContract
 } from '@ioc:Adonis/Lucid/Orm'
 
 import Measure from 'App/Models/Measure'
@@ -17,9 +17,12 @@ export default class Metric extends BaseModel {
     isPrimary: true,
     serialize: (value: number) => {
       return value.toString()
-    },
+    }
   })
   public id: number
+
+  @column()
+  public code: string
 
   @column()
   public name: string
@@ -30,10 +33,10 @@ export default class Metric extends BaseModel {
   @column()
   public weight: number
 
-  @column.dateTime({ autoCreate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
   /**

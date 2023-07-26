@@ -7,7 +7,7 @@ import {
   manyToMany,
   ManyToMany,
   hasMany,
-  HasMany,
+  HasMany
 } from '@ioc:Adonis/Lucid/Orm'
 
 import User from 'App/Models/User'
@@ -39,7 +39,7 @@ export default class Lta extends BaseModel {
    */
 
   @belongsTo(() => User, {
-    localKey: 'created_by',
+    localKey: 'created_by'
   })
   public user: BelongsTo<typeof User>
 
@@ -48,7 +48,7 @@ export default class Lta extends BaseModel {
     localKey: 'id',
     pivotForeignKey: 'lta_id',
     relatedKey: 'id',
-    pivotRelatedForeignKey: 'isp_id',
+    pivotRelatedForeignKey: 'isp_id'
   })
   public isps: ManyToMany<typeof Isp>
 

@@ -12,6 +12,12 @@ import UpdatePaymentValidator from './UpdatePaymentValidator'
 import AttachWalletValidator from './AttachWalletValidator'
 import CreateSafeValidator from './CreateSafeValidator'
 import AddUserValidator from './AddUserValidator'
+import UpdateSettingAutomaticContractsValidator from './UpdateSettingAutomaticContractsValidator'
+import GenerateSignContractRandomStringValidator from './GenerateSignContractRandomStringValidator'
+import SignContractWithWalletValidator from './SignContractWithWalletValidator'
+import CreateFeedbackValidator from './CreateFeedbackValidator'
+import PublishContractValidator from './PublishContractValidator'
+import ApproveContractValidator from './approveContractValidator'
 
 export default (validator: string) => {
   switch (validator) {
@@ -43,6 +49,18 @@ export default (validator: string) => {
       return CreateSafeValidator
     case 'AddUserValidator':
       return AddUserValidator
+    case 'UpdateSettingAutomaticContractsValidator':
+      return UpdateSettingAutomaticContractsValidator
+    case 'GenerateSignContractRandomStringValidator':
+      return GenerateSignContractRandomStringValidator
+    case 'SignContractWithWalletValidator':
+      return SignContractWithWalletValidator
+    case 'CreateFeedbackValidator':
+      return CreateFeedbackValidator
+    case 'publishContractValidator':
+      return PublishContractValidator
+    case 'approveContractValidator':
+      return ApproveContractValidator
     default:
       return
   }

@@ -2,7 +2,7 @@ import {
   BlobServiceClient,
   generateBlobSASQueryParameters,
   BlobSASPermissions,
-  StorageSharedKeyCredential,
+  StorageSharedKeyCredential
 } from '@azure/storage-blob'
 import { DateTime } from 'luxon'
 import { v1 } from 'uuid'
@@ -42,7 +42,7 @@ const generateSasToken = (url: string) => {
       blobName,
       permissions: BlobSASPermissions.parse('racwd'),
       startsOn: new Date(),
-      expiresOn: new Date(new Date().valueOf() + 86400),
+      expiresOn: new Date(new Date().valueOf() + 86400)
     },
     cerds
   ).toString()
@@ -76,5 +76,5 @@ const checkFileSize = (base64: string) => {
 export default {
   uploadFile,
   generateSasToken,
-  deleteFile,
+  deleteFile
 }

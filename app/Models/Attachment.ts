@@ -18,10 +18,10 @@ export default class Attachment extends BaseModel {
   @column()
   public ipfsUrl: string
 
-  @column.dateTime({ autoCreate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
   /**
@@ -33,19 +33,19 @@ export default class Attachment extends BaseModel {
     localKey: 'id',
     pivotForeignKey: 'attachment_id',
     relatedKey: 'id',
-    pivotRelatedForeignKey: 'contract_id',
+    pivotRelatedForeignKey: 'contract_id'
   })
   public contracts: ManyToMany<typeof Contract>
 
   @hasMany(() => Payment, {
     localKey: 'id',
-    foreignKey: 'invoiceId',
+    foreignKey: 'invoiceId'
   })
   public paymentInvoice: HasMany<typeof Payment>
 
   @hasMany(() => Payment, {
     localKey: 'id',
-    foreignKey: 'receiptId',
+    foreignKey: 'receiptId'
   })
   public paymentReceipt: HasMany<typeof Payment>
 
@@ -54,7 +54,7 @@ export default class Attachment extends BaseModel {
     localKey: 'id',
     pivotForeignKey: 'attachment_id',
     relatedKey: 'id',
-    pivotRelatedForeignKey: 'draft_id',
+    pivotRelatedForeignKey: 'draft_id'
   })
   public drafts: ManyToMany<typeof Draft>
 }

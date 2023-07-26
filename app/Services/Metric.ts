@@ -29,5 +29,5 @@ const createExpectedMetrics = async (
 
 export default {
   listMetricsSuggestedValues,
-  createExpectedMetrics,
+  createExpectedMetrics
 }

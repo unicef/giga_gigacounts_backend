@@ -58,7 +58,7 @@ const corsConfig: CorsConfig = {
   |
   | Following is the list of default methods. Feel free to add more.
   */
-  methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'],
+  methods: ['PATCH', 'GET', 'HEAD', 'POST', 'PUT', 'DELETE'],
 
   /*
   |--------------------------------------------------------------------------
@@ -105,7 +105,7 @@ const corsConfig: CorsConfig = {
     'content-type',
     'expires',
     'last-modified',
-    'pragma',
+    'pragma'
   ],
 
   /*
@@ -130,7 +130,7 @@ const corsConfig: CorsConfig = {
   | https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Max-Age
   |
   */
-  maxAge: 90,
+  maxAge: 90
 }
 
 export default corsConfig

@@ -24,17 +24,6 @@
       "aliases": [],
       "flags": []
     },
-    "seed:db": {
-      "settings": {
-        "loadApp": true
-      },
-      "commandPath": "./commands/SeedDB",
-      "commandName": "seed:db",
-      "description": "",
-      "args": [],
-      "aliases": [],
-      "flags": []
-    },
     "dump:rcfile": {
       "settings": {},
       "commandPath": "@adonisjs/core/build/commands/DumpRc",
@@ -167,6 +156,68 @@
           "propertyName": "compactOutput",
           "type": "boolean",
           "description": "A compact single-line output"
+        }
+      ]
+    },
+    "db:wipe": {
+      "settings": {
+        "loadApp": true
+      },
+      "commandPath": "@adonisjs/lucid/build/commands/DbWipe",
+      "commandName": "db:wipe",
+      "description": "Drop all tables, views and types in database",
+      "args": [],
+      "aliases": [],
+      "flags": [
+        {
+          "name": "connection",
+          "propertyName": "connection",
+          "type": "string",
+          "description": "Define a custom database connection",
+          "alias": "c"
+        },
+        {
+          "name": "drop-views",
+          "propertyName": "dropViews",
+          "type": "boolean",
+          "description": "Drop all views"
+        },
+        {
+          "name": "drop-types",
+          "propertyName": "dropTypes",
+          "type": "boolean",
+          "description": "Drop all custom types (Postgres only)"
+        },
+        {
+          "name": "force",
+          "propertyName": "force",
+          "type": "boolean",
+          "description": "Explicitly force command to run in production"
+        }
+      ]
+    },
+    "db:truncate": {
+      "settings": {
+        "loadApp": true
+      },
+      "commandPath": "@adonisjs/lucid/build/commands/DbTruncate",
+      "commandName": "db:truncate",
+      "description": "Truncate all tables in database",
+      "args": [],
+      "aliases": [],
+      "flags": [
+        {
+          "name": "connection",
+          "propertyName": "connection",
+          "type": "string",
+          "description": "Define a custom database connection",
+          "alias": "c"
+        },
+        {
+          "name": "force",
+          "propertyName": "force",
+          "type": "boolean",
+          "description": "Explicitly force command to run in production"
         }
       ]
     },
@@ -303,43 +354,6 @@
         }
       ]
     },
-    "db:wipe": {
-      "settings": {
-        "loadApp": true
-      },
-      "commandPath": "@adonisjs/lucid/build/commands/DbWipe",
-      "commandName": "db:wipe",
-      "description": "Drop all tables, views and types in database",
-      "args": [],
-      "aliases": [],
-      "flags": [
-        {
-          "name": "connection",
-          "propertyName": "connection",
-          "type": "string",
-          "description": "Define a custom database connection",
-          "alias": "c"
-        },
-        {
-          "name": "drop-views",
-          "propertyName": "dropViews",
-          "type": "boolean",
-          "description": "Drop all views"
-        },
-        {
-          "name": "drop-types",
-          "propertyName": "dropTypes",
-          "type": "boolean",
-          "description": "Drop all custom types (Postgres only)"
-        },
-        {
-          "name": "force",
-          "propertyName": "force",
-          "type": "boolean",
-          "description": "Explicitly force command to run in production"
-        }
-      ]
-    },
     "migration:run": {
       "settings": {
         "loadApp": true
@@ -374,6 +388,12 @@
           "propertyName": "compactOutput",
           "type": "boolean",
           "description": "A compact single-line output"
+        },
+        {
+          "name": "disable-locks",
+          "propertyName": "disableLocks",
+          "type": "boolean",
+          "description": "Disable locks acquired to run migrations safely"
         }
       ]
     },
@@ -417,6 +437,12 @@
           "propertyName": "compactOutput",
           "type": "boolean",
           "description": "A compact single-line output"
+        },
+        {
+          "name": "disable-locks",
+          "propertyName": "disableLocks",
+          "type": "boolean",
+          "description": "Disable locks acquired to run migrations safely"
         }
       ]
     },
@@ -467,6 +493,12 @@
           "propertyName": "dryRun",
           "type": "boolean",
           "description": "Do not run actual queries. Instead view the SQL output"
+        },
+        {
+          "name": "disable-locks",
+          "propertyName": "disableLocks",
+          "type": "boolean",
+          "description": "Disable locks acquired to run migrations safely"
         }
       ]
     },
@@ -504,6 +536,12 @@
           "propertyName": "seed",
           "type": "boolean",
           "description": "Run seeders"
+        },
+        {
+          "name": "disable-locks",
+          "propertyName": "disableLocks",
+          "type": "boolean",
+          "description": "Disable locks acquired to run migrations safely"
         }
       ]
     },
@@ -547,8 +585,45 @@
           "propertyName": "dropTypes",
           "type": "boolean",
           "description": "Drop all custom types (Postgres only)"
+        },
+        {
+          "name": "disable-locks",
+          "propertyName": "disableLocks",
+          "type": "boolean",
+          "description": "Disable locks acquired to run migrations safely"
         }
       ]
+    },
+    "make:task": {
+      "settings": {
+        "loadApp": true
+      },
+      "commandPath": "adonis5-scheduler/build/commands/MakeTask",
+      "commandName": "make:task",
+      "description": "Generate task from template",
+      "args": [
+        {
+          "type": "string",
+          "propertyName": "name",
+          "name": "name",
+          "required": true,
+          "description": "Name of the task"
+        }
+      ],
+      "aliases": [],
+      "flags": []
+    },
+    "scheduler:run": {
+      "settings": {
+        "loadApp": true,
+        "stayAlive": true
+      },
+      "commandPath": "adonis5-scheduler/build/commands/SchedulerRun",
+      "commandName": "scheduler:run",
+      "description": "Start one or more workers",
+      "args": [],
+      "aliases": [],
+      "flags": []
     }
   },
   "aliases": {}

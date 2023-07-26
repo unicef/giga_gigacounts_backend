@@ -19,7 +19,7 @@ const calculateMeasuresDTO = async (
   const schoolsConnection: SchoolsConnection = {
     withoutConnection: 0,
     atLeastOneBellowAvg: 0,
-    allEqualOrAboveAvg: 0,
+    allEqualOrAboveAvg: 0
   }
 
   if (contract.schools.length) {
@@ -42,7 +42,7 @@ const calculateMeasuresDTO = async (
     ),
     allEqualOrAboveAvg: utils.toFixedFloat(
       utils.getPercentage(contract.$extras.schools_count, schoolsConnection.allEqualOrAboveAvg)
-    ),
+    )
   }
 }
 
@@ -64,5 +64,5 @@ const evaluateMedianMetrics = (
 }
 
 export default {
-  calculateMeasuresDTO,
+  calculateMeasuresDTO
 }

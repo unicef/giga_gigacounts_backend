@@ -1,15 +1,11 @@
 import { DateTime as DateTimeLBD } from 'luxon-business-days'
 import { DateTime } from 'luxon'
 import { BigNumber, ethers } from 'ethers'
+import InvalidTypeException from 'App/Exceptions/InvalidTypeException'
 
 interface DiffMonths {
   months: number
 }
-
-const destructObjArrayWithId = (object?: { id: string }[]) => {
-  return (object || []).map((x) => x.id)
-}
-
 const removeProperty = (object: any, propertyName: string) => {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   let { [propertyName]: _, ...rest } = object
@@ -61,8 +57,16 @@ const removeDuplicateTimestamps = (timestamps: string[]) => {
 }
 
 const formatContractDate = (date: string, start: boolean = false) => {
-  const formatedDate = DateTime.fromFormat(date, 'yyyy-MM-dd')
-  return start ? formatedDate.startOf('day') : formatedDate.endOf('day')
+  try {
+    const formatedDate = DateTime.fromISO(date)
+    return start ? formatedDate.startOf('day') : formatedDate.endOf('day')
+  } catch (error) {
+    throw new InvalidTypeException(
+      'Some convertion type error occurred while format contract date',
+      440,
+      'INVALID_TYPE_ERROR'
+    )
+  }
 }
 
 const toFixedFloat = (num: number, digits: number = 2) => parseFloat(num.toFixed(digits))
@@ -82,7 +86,6 @@ const toNormalNumber = (bigNumber: BigNumber) => {
 const handleDBError = (message: string, status: number) => ({ status, message })
 
 export default {
-  destructObjArrayWithId,
   removeProperty,
   getPercentage,
   splitIntoChunks,
@@ -96,5 +99,5 @@ export default {
   makeFromAndToDate,
   diffOfDays,
   toNormalNumber,
-  handleDBError,
+  handleDBError
 }

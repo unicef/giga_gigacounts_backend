@@ -1,10 +1,11 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, hasMany, HasMany, ManyToMany, manyToMany } from '@ioc:Adonis/Lucid/Orm'
 
 import User from 'App/Models/User'
 import School from 'App/Models/School'
 import Contract from 'App/Models/Contract'
 import Lta from 'App/Models/Lta'
+import Currency from './Currency'
 
 export default class Country extends BaseModel {
   @column({ isPrimary: true })
@@ -19,10 +20,13 @@ export default class Country extends BaseModel {
   @column()
   public flagUrl: string
 
-  @column.dateTime({ autoCreate: true, serializeAs: null })
+  @column()
+  public preferredLanguage: string
+
+  @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
   /**
@@ -40,4 +44,13 @@ export default class Country extends BaseModel {
 
   @hasMany(() => Lta)
   public ltas: HasMany<typeof Lta>
+
+  @manyToMany(() => Currency, {
+    pivotTable: 'country_currencies',
+    localKey: 'id',
+    pivotForeignKey: 'country_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'currency_id'
+  })
+  public currencies: ManyToMany<typeof Currency>
 }

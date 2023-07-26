@@ -6,7 +6,7 @@ export default class AttachWalletValidator {
 
   public schema = schema.create({
     message: schema.string(),
-    address: schema.string(),
+    address: schema.string()
   })
 
   public messages: CustomMessages = {}

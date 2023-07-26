@@ -15,17 +15,17 @@ export default class SuggestedMetric extends BaseModel {
   @column()
   public unit: string
 
-  @column.dateTime({ autoCreate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
   /**
    * RELATIONSHIPS
    */
   @belongsTo(() => Metric, {
-    serializeAs: 'metric',
+    serializeAs: 'metric'
   })
   public metric: BelongsTo<typeof Metric>
 }

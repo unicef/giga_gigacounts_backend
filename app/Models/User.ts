@@ -13,6 +13,7 @@ import {
   BelongsTo,
   hasOne,
   HasOne,
+  LucidModel
 } from '@ioc:Adonis/Lucid/Orm'
 import Hash from '@ioc:Adonis/Core/Hash'
 
@@ -23,6 +24,7 @@ import Contract from 'App/Models/Contract'
 import Payment from 'App/Models/Payment'
 import Safe from 'App/Models/Safe'
 import Isp from 'App/Models/Isp'
+import School from 'App/Models/School'
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -37,7 +39,7 @@ export default class User extends BaseModel {
   @column()
   public email: string
 
-  @column({ serializeAs: null })
+  @column()
   public password: string
 
   @column()
@@ -52,11 +54,29 @@ export default class User extends BaseModel {
   @column()
   public walletRequestString?: string
 
-  @column.dateTime({ autoCreate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
+
+  @column()
+  public about?: string
+
+  @column()
+  public address?: string
+
+  @column()
+  public zipCode?: string
+
+  @column()
+  public phoneNumber?: string
+
+  @column()
+  public photoUrl?: string
+
+  @column()
+  public automaticContractsEnabled?: boolean
 
   /**
    * HOOKS
@@ -78,53 +98,62 @@ export default class User extends BaseModel {
    * RELATIONSHIPS
    */
 
-  @belongsTo(() => Country, {
-    serializeAs: 'country',
+  @belongsTo(() => Country as LucidModel, {
+    serializeAs: 'country'
   })
   public country: BelongsTo<typeof Country>
 
-  @manyToMany(() => Role, {
+  @manyToMany(() => Role as LucidModel, {
     pivotTable: 'user_roles',
     localKey: 'id',
     pivotForeignKey: 'user_id',
     relatedKey: 'id',
-    pivotRelatedForeignKey: 'role_id',
+    pivotRelatedForeignKey: 'role_id'
   })
   public roles: ManyToMany<typeof Role>
 
-  @hasMany(() => Lta)
+  @hasMany(() => Lta as LucidModel)
   public ltas: HasMany<typeof Lta>
 
-  @hasMany(() => Contract, {
+  @hasMany(() => Contract as LucidModel, {
     localKey: 'id',
-    foreignKey: 'created_by',
+    foreignKey: 'created_by'
   })
   public contracts: HasMany<typeof Contract>
 
-  @hasMany(() => Payment, {
+  @hasMany(() => Payment as LucidModel, {
     localKey: 'id',
-    foreignKey: 'paid_by',
+    foreignKey: 'paid_by'
   })
   public paymentsPaid: HasMany<typeof Payment>
 
-  @hasMany(() => Payment, {
+  @hasMany(() => Payment as LucidModel, {
     localKey: 'id',
-    foreignKey: 'createdBy',
+    foreignKey: 'createdBy'
   })
   public payments: HasMany<typeof Payment>
 
-  @hasOne(() => Safe, {
+  @hasOne(() => Safe as LucidModel, {
     localKey: 'safeId',
-    foreignKey: 'id',
+    foreignKey: 'id'
   })
   public safe: HasOne<typeof Safe>
 
-  @manyToMany(() => Isp, {
+  @manyToMany(() => Isp as LucidModel, {
     pivotTable: 'isp_users',
     localKey: 'id',
     pivotForeignKey: 'user_id',
     relatedKey: 'id',
-    pivotRelatedForeignKey: 'isp_id',
+    pivotRelatedForeignKey: 'isp_id'
   })
   public isp: ManyToMany<typeof Isp>
+
+  @manyToMany(() => School as LucidModel, {
+    pivotTable: 'school_users',
+    localKey: 'id',
+    pivotForeignKey: 'user_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'school_id'
+  })
+  public school: ManyToMany<typeof School>
 }

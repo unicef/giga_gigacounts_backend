@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, belongsTo, BelongsTo } from '@ioc:Adonis/Lucid/Orm'
+import { LucidModel, BaseModel, column, belongsTo, BelongsTo } from '@ioc:Adonis/Lucid/Orm'
 
 import Metric from 'App/Models/Metric'
 import School from 'App/Models/School'
@@ -31,12 +31,12 @@ export default class Measure extends BaseModel {
    * RELATIONSHIPS
    */
 
-  @belongsTo(() => Metric)
+  @belongsTo(() => Metric as LucidModel)
   public metric: BelongsTo<typeof Metric>
 
-  @belongsTo(() => School)
+  @belongsTo(() => School as LucidModel)
   public school: BelongsTo<typeof School>
 
-  @belongsTo(() => Contract)
+  @belongsTo(() => Contract as LucidModel)
   public contract: BelongsTo<typeof Contract>
 }

@@ -1,12 +1,12 @@
 import Contract from 'App/Models/Contract'
 import Draft from 'App/Models/Draft'
 import ExpectedMetric from 'App/Models/ExpectedMetric'
-import Lta from 'App/Models/Lta'
 
 import { ContractStatus, CurrencyType } from 'App/Helpers/constants'
 import utils from 'App/Helpers/utils'
 import { DateTime } from 'luxon'
 import { v1 } from 'uuid'
+import Frequency from 'App/Models/Frequency'
 
 interface StatusCount {
   status: string
@@ -19,12 +19,7 @@ export interface ContractsStatusCount {
 }
 
 export interface ContractListDTO {
-  ltas: LtaList
   contracts: ContractList[]
-}
-
-interface LtaList {
-  [name: string]: ContractList[]
 }
 
 interface ContractList {
@@ -40,8 +35,13 @@ interface ContractList {
   }
   schoolsConnection?: SchoolsConnection
   numberOfSchools?: number
+  amount?: number
   totalSpent?: number
-  ltaId?: number
+  lta?: {
+    id: number
+    name: string
+  }
+  notes?: string
 }
 
 export interface SchoolsConnection {
@@ -62,9 +62,33 @@ export interface ContractDetails {
   id: number
   name: string
   isp: string
-  lta?: string
+  frequency: Frequency
+  automatic: boolean
+  signedWithWallet?: boolean
+  signedWalletAddress?: string
+  lta?: {
+    id: number
+    name: string
+  }
   startDate: DateTime
   endDate: DateTime
+  launchDate: DateTime
+  status: string
+  country?: {
+    name: string
+    code: string
+    flagUrl: string
+  }
+  expectedMetrics: {
+    metricId: number
+    metricName: string
+    metricUnit: string
+    value: number
+  }[]
+  schools?: {
+    schooldId: number
+    budget: string
+  }[]
   schoolsConnection?: SchoolsConnection
   numberOfSchools?: number
   attachments?: {
@@ -74,8 +98,9 @@ export interface ContractDetails {
     name: string
   }[]
   connectionsMedian: ConnectionMedian[]
-  budget: string
+  budget: number
   numberOfPayments: number
+  notes?: string
   currency: {
     id: string
     name: string
@@ -99,6 +124,7 @@ interface ConnectionEquation {
 export interface ContractSchoolsDetail {
   id: number
   name: string
+  budget?: number
   externalId: string
   locations: string
   connection: ConnectionEquation
@@ -108,7 +134,14 @@ export interface ContractDTO {
   id: number
   name: string
   isp: string
-  lta?: string
+  frequency: Frequency
+  automatic: boolean
+  signedWithWallet?: boolean
+  signedWalletAddress?: string
+  lta?: {
+    id: number
+    name: string
+  }
   attachments?: {
     id: number
     url: string
@@ -117,6 +150,7 @@ export interface ContractDTO {
   }[]
   startDate: DateTime
   endDate: DateTime
+  launchDate: DateTime
   status: string
   country?: {
     name: string
@@ -129,7 +163,7 @@ export interface ContractDTO {
     metricUnit: string
     value: number
   }[]
-  budget: string
+  budget: number
   currency: {
     id: string
     name: string
@@ -147,7 +181,10 @@ export interface ContractDTO {
     phoneNumber: string
     contactPerson: string
     gigaIdSchool: string
+    budget: number
+    reliableMeasures: boolean
   }[]
+  notes?: string
 }
 
 const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {}) => {
@@ -161,15 +198,44 @@ const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {})
       schools.push({
         id: school.id,
         name: school.name,
+        budget: school.$extras.pivot_budget,
         externalId: school.externalId,
         locations: concatLocations([
           school?.location1,
           school?.location2,
           school?.location3,
-          school?.location4,
+          school?.location4
         ]),
-        connection,
+        connection
       })
+    }
+  }
+  return schools
+}
+
+const contractSchoolsDetailsDTO = async (contracts: Contract[], schoolsMeasures: {}) => {
+  const schools: ContractSchoolsDetail[] = []
+  for (const c of contracts) {
+    if (c.schools.length) {
+      for (const school of c.schools) {
+        const connection = await calculateSchoolsMeasure(
+          schoolsMeasures[c.name][school.name],
+          c.expectedMetrics
+        )
+        schools.push({
+          id: school.id,
+          name: school.name,
+          budget: school.$extras.pivot_budget,
+          externalId: school.externalId,
+          locations: concatLocations([
+            school?.location1,
+            school?.location2,
+            school?.location3,
+            school?.location4
+          ]),
+          connection
+        })
+      }
     }
   }
   return schools
@@ -180,16 +246,24 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
     id: contract.id,
     name: contract.name,
     isp: contract.isp.name,
-    lta: contract?.lta?.name,
+    frequency: contract.frequency,
+    automatic: contract.automatic,
+    signedWithWallet: contract.signedWithWallet,
+    signedWalletAddress: contract.signedWalletAddress,
+    lta: {
+      id: contract?.lta?.id,
+      name: contract?.lta?.name
+    },
     attachments: contract?.attachments,
     startDate: contract.startDate,
     endDate: contract.endDate,
+    launchDate: contract.launchDate,
     status: ContractStatus[contract.status],
     country: contract.country
       ? {
           name: contract.country.name,
           flagUrl: contract.country.flagUrl,
-          code: contract.country.code,
+          code: contract.country.code
         }
       : undefined,
     expectedMetrics: await Promise.all(
@@ -199,7 +273,7 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
           metricId: em.metric.id,
           metricName: em.metric.name,
           metricUnit: em.metric.unit,
-          value: em.value,
+          value: em.value
         }
       })
     ),
@@ -208,7 +282,7 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
       id: contract.currency.id.toString(),
       name: contract.currency.name,
       code: contract.currency.code,
-      type: CurrencyType[contract.currency.type],
+      type: CurrencyType[contract.currency.type]
     },
     schools: contract?.schools.map((school) => ({
       id: school.id.toString(),
@@ -218,7 +292,7 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
         school?.location1,
         school?.location2,
         school?.location3,
-        school?.location4,
+        school?.location4
       ]),
       educationLevel: school.educationLevel,
       geopoint: school.geopoint,
@@ -226,19 +300,22 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
       phoneNumber: school.phoneNumber,
       contactPerson: school.contactPerson,
       gigaIdSchool: school.gigaIdSchool,
+      budget: school?.$extras.pivot_budget || 0,
+      reliableMeasures: school?.reliableMeasures
     })),
+    notes: contract.notes
   }
 }
 
-const contractDeatilsDTO = (
+const contractDeatilsDTO = async (
   contract: Contract,
   schoolsMeasures: {},
   connectionsMedian: ConnectionMedian[]
-): ContractDetails => {
+): Promise<ContractDetails> => {
   const schoolsConnection: SchoolsConnection = {
     withoutConnection: 0,
     atLeastOneBellowAvg: 0,
-    allEqualOrAboveAvg: 0,
+    allEqualOrAboveAvg: 0
   }
 
   if (contract.schools.length) {
@@ -255,10 +332,45 @@ const contractDeatilsDTO = (
     id: contract.id,
     name: contract.name,
     isp: contract.isp.name,
-    lta: contract?.lta?.name,
+    frequency: contract.frequency,
+    automatic: contract.automatic,
+    signedWithWallet: contract.signedWithWallet,
+    signedWalletAddress: contract.signedWalletAddress,
+    lta: {
+      id: contract?.lta?.id,
+      name: contract?.lta?.name
+    },
     attachments: contract?.attachments,
     startDate: contract.startDate,
     endDate: contract.endDate,
+    launchDate: contract.launchDate,
+    status: ContractStatus[contract.status],
+    country: contract.country
+      ? {
+          name: contract.country.name,
+          flagUrl: contract.country.flagUrl,
+          code: contract.country.code
+        }
+      : undefined,
+    expectedMetrics: await Promise.all(
+      contract.expectedMetrics.map(async (em) => {
+        await em.load('metric')
+        return {
+          metricId: em.metric.id,
+          metricName: em.metric.name,
+          metricUnit: em.metric.unit,
+          value: em.value
+        }
+      })
+    ),
+    schools: await Promise.all(
+      contract.schools.map(async (school) => {
+        return {
+          schooldId: school.id,
+          budget: school.$extras.pivot_budget
+        }
+      })
+    ),
     numberOfSchools: contract.$extras.schools_count,
     schoolsConnection: {
       withoutConnection: utils.getPercentage(
@@ -272,8 +384,9 @@ const contractDeatilsDTO = (
       allEqualOrAboveAvg: utils.getPercentage(
         contract.$extras.schools_count,
         schoolsConnection.allEqualOrAboveAvg
-      ),
+      )
     },
+    notes: contract.notes,
     connectionsMedian,
     budget: contract.budget,
     numberOfPayments: contract.$extras.payments_count,
@@ -281,14 +394,12 @@ const contractDeatilsDTO = (
       id: contract.currency.id.toString(),
       name: contract.currency.name,
       code: contract.currency.code,
-      type: CurrencyType[contract.currency.type],
+      type: CurrencyType[contract.currency.type]
     },
     totalSpent: {
       amount: contract.$extras.total_payments,
-      percentage: Math.round(
-        utils.getPercentage(parseInt(contract.budget), contract.$extras.total_payments)
-      ),
-    },
+      percentage: Math.round(utils.getPercentage(contract.budget, contract.$extras.total_payments))
+    }
   }
 }
 
@@ -302,7 +413,7 @@ const contractCountByStatusDTO = (
       if (typeof value === 'string') {
         return {
           status: value,
-          count: 0,
+          count: 0
         }
       }
     })
@@ -311,29 +422,28 @@ const contractCountByStatusDTO = (
   for (const contract of contracts) {
     counts[contract.$attributes.status] = {
       status: ContractStatus[contract.$attributes.status],
-      count: contract.$extras.count,
+      count: contract.$extras.count
     }
   }
 
   counts[0] = {
     status: ContractStatus[0],
-    count: draftsCount,
+    count: draftsCount
   }
 
   return {
     counts,
-    totalCount: parseInt(totalCount) + parseInt(draftsCount),
+    totalCount: parseInt(totalCount) + parseInt(draftsCount)
   }
 }
 
 const contractListDTO = (
   data: Contract[],
   drafts: Draft[],
-  ltasData: Lta[],
-  schoolsMeasures: {},
-  status?: number
+  // ltasData: Lta[],
+  schoolsMeasures: {}
 ): ContractListDTO => {
-  const ltas: LtaList = formatLtaList(ltasData)
+  // const ltas: LtaList = formatLtaList(ltasData)
   const contracts: ContractList[] = []
 
   drafts.map((draft) => {
@@ -342,32 +452,34 @@ const contractListDTO = (
       listId: v1(),
       name: draft.name,
       isp: draft.isp?.name,
+      frequency: draft.frequency,
+      automatic: draft.automatic,
+      currencyCode: draft.currency?.code,
       status: 'Draft',
       country: draft.country
         ? {
             name: draft.country.name,
             flagUrl: draft.country.flagUrl,
-            code: draft.country.code,
+            code: draft.country.code
           }
         : undefined,
       numberOfSchools: draft.schools?.schools.length,
-      ltaId: draft.ltaId,
+      budget: draft.budget || 0,
+      lta: {
+        id: draft.lta?.id || 0,
+        name: draft.lta?.name || ''
+      },
+      notes: draft.notes || ''
     }
 
-    if (draft.ltaId) {
-      if (ltas[draft.lta.name]) {
-        ltas[draft.lta.name].push(draftData)
-      }
-    } else {
-      contracts.push(draftData)
-    }
+    contracts.push(draftData)
   })
 
   data.map((contract) => {
     const schoolsConnection: SchoolsConnection = {
       withoutConnection: 0,
       atLeastOneBellowAvg: 0,
-      allEqualOrAboveAvg: 0,
+      allEqualOrAboveAvg: 0
     }
 
     if (contract.schools.length) {
@@ -385,11 +497,16 @@ const contractListDTO = (
       listId: v1(),
       name: contract.name,
       isp: contract.isp.name,
+      frequency: contract.frequency,
+      automatic: contract.automatic,
+      signedWithWallet: contract.signedWithWallet,
+      signedWalletAddress: contract.signedWalletAddress,
+      currencyCode: contract.currency.code,
       status: ContractStatus[contract.status],
       country: {
         name: contract.country.name,
         flagUrl: contract.country.flagUrl,
-        code: contract.country.code,
+        code: contract.country.code
       },
       schoolsConnection: {
         withoutConnection: utils.getPercentage(
@@ -403,36 +520,23 @@ const contractListDTO = (
         allEqualOrAboveAvg: utils.getPercentage(
           contract.$extras.schools_count,
           schoolsConnection.allEqualOrAboveAvg
-        ),
+        )
       },
+      budget: contract.budget,
       numberOfSchools: contract.$extras.schools_count,
-      totalSpent: utils.getPercentage(parseInt(contract.budget), contract.$extras.total_payments),
-      ltaId: contract.ltaId,
+      totalSpent: utils.getPercentage(contract.budget, contract.$extras.total_payments),
+      lta: {
+        id: contract?.lta?.id,
+        name: contract?.lta?.name
+      },
+      notes: contract.notes
     }
-
-    if (contract.ltaId) {
-      if (ltas[contract.lta.name]) {
-        ltas[contract.lta.name].push(contractData)
-      }
-    } else {
-      contracts.push(contractData)
-    }
+    contracts.push(contractData)
   })
 
   return {
-    ltas: status || status === 0 ? removeEmptyLtas(ltas) : ltas,
-    contracts,
+    contracts
   }
-}
-
-const formatLtaList = (ltas: Lta[]) => {
-  return ltas.reduce(
-    (aggregate, current) => ({
-      ...aggregate,
-      [current.name]: [],
-    }),
-    {}
-  )
 }
 
 const evaluateAvgMeasures = (
@@ -461,7 +565,7 @@ const calculateSchoolsMeasure = async (
     'Download speed': 0,
     'Upload speed': 0,
     'Uptime': 0,
-    'Latency': 0,
+    'Latency': 0
   }
   if (!schoolMeasures.length) {
     return Object.keys(connection).reduce((acc, key) => {
@@ -485,23 +589,30 @@ const concatLocations = (locations: string[]) => locations.filter((l) => l).join
 
 const contractAvailablePaymentsDTO = (paymentsDates: { dates: string }[]) => {
   return paymentsDates.map(({ dates }) => {
-    const [month, year] = dates.split('-')
-    return {
-      month: parseInt(month),
-      year: parseInt(year),
+    if (dates.split('-').length > 2) {
+      const [day, month, year] = dates.split('-')
+      return {
+        day: parseInt(day),
+        month: parseInt(month),
+        year: parseInt(year)
+      }
+    } else {
+      const [month, year] = dates.split('-')
+      return {
+        month: parseInt(month),
+        year: parseInt(year)
+      }
     }
   })
 }
-
-const removeEmptyLtas = (ltas: LtaList): LtaList =>
-  Object.fromEntries(Object.entries(ltas).filter(([_, v]) => v.length !== 0))
 
 export default {
   contractCountByStatusDTO,
   contractListDTO,
   contractDeatilsDTO,
   contractSchoolsDetailDTO,
+  contractSchoolsDetailsDTO,
   getContractDTO,
   contractAvailablePaymentsDTO,
-  calculateSchoolsMeasure,
+  calculateSchoolsMeasure
 }

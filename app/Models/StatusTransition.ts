@@ -34,7 +34,7 @@ export default class StatusTransition extends BaseModel {
    */
   @belongsTo(() => User, {
     localKey: 'who',
-    foreignKey: 'id',
+    foreignKey: 'id'
   })
   public user: BelongsTo<typeof User>
 

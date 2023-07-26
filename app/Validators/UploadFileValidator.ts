@@ -10,7 +10,7 @@ export default class UploadFileValidator {
     file: schema.string(),
     name: schema.string(),
     type: schema.enum(Object.values(AttachmentsType)),
-    typeId: schema.string(),
+    typeId: schema.string()
   })
 
   public messages: CustomMessages = {}

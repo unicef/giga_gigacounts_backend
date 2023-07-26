@@ -22,9 +22,11 @@ export interface GetDraftDTOResponse {
   id: number
   name: string
   governmentBehalf?: boolean
-  budget?: string
+  automatic?: boolean
+  budget?: number | null
   startDate?: DateTime
   endDate?: DateTime
+  launchDate?: DateTime
   country?: Country
   currency?: {
     id: string
@@ -51,27 +53,30 @@ export interface GetDraftDTOResponse {
     value: number
     metricId: string
   }[]
+  notes?: string
 }
 
 const getDraftDTO = ({
   draft,
   schools,
-  expectedMetrics,
+  expectedMetrics
 }: GetDraftDtoParams): GetDraftDTOResponse => {
   return {
     id: draft.id,
     name: draft.name,
     governmentBehalf: draft.governmentBehalf,
+    automatic: draft.automatic,
     budget: draft.budget,
     startDate: draft.startDate,
     endDate: draft.endDate,
+    launchDate: draft.launchDate,
     country: draft.country,
     currency: draft.currency
       ? {
           id: draft.currency.id.toString(),
           name: draft.currency.name,
           code: draft.currency.code,
-          type: CurrencyType[draft.currency.type],
+          type: CurrencyType[draft.currency.type]
         }
       : undefined,
     frequency: draft.frequency,
@@ -79,7 +84,7 @@ const getDraftDTO = ({
     lta: draft.lta
       ? {
           id: draft?.lta.id,
-          name: draft?.lta.name,
+          name: draft?.lta.name
         }
       : null,
     createdBy: draft.user
@@ -87,15 +92,16 @@ const getDraftDTO = ({
           id: draft?.user.id,
           name: draft?.user.name,
           email: draft?.user.email,
-          lastName: draft?.user.lastName,
+          lastName: draft?.user.lastName
         }
       : null,
     attachments: draft?.attachments,
     schools,
     expectedMetrics,
+    notes: draft.notes
   }
 }
 
 export default {
-  getDraftDTO,
+  getDraftDTO
 }

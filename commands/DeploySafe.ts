@@ -7,7 +7,7 @@ export default class DeploySafe extends BaseCommand {
 
   public static settings = {
     loadApp: true,
-    stayAlive: false,
+    stayAlive: false
   }
 
   public async run() {

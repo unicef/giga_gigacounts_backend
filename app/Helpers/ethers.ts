@@ -23,5 +23,5 @@ export default {
   getProvider,
   getWalletAndConnect,
   createWallet,
-  recoverAddress,
+  recoverAddress
 }

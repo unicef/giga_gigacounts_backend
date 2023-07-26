@@ -20,4 +20,20 @@ export default class SchoolsController {
       return response.status(error.status).send(error.message)
     }
   }
+
+  public async updateSchoolReliableMeasures({ response, request, auth }: HttpContextContract) {
+    if (!auth.user) return
+
+    try {
+      const { schoolId, reliableMeasures } = request.all()
+      const affectedSchools = await service.updateSchoolReliableMeasures(
+        auth.user,
+        schoolId,
+        reliableMeasures
+      )
+      return response.ok({ affectedSchools })
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
 }

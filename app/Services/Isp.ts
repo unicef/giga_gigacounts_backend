@@ -6,7 +6,7 @@ import { roles } from 'App/Helpers/constants'
 
 const listIsps = async (user: User, ltaId?: number, countryId?: number): Promise<Isp[]> => {
   const query = Isp.query()
-  if (!userService.checkUserRole(user, [roles.gigaAdmin])) {
+  if (!userService.checkUserRole(user, [roles.gigaAdmin, roles.gigaViewOnly])) {
     countryId = user.countryId
   }
   if (countryId) query.where('country_id', countryId)
@@ -19,5 +19,5 @@ const listIsps = async (user: User, ltaId?: number, countryId?: number): Promise
 }
 
 export default {
-  listIsps,
+  listIsps
 }

@@ -6,7 +6,7 @@ export default class ChangeStatusValidator {
 
   public schema = schema.create({
     contract_id: schema.string(),
-    status: schema.number(),
+    status: schema.number()
   })
 
   public messages: CustomMessages = {}

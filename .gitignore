@@ -3,6 +3,10 @@ build
 coverage
 .vscode
 .DS_STORE
-.env
+.[Dd][s]S_[Ss]tore
+.env*
 tmp
 .idea
+yarn.lock
+package-lock.json
+.map
