@@ -7,9 +7,11 @@ const getRolesPermission = async (roles: Role[]): Promise<string[]> => {
       return r.permissions?.map((p) => p.name)
     })
   )
-  return [].concat.apply([], permissions)
+
+  // Set = to remove duplicated permissions
+  return [].concat.apply([], ...new Set(permissions))
 }
 
 export default {
-  getRolesPermission,
+  getRolesPermission
 }

@@ -5,7 +5,7 @@ import {
   belongsTo,
   column,
   ManyToMany,
-  manyToMany,
+  manyToMany
 } from '@ioc:Adonis/Lucid/Orm'
 
 import Isp from 'App/Models/Isp'
@@ -27,6 +27,9 @@ export default class Draft extends BaseModel {
   public governmentBehalf?: boolean
 
   @column()
+  public automatic?: boolean
+
+  @column()
   public name: string
 
   @column({ serializeAs: 'ltaId' })
@@ -36,7 +39,7 @@ export default class Draft extends BaseModel {
   public currencyId?: number
 
   @column()
-  public budget?: string
+  public budget?: number
 
   @column({ serializeAs: 'frequencyId' })
   public frequencyId?: number
@@ -47,6 +50,9 @@ export default class Draft extends BaseModel {
   @column.dateTime({ serializeAs: 'endDate' })
   public endDate?: DateTime
 
+  @column.dateTime({ serializeAs: 'launchDate' })
+  public launchDate?: DateTime
+
   @column({ serializeAs: 'ispId' })
   public ispId?: number
 
@@ -56,9 +62,9 @@ export default class Draft extends BaseModel {
   @column({
     serialize: (value: { schools: { id: string }[] }) => {
       return value?.schools
-    },
+    }
   })
-  public schools?: { schools: { id: string }[] }
+  public schools?: { schools: { external_id: string; budget: number }[] }
 
   @column()
   public expectedMetrics?: { metrics: { metricId: string; value: number }[] }
@@ -68,6 +74,9 @@ export default class Draft extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt?: DateTime
+
+  @column()
+  public notes?: string
 
   /**
    * RELATIONSHIPS
@@ -90,7 +99,7 @@ export default class Draft extends BaseModel {
 
   @belongsTo(() => User, {
     localKey: 'id',
-    foreignKey: 'createdBy',
+    foreignKey: 'createdBy'
   })
   public user: BelongsTo<typeof User>
 
@@ -99,7 +108,7 @@ export default class Draft extends BaseModel {
     localKey: 'id',
     pivotForeignKey: 'draft_id',
     relatedKey: 'id',
-    pivotRelatedForeignKey: 'attachment_id',
+    pivotRelatedForeignKey: 'attachment_id'
   })
   public attachments: ManyToMany<typeof Attachment>
 }

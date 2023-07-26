@@ -1,15 +1,21 @@
 import Payment from 'App/Models/Payment'
 
-import { PaymentStatus } from 'App/Helpers/constants'
+import { ContractStatus, PaymentStatus } from 'App/Helpers/constants'
 import Currency from 'App/Models/Currency'
 import Attachment from 'App/Models/Attachment'
 import { ConnectionMedian } from './Contract'
 
 export interface GetPayment {
   id: number
+  contractId?: number
+  contractName?: string
+  contractCountryName?: string
+  contractStatus?: string
+  contractFrequency?: string
+  contractAutomatic?: boolean
   description?: string
-  dateFrom: string
-  dateTo?: string
+  dateFrom?: string | null
+  dateTo?: string | null
   paidDate: {
     month?: number
     year?: number
@@ -37,9 +43,9 @@ const getPaymentDTO = (payment: Payment): GetPayment => ({
   description: payment.description,
   paidDate: {
     month: payment.dateTo?.get('month'),
-    year: payment.dateTo?.get('year'),
+    year: payment.dateTo?.get('year')
   },
-  dateFrom: payment.dateFrom.toISODate(),
+  dateFrom: payment.dateFrom?.toISODate(),
   dateTo: payment.dateTo?.toISODate(),
   currency: payment.currency,
   amount: payment.amount,
@@ -50,15 +56,48 @@ const getPaymentDTO = (payment: Payment): GetPayment => ({
   createdBy: {
     name: payment?.creator?.name,
     role: payment?.creator?.roles[0]?.name,
-    id: payment?.creator?.id,
+    id: payment?.creator?.id
+  }
+})
+
+const getPaymentWithDetailsDTO = (payment: Payment): GetPayment => ({
+  id: payment.id,
+  contractId: payment.contractId,
+  contractName: payment.contract.name || '',
+  contractCountryName: payment.contract.country.name || '',
+  contractStatus: ContractStatus[payment.contract.status],
+  contractFrequency: payment.contract.frequency.name,
+  contractAutomatic: payment.contract.automatic,
+  description: payment.description,
+  paidDate: {
+    month: payment.dateTo?.get('month'),
+    year: payment.dateTo?.get('year')
   },
+  dateFrom: payment.dateFrom?.toISODate(),
+  dateTo: payment.dateTo?.toISODate(),
+  currency: payment.currency,
+  amount: payment.amount,
+  status: PaymentStatus[payment.status],
+  metrics: payment?.metrics,
+  invoice: payment?.invoice,
+  receipt: payment?.receipt,
+  createdBy: {
+    name: payment?.creator?.name,
+    role: payment?.creator?.roles[0]?.name,
+    id: payment?.creator?.id
+  }
 })
 
 const getPaymentsByContractDTO = (payments: Payment[]): GetPayment[] => {
   return payments.map(getPaymentDTO)
 }
 
+const getPaymentsWithDetailsDTO = (payments: Payment[]): GetPayment[] => {
+  return payments.map(getPaymentWithDetailsDTO)
+}
+
 export default {
   getPaymentsByContractDTO,
-  getPaymentDTO,
+  getPaymentsWithDetailsDTO,
+  getPaymentDTO
 }

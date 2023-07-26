@@ -7,7 +7,7 @@ export default class AddUserSafe extends BaseCommand {
 
   public static settings = {
     loadApp: true,
-    stayAlive: false,
+    stayAlive: false
   }
 
   public async run() {

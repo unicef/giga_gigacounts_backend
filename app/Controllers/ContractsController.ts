@@ -78,6 +78,26 @@ export default class ContractsController {
     }
   }
 
+  public async publishContract({ response, request, auth }: HttpContextContract) {
+    try {
+      const { contract_id } = request.all()
+      const contract = await service.publishContract(contract_id, auth.user?.id)
+      response.ok(contract)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
+
+  public async approveContract({ response, request, auth }: HttpContextContract) {
+    try {
+      const { contract_id } = request.all()
+      const contract = await service.approveContract(contract_id, auth.user?.id)
+      response.ok(contract)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
+
   public async getContractDetails({ response, request }: HttpContextContract) {
     try {
       const { contract_id } = request.params()
@@ -92,6 +112,16 @@ export default class ContractsController {
     try {
       const { contract_id } = request.params()
       const contract = await service.getContractSchools(contract_id)
+      response.ok(contract)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
+
+  public async getContractSchoolConnectivity({ response, auth }: HttpContextContract) {
+    try {
+      if (!auth.user) return
+      const contract = await service.getContractSchoolConnectivity(auth.user)
       response.ok(contract)
     } catch (error) {
       return response.status(error.status).send(error.message)
@@ -143,6 +173,66 @@ export default class ContractsController {
       response.ok(result)
     } catch (error) {
       return response.status(error?.status || error.statusCode).send(error.message)
+    }
+  }
+
+  public async duplicateContract({ response, request, auth }: HttpContextContract) {
+    try {
+      if (!auth.user) return
+      const { contract_id } = request.params()
+      const result = await service.duplicateContract(contract_id, auth.user)
+
+      response.ok({
+        ok: true,
+        draftId: result?.id,
+        name: result?.name,
+        message: 'Contract duplicated, saved it in Drafts.'
+      })
+    } catch (error) {
+      return response.status(error?.status || error.statusCode).send(error.message)
+    }
+  }
+
+  public async duplicateDraft({ response, request, auth }: HttpContextContract) {
+    try {
+      if (!auth.user) return
+      const { draft_id } = request.params()
+      const result = await draftService.duplicateDraft(draft_id, auth.user)
+
+      response.ok({
+        ok: true,
+        draftId: result?.id,
+        name: result?.name,
+        message: 'Draft duplicated.'
+      })
+    } catch (error) {
+      return response.status(error?.status || error.statusCode).send(error.message)
+    }
+  }
+  public async generateSignContractRandomString({ response, request, auth }: HttpContextContract) {
+    try {
+      if (!auth.user) return
+      const { contract_id } = request.all()
+      const randomString = await service.generateSignContractRandomString(contract_id)
+      return response.ok(randomString)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
+
+  public async signContractWithWallet({ response, request, auth }: HttpContextContract) {
+    try {
+      if (!auth.user) return
+      const { contract_id, address, signatureHash } = request.all()
+      const result = await service.signContractWithWallet(
+        contract_id,
+        address,
+        signatureHash,
+        auth.user
+      )
+      return response.ok(result)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
     }
   }
 }

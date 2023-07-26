@@ -5,7 +5,7 @@ export default class AddUserValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    email: schema.string(),
+    email: schema.string()
   })
 
   public messages: CustomMessages = {}

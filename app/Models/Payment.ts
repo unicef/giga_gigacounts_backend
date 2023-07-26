@@ -40,7 +40,7 @@ export default class Payment extends BaseModel {
     serializeAs: 'currencyId',
     serialize: (value: number) => {
       return value.toString()
-    },
+    }
   })
   public currencyId: number
 
@@ -73,13 +73,13 @@ export default class Payment extends BaseModel {
 
   @hasOne(() => Attachment, {
     localKey: 'invoiceId',
-    foreignKey: 'id',
+    foreignKey: 'id'
   })
   public invoice: HasOne<typeof Attachment>
 
   @hasOne(() => Attachment, {
     localKey: 'receiptId',
-    foreignKey: 'id',
+    foreignKey: 'id'
   })
   public receipt: HasOne<typeof Attachment>
 
@@ -88,19 +88,19 @@ export default class Payment extends BaseModel {
 
   @hasOne(() => User, {
     localKey: 'paidBy',
-    foreignKey: 'id',
+    foreignKey: 'id'
   })
   public user: HasOne<typeof User>
 
   @hasOne(() => Currency, {
     localKey: 'currencyId',
-    foreignKey: 'id',
+    foreignKey: 'id'
   })
   public currency: HasOne<typeof Currency>
 
   @hasOne(() => User, {
     localKey: 'createdBy',
-    foreignKey: 'id',
+    foreignKey: 'id'
   })
   public creator: HasOne<typeof User>
 }

@@ -9,16 +9,15 @@ export default class CreatePaymentValidator {
     year: schema.number(),
     contractId: schema.string(),
     description: schema.string.nullableAndOptional(),
-    currencyId: schema.string(),
     amount: schema.number(),
     invoice: schema.object.nullableAndOptional().members({
       file: schema.string(),
-      name: schema.string(),
+      name: schema.string()
     }),
     receipt: schema.object.nullableAndOptional().members({
       file: schema.string(),
-      name: schema.string(),
-    }),
+      name: schema.string()
+    })
   })
 
   public messages: CustomMessages = {}

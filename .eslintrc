@@ -1,6 +1,7 @@
 {
   "extends": ["plugin:adonis/typescriptPackage"],
   "rules": {
+    "comma-dangle": "off",
     "@typescript-eslint/space-before-function-paren": "off",
     "curly": "off",
     "@typescript-eslint/indent": "off",

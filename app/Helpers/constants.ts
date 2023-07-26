@@ -1,51 +1,84 @@
 export const roles = {
-  gigaAdmin: 'Giga Admin',
-  countryOffice: 'Country Office',
-  government: 'Government',
-  isp: 'ISP',
+  gigaAdmin: 'GIGA.SUPER.ADMIN',
+  gigaViewOnly: 'GIGA.VIEW.ONLY',
+  ispContractManager: 'ISP.CONTRACT.MANAGER',
+  ispCustomerService: 'ISP.CUSTOMER.SERVICE',
+  countryContractCreator: 'COUNTRY.CONTRACT.CREATOR',
+  countryAccountant: 'COUNTRY.ACCOUNTANT',
+  countrySuperAdmin: 'COUNTRY.SUPER.ADMIN',
+  countryMonitor: 'COUNTRY.MONITOR',
+  schoolConnectivityManager: 'SCHOOL.CONNECTIVITY.MANAGER'
 }
 
 export enum ContractStatus {
-  Draft,
-  Sent,
-  Confirmed,
+  Draft = 1,
+  Sent, // == publish
+  Confirmed, // == approve
   Ongoing,
   Expired,
-  Completed,
+  Completed
+}
+
+export enum PaymentStatus {
+  OnHold,
+  Unpaid,
+  Verified,
+  Paid
+}
+
+export enum CurrencyType {
+  fiat = 1,
+  stable = 2
+}
+
+export const frequencyNames = {
+  Weekly: 'Weekly',
+  Biweekly: 'Biweekly',
+  Monthly: 'Monthly'
 }
 
 export const permissions = {
-  countryRead: 'country.read',
   contractRead: 'contract.read',
   contractWrite: 'contract.write',
-  ispRead: 'isp.read',
-  metricRead: 'metric.read',
-  schoolRead: 'school.read',
-  attachmentWrite: 'attachment.write',
-  attachmentRead: 'attachment.read',
-  ltaRead: 'lta.read',
-  ltaWrite: 'lta.write',
-  measureRead: 'measure.read',
   paymentRead: 'payment.read',
   paymentWrite: 'payment.write',
-  safeWrite: 'safe.write',
+  attachmentRead: 'attachment.read',
+  attachmentWrite: 'attachment.write',
+  metricRead: 'metric.read',
+  metricWrite: 'metric.write',
+  measureRead: 'measure.read',
+  measureWrite: 'measure.write',
   safeRead: 'safe.read',
+  safeWrite: 'safe.write',
+  ltaWrite: 'lta.write',
+  ltaRead: 'lta.read',
+  ispRead: 'isp.read',
+  ispWrite: 'isp.write',
+  schoolRead: 'school.read',
+  schoolWrite: 'school.write',
+  countryRead: 'country.read',
+  walletRead: 'wallet.read',
+  walletWrite: 'wallet.write',
+  contractSignWithWallet: 'contract.sign.with.wallet'
 }
 
 export const Metrics = {
   Latency: 'Latency',
   Uptime: 'Uptime',
   Download: 'Download speed',
-  Upload: 'Upload speed',
+  Upload: 'Upload speed'
 }
 
-export enum PaymentStatus {
-  Pending,
-  Rejected,
-  Verified,
+export const NotificationSources = {
+  resetPassword: 'PWDRST',
+  manualContractCreation: 'CONCRTM',
+  automaticContractCreation: 'CONCRTA',
+  feedback: 'FDBACK',
+  slaNotMet: 'SLAKO'
 }
 
-export enum CurrencyType {
-  fiat,
-  crypto,
-}
+export type NotificationChannel = 'EMAIL' | 'PUSH' | 'API'
+
+export type NotificationStatus = 'CREATED' | 'SENT' | 'READ' | 'DELETED' | 'DISCARDED'
+
+export const requestsFormatDate = 'iso'

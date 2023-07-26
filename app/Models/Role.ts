@@ -1,11 +1,12 @@
 import { DateTime } from 'luxon'
 import {
   BaseModel,
+  LucidModel,
   beforeFind,
   column,
   manyToMany,
   ManyToMany,
-  ModelQueryBuilderContract,
+  ModelQueryBuilderContract
 } from '@ioc:Adonis/Lucid/Orm'
 
 import Permission from 'App/Models/Permission'
@@ -16,12 +17,15 @@ export default class Role extends BaseModel {
   public id: number
 
   @column()
+  public code: string
+
+  @column()
   public name: string
 
-  @column.dateTime({ autoCreate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
   /**
@@ -37,21 +41,21 @@ export default class Role extends BaseModel {
    * RELATIONSHIPS
    */
 
-  @manyToMany(() => Permission, {
+  @manyToMany(() => Permission as LucidModel, {
     pivotTable: 'role_permissions',
     localKey: 'id',
     pivotForeignKey: 'role_id',
     relatedKey: 'id',
-    pivotRelatedForeignKey: 'permission_id',
+    pivotRelatedForeignKey: 'permission_id'
   })
   public permissions: ManyToMany<typeof Permission>
 
-  @manyToMany(() => User, {
+  @manyToMany(() => User as LucidModel, {
     pivotTable: 'user_roles',
     localKey: 'id',
     pivotForeignKey: 'role_id',
     relatedKey: 'id',
-    pivotRelatedForeignKey: 'user_id',
+    pivotRelatedForeignKey: 'user_id'
   })
   public users: ManyToMany<typeof User>
 }

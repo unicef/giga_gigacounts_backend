@@ -7,7 +7,7 @@ export default class CalculateMeasuresValidator {
   public schema = schema.create({
     contractId: schema.string(),
     year: schema.number(),
-    month: schema.number(),
+    month: schema.number()
   })
 
   public messages: CustomMessages = {}

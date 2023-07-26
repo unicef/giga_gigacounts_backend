@@ -11,6 +11,8 @@ import userService from 'App/Services/User'
 import utils from 'App/Helpers/utils'
 import { LoadMeasuresType } from './Contract'
 import { roles } from 'App/Helpers/constants'
+import NotFoundException from 'App/Exceptions/NotFoundException'
+import InvalidStatusException from 'App/Exceptions/InvalidStatusException'
 
 export type TimeInterval = 'day' | 'week' | 'month'
 
@@ -47,11 +49,48 @@ const getSchoolsMeasures = async (
 
 const listSchoolByCountry = async (user: User, countryId?: number): Promise<School[]> => {
   const query = School.query()
-  if (userService.checkUserRole(user, [roles.countryOffice, roles.government])) {
+  if (
+    userService.checkUserRole(user, [
+      roles.countryContractCreator,
+      roles.countryAccountant,
+      roles.countrySuperAdmin,
+      roles.countryMonitor
+      // roles.countryOffice,
+      // roles.government
+    ])
+  ) {
     countryId = user.countryId
   }
   if (countryId) query.where('country_id', countryId)
   return query
+}
+
+const updateSchoolReliableMeasures = async (
+  user: User,
+  schoolId: number,
+  reliableMeasures: boolean
+): Promise<School[]> => {
+  if (!userService.checkUserRole(user, [roles.gigaAdmin])) {
+    throw new InvalidStatusException(
+      'The current user does not have the necessary permissions to update the reliability of the school measures.',
+      401,
+      'E_UNAUTHORIZED_ACCESS'
+    )
+  }
+
+  try {
+    const school = await School.query()
+      .where('id', schoolId)
+      .update({ reliable_measures: reliableMeasures })
+
+    if (!school.length) {
+      throw new NotFoundException('School not found', 404, 'NOT_FOUND')
+    }
+
+    return school[0]
+  } catch (error) {
+    throw error
+  }
 }
 
 const loadSchoolsMeasures = async (
@@ -80,7 +119,7 @@ const loadSchoolMeasure = async ({
   endDate,
   metrics,
   countryCode,
-  type,
+  type
 }: LoadSchoolsMeasuresData) => {
   const school = await School.find(schoolId)
   if (!school || !school.externalId) return
@@ -134,7 +173,7 @@ const loadAndSaveMeasures = async (
     school_id: school.externalId,
     start_date: startDate.toFormat('yyyy-MM-dd').toString(),
     end_date: endDate.toFormat('yyyy-MM-dd').toString(),
-    size: 50,
+    size: 20
   })
 
   return measureService.saveMeasuresFromUnicef(
@@ -153,6 +192,7 @@ const isSameMonth = (currentDate: DateTime, startDate: DateTime) =>
 
 export default {
   listSchoolByCountry,
+  updateSchoolReliableMeasures,
   getSchoolsMeasures,
-  loadSchoolsMeasures,
+  loadSchoolsMeasures
 }

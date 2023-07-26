@@ -14,7 +14,7 @@ export enum AttachmentsType {
   INVOICE = 'invoice',
   RECEIPT = 'receipt',
   DRAFT = 'draft',
-  CONTRACT = 'contract',
+  CONTRACT = 'contract'
 }
 export interface UploadRequest {
   file: string
@@ -63,9 +63,9 @@ const deleteAttachment = async (
     await _trx.rollback()
     if (error?.status === 404) throw error
     throw new FailedDependencyException(
-      'Some dependency failed while uploading attachment',
+      'Some database error occurred while uploading attachment',
       424,
-      'FAILED_DEPENDENCY'
+      'DATABASE_ERROR'
     )
   }
 }
@@ -106,9 +106,9 @@ const uploadAttachment = async (
     await _trx.rollback()
     if ([404, 413].some((status) => status === error?.status)) throw error
     throw new FailedDependencyException(
-      'Some dependency failed while uploading attachment',
+      'Some database error occurred while uploading attachment',
       424,
-      'FAILED_DEPENDENCY'
+      'DATABASE_ERROR'
     )
   }
 }
@@ -135,5 +135,5 @@ const deletefromPayment = async (
 export default {
   uploadAttachment,
   deleteAttachment,
-  getAttachment,
+  getAttachment
 }

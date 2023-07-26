@@ -7,7 +7,7 @@ import {
   hasMany,
   HasMany,
   BelongsTo,
-  belongsTo,
+  belongsTo
 } from '@ioc:Adonis/Lucid/Orm'
 
 import Lta from 'App/Models/Lta'
@@ -25,10 +25,10 @@ export default class Isp extends BaseModel {
   @column()
   public countryId: number
 
-  @column.dateTime({ autoCreate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
   /**
@@ -40,7 +40,7 @@ export default class Isp extends BaseModel {
     localKey: 'id',
     pivotForeignKey: 'isp_id',
     relatedKey: 'id',
-    pivotRelatedForeignKey: 'lta_id',
+    pivotRelatedForeignKey: 'lta_id'
   })
   public ltas: ManyToMany<typeof Lta>
 
@@ -55,7 +55,7 @@ export default class Isp extends BaseModel {
     localKey: 'id',
     pivotForeignKey: 'isp_id',
     relatedKey: 'id',
-    pivotRelatedForeignKey: 'user_id',
+    pivotRelatedForeignKey: 'user_id'
   })
   public users: ManyToMany<typeof User>
 }

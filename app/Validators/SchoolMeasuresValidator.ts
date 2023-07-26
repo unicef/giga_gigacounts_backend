@@ -7,7 +7,7 @@ export default class SchoolMeasuresValidator {
   public schema = schema.create({
     schoolId: schema.string(),
     contractId: schema.string(),
-    interval: schema.enum(['day', 'week', 'month'] as const),
+    interval: schema.enum(['day', 'week', 'month'] as const)
   })
 
   public messages: CustomMessages = {}

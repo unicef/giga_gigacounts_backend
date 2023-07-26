@@ -15,7 +15,11 @@ const getSafeByUserRole = async (user: User) => {
   let safeName: string
   await user.load('roles')
 
-  if (user.roles[0].name === roles.isp) {
+  // if (user.roles[0].name === roles.isp) {
+  if (
+    user.roles[0].name === roles.ispContractManager ||
+    user.roles[0].name === roles.ispCustomerService
+  ) {
     await user.load('isp')
     safeName = user.isp[0].name
   } else {
@@ -72,11 +76,6 @@ const addUsersToSafe = async (email?: string) => {
 const createUserWallet = async (user: User, trx: TransactionClientContract) => {
   const wallet = Ethers.createWallet()
   const address = await wallet.getAddress()
-  console.log({
-    userId: user.id,
-    privateKey: wallet.privateKey,
-    phrase: wallet.mnemonic.phrase,
-  })
   user.walletAddress = address
   return user.useTransaction(trx).save()
 }
@@ -85,7 +84,8 @@ const handleUser = async (user: User, safes: Safe[], trx: TransactionClientContr
   let safeName: string
   const userRole = user.roles[0].name
 
-  if (userRole === roles.isp) {
+  // if (userRole === roles.isp) {
+  if (userRole === roles.ispContractManager || userRole === roles.ispCustomerService) {
     await user.load('isp')
     safeName = user.isp[0].name
   } else {
@@ -107,7 +107,7 @@ const findAndAddToSafe = async (
     await user.useTransaction(trx).save()
     return gnosisSafe.addOwnerToSafe({
       newOwner: user.walletAddress || '',
-      safeAddress: safe.address,
+      safeAddress: safe.address
     })
   }
   console.log(`No safe found: ${safeName}`)
@@ -116,5 +116,5 @@ const findAndAddToSafe = async (
 export default {
   getSafeByUserRole,
   createSafe,
-  addUsersToSafe,
+  addUsersToSafe
 }

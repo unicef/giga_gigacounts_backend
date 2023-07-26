@@ -77,8 +77,8 @@ export default driveConfig({
       | you are not registering routes with this prefix.
       |
       */
-      basePath: '/uploads',
-    },
+      basePath: '/uploads'
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -145,5 +145,5 @@ export default driveConfig({
       */
     //   usingUniformAcl: false,
     // },
-  },
+  }
 })

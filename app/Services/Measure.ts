@@ -1,6 +1,6 @@
 import Database from '@ioc:Adonis/Lucid/Database'
 import { DateTime } from 'luxon'
-import { DateTime as DateTimeLBD } from 'luxon-business-days'
+// import { DateTime as DateTimeLBD } from 'luxon-business-days'
 
 import NotFoundException from 'App/Exceptions/NotFoundException'
 
@@ -22,13 +22,13 @@ export interface CalculatebyMonthYearData {
 const calculateMeasuresByMonthYear = async ({
   contractId,
   month,
-  year,
+  year
 }: CalculatebyMonthYearData) => {
-  const contract = await Contract.query()
+  const contract = (await Contract.query()
     .where('id', contractId)
     .preload('schools')
     .preload('expectedMetrics')
-    .withCount('schools')
+    .withCount('schools')) as Contract[]
   if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
   const { dateFrom, dateTo } = utils.makeFromAndToDate(month, year, contract[0].endDate)
 
@@ -36,12 +36,12 @@ const calculateMeasuresByMonthYear = async ({
 
   const connectionsMedian = await Database.rawQuery(
     `SELECT contract_id, metric_id, Metrics.name as metric_name, Metrics.unit as unit, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value
-      from Measures 
-      INNER JOIN Metrics ON Metrics.id = metric_id 
+      from Measures
+      INNER JOIN Metrics ON Metrics.id = metric_id
       WHERE Measures.created_at BETWEEN ? AND ? AND contract_id = ?
       GROUP BY contract_id, metric_id, metric_name, unit
     `,
-    [dateFrom.toSQL(), dateTo.toSQL(), contract[0].id]
+    [dateFrom.toSQL()!, dateTo.toSQL()!, contract[0].id]
   )
 
   return dto.calculateMeasuresDTO(contract[0], schoolsMedians, connectionsMedian.rows)
@@ -60,45 +60,50 @@ const saveMeasuresFromUnicef = (
   // eslint-disable-next-line @typescript-eslint/naming-convention
   const _endDate = type === 'daily' ? endDate.minus({ day: 1 }) : endDate
 
-  const uptime = calculateUptime(
-    startDate,
-    _endDate,
-    measures.map((measure) => measure['timestamp'])
-  )
+  // const uptime = calculateUptime(
+  //   startDate,
+  //   _endDate,
+  //   measures.map((measure) => measure['timestamp'])
+  // )
 
   const filteredMeasures = type === 'daily' ? filterMeasures(measures, _endDate) : measures
 
   return Promise.all(
     filteredMeasures.map(async (measure) => {
+      await Measure.query()
+        .where('contract_id', contractId)
+        .andWhere('school_id', schoolId)
+        .delete()
+
       await Measure.createMany([
         {
           contractId,
           schoolId,
           metricId: metrics.find((m) => m.name === 'Latency')?.id,
           value: parseFloat(measure['latency']),
-          createdAt: DateTime.fromJSDate(new Date(measure['timestamp'])),
+          createdAt: DateTime.fromJSDate(new Date(measure['timestamp']))
         },
         {
           contractId,
           schoolId,
           metricId: metrics.find((m) => m.name === 'Download speed')?.id,
           value: convertKilobitsToMegabits(measure['download']),
-          createdAt: DateTime.fromJSDate(new Date(measure['timestamp'])),
+          createdAt: DateTime.fromJSDate(new Date(measure['timestamp']))
         },
         {
           contractId,
           schoolId,
           metricId: metrics.find((m) => m.name === 'Upload speed')?.id,
           value: convertKilobitsToMegabits(measure['upload']),
-          createdAt: DateTime.fromJSDate(new Date(measure['timestamp'])),
+          createdAt: DateTime.fromJSDate(new Date(measure['timestamp']))
         },
         {
           contractId,
           schoolId,
           metricId: metrics.find((m) => m.name === 'Uptime')?.id,
-          value: uptime,
-          createdAt: DateTime.fromJSDate(new Date(measure['timestamp'])),
-        },
+          value: 0,
+          createdAt: DateTime.fromJSDate(new Date(measure['timestamp']))
+        }
       ])
     })
   )
@@ -112,13 +117,13 @@ const filterMeasures = (measures: MeasurementsData[], endDate: DateTime) => {
   )
 }
 
-const calculateUptime = (start: DateTime, end: DateTime, measuresTimestamps: string[]) => {
-  const startLBD = new DateTimeLBD(start)
-  const endLBD = new DateTimeLBD(end)
-  const businessDays = utils.businessDiff(startLBD, endLBD)
-  const countOfTimestamps = utils.removeDuplicateTimestamps(measuresTimestamps).length
-  return Math.round((countOfTimestamps / businessDays) * 100)
-}
+// const calculateUptime = (start: DateTime, end: DateTime, measuresTimestamps: string[]) => {
+//   const startLBD = new DateTimeLBD(start)
+//   const endLBD = new DateTimeLBD(end)
+//   const businessDays = utils.businessDiff(startLBD, endLBD)
+//   const countOfTimestamps = utils.removeDuplicateTimestamps(measuresTimestamps).length
+//   return Math.round((countOfTimestamps / businessDays) * 100)
+// }
 
 const convertKilobitsToMegabits = (value: number) => (value > 0 ? Math.round(value / 1000) : 0)
 
@@ -135,8 +140,14 @@ const getSchoolsMedianMeasures = async (
     for (const school of contract.schools) {
       const measure = await Database.rawQuery(
         // eslint-disable-next-line max-len
-        'SELECT contract_id, metric_id, Metrics.name as metric_name, Metrics.unit as unit, Measures.school_id, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from Measures INNER JOIN Metrics ON Metrics.id = metric_id WHERE Measures.created_at BETWEEN ? AND ? AND contract_id = ? AND school_id = ? GROUP BY contract_id, metric_id, metric_name, unit, school_id',
-        [dateFrom.toSQL(), dateTo.toSQL(), contract.id, school.id]
+        `SELECT contract_id, metric_id, Metrics.name as metric_name, Metrics.unit as unit, Measures.school_id,
+                        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value
+             from Measures INNER JOIN Metrics ON Metrics.id = metric_id
+             WHERE Measures.created_at BETWEEN ? AND ?
+               AND contract_id = ?
+               AND school_id = ?
+             GROUP BY contract_id, metric_id, metric_name, unit, school_id`,
+        [dateFrom.toSQL()!, dateTo.toSQL()!, contract.id, school.id]
       )
       schoolsMedians[contract.name][school.name] = measure.rows
     }
@@ -146,5 +157,5 @@ const getSchoolsMedianMeasures = async (
 
 export default {
   saveMeasuresFromUnicef,
-  calculateMeasuresByMonthYear,
+  calculateMeasuresByMonthYear
 }

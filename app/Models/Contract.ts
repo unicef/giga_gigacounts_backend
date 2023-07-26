@@ -1,6 +1,5 @@
 import { DateTime } from 'luxon'
 import {
-  BaseModel,
   column,
   belongsTo,
   BelongsTo,
@@ -8,6 +7,8 @@ import {
   HasMany,
   manyToMany,
   ManyToMany,
+  BaseModel,
+  LucidModel
 } from '@ioc:Adonis/Lucid/Orm'
 
 import Country from 'App/Models/Country'
@@ -33,6 +34,9 @@ export default class Contract extends BaseModel {
   public governmentBehalf: boolean
 
   @column()
+  public automatic: boolean
+
+  @column()
   public name: string
 
   @column()
@@ -42,12 +46,12 @@ export default class Contract extends BaseModel {
   public currencyId: number
 
   @column()
-  public budget: string
+  public budget: number
 
   @column({
     serialize: (value: number) => {
       return value.toString()
-    },
+    }
   })
   public frequencyId: number
 
@@ -56,6 +60,9 @@ export default class Contract extends BaseModel {
 
   @column.dateTime()
   public endDate: DateTime
+
+  @column.dateTime()
+  public launchDate: DateTime
 
   @column()
   public ispId: number
@@ -66,61 +73,74 @@ export default class Contract extends BaseModel {
   @column()
   public status: number
 
-  @column.dateTime({ autoCreate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
+
+  @column()
+  public notes: string
+
+  @column()
+  public signRequestString: string
+
+  @column()
+  public signedWithWallet: boolean
+
+  @column()
+  public signedWalletAddress: string
 
   /**
    * RELATIONSHIPS
    */
 
-  @belongsTo(() => Country)
+  @belongsTo(() => Country as LucidModel)
   public country: BelongsTo<typeof Country>
 
-  @belongsTo(() => Lta)
+  @belongsTo(() => Lta as LucidModel)
   public lta: BelongsTo<typeof Lta>
 
-  @belongsTo(() => Currency)
+  @belongsTo(() => Currency as LucidModel)
   public currency: BelongsTo<typeof Currency>
 
-  @belongsTo(() => Frequency)
+  @belongsTo(() => Frequency as LucidModel)
   public frequency: BelongsTo<typeof Frequency>
 
-  @belongsTo(() => Isp)
+  @belongsTo(() => Isp as LucidModel)
   public isp: BelongsTo<typeof Isp>
 
-  @belongsTo(() => User, {
+  @belongsTo(() => User as LucidModel, {
     localKey: 'created_by',
-    foreignKey: 'id',
+    foreignKey: 'id'
   })
   public user: BelongsTo<typeof User>
 
-  @hasMany(() => ExpectedMetric)
+  @hasMany(() => ExpectedMetric as LucidModel)
   public expectedMetrics: HasMany<typeof ExpectedMetric>
 
-  @manyToMany(() => Attachment, {
+  @manyToMany(() => Attachment as LucidModel, {
     pivotTable: 'contract_attachments',
     localKey: 'id',
     pivotForeignKey: 'contract_id',
     relatedKey: 'id',
-    pivotRelatedForeignKey: 'attachment_id',
+    pivotRelatedForeignKey: 'attachment_id'
   })
   public attachments: ManyToMany<typeof Attachment>
 
-  @manyToMany(() => School, {
+  @manyToMany(() => School as LucidModel, {
     pivotTable: 'school_contracts',
     localKey: 'id',
     pivotForeignKey: 'contract_id',
     relatedKey: 'id',
     pivotRelatedForeignKey: 'school_id',
+    pivotColumns: ['budget']
   })
   public schools: ManyToMany<typeof School>
 
-  @hasMany(() => Payment)
+  @hasMany(() => Payment as LucidModel)
   public payments: HasMany<typeof Payment>
 
-  @hasMany(() => Measure)
+  @hasMany(() => Measure as LucidModel)
   public measures: HasMany<typeof Measure>
 }

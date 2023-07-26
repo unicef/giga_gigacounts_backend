@@ -5,7 +5,7 @@ export default class CreateSafeValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    name: schema.string(),
+    name: schema.string()
   })
 
   public messages: CustomMessages = {}

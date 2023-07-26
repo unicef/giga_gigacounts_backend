@@ -5,7 +5,7 @@ const UNICEF_API = process.env.UNICEF_API || ''
 const UNICEF_API_TOKEN = process.env.UNICEF_API_TOKEN || ''
 
 const headers: AxiosRequestHeaders = {
-  Authorization: `Bearer ${UNICEF_API_TOKEN}`,
+  Authorization: `Bearer ${UNICEF_API_TOKEN}`
 }
 
 const instance = axios.createInstance(UNICEF_API, headers)
@@ -34,16 +34,22 @@ const allMeasurementsBySchool = async (
   while (condition) {
     page++
     const result = await instance.get(`/v1/all_measurements/${data.country_code}`, {
-      params: { ...data, page },
+      params: {
+        page,
+        size: data.size,
+        school_id: data.school_id,
+        start_date: data.start_date,
+        end_date: data.end_date
+      }
     })
-    if (result.data?.data.length > 0) {
+    if (result.data?.data?.length > 0) {
       await Promise.all(
         result.data.data.map((measure: MeasurementsData) => {
           measures.push({
-            download: measure['Download'] || measure['download'],
-            upload: measure['Upload'] || measure['upload'],
-            latency: measure['Latency'] || measure['latency'],
-            timestamp: measure['Timestamp'] || measure['timestamp'],
+            download: measure['connectivity_speed'],
+            upload: 0,
+            latency: measure['connectivity_latency'],
+            timestamp: measure['date']
           })
         })
       )
@@ -63,5 +69,5 @@ const getSchools = async (countryId: number, page: number, size: number) =>
 export default {
   allMeasurementsBySchool,
   getCountries,
-  getSchools,
+  getSchools
 }

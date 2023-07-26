@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import {
   BaseModel,
+  LucidModel,
   column,
   belongsTo,
   BelongsTo,
@@ -8,12 +9,13 @@ import {
   HasMany,
   manyToMany,
   ManyToMany,
+  computed
 } from '@ioc:Adonis/Lucid/Orm'
 
 import Country from 'App/Models/Country'
 import Measure from 'App/Models/Measure'
 import Contract from 'App/Models/Contract'
-
+import User from 'App/Models/User'
 export default class School extends BaseModel {
   @column({ isPrimary: true })
   public id: number
@@ -60,28 +62,44 @@ export default class School extends BaseModel {
   @column()
   public gigaIdSchool: string
 
-  @column.dateTime({ autoCreate: true, serializeAs: null })
+  @column()
+  public reliableMeasures: boolean
+
+  @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
+
+  @computed()
+  public budget: number
 
   /**
    * RELATIONSHIPS
    */
 
-  @belongsTo(() => Country)
+  @belongsTo(() => Country as LucidModel)
   public country: BelongsTo<typeof Country>
 
-  @hasMany(() => Measure)
+  @hasMany(() => Measure as LucidModel)
   public measures: HasMany<typeof Measure>
 
-  @manyToMany(() => Contract, {
+  @manyToMany(() => Contract as LucidModel, {
     pivotTable: 'school_contracts',
     localKey: 'id',
     pivotForeignKey: 'school_id',
     relatedKey: 'id',
     pivotRelatedForeignKey: 'contract_id',
+    pivotColumns: ['budget']
   })
   public contracts: ManyToMany<typeof Contract>
+
+  @manyToMany(() => User, {
+    pivotTable: 'school_users',
+    localKey: 'id',
+    pivotForeignKey: 'school_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'user_id'
+  })
+  public users: ManyToMany<typeof User>
 }

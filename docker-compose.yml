@@ -2,21 +2,13 @@ version: '3.9'
 
 services:
   db:
+    container_name: gigacounts-db
     image: postgres:14-alpine
     ports:
       - 5432:5432
-    volumes:
-      - ~/apps/postgres:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=p@ssword
       - POSTGRES_USER=admin
       - POSTGRES_DB=unicef-giga
-
-  db-test:
-    image: postgres:14-alpine
-    ports:
-      - 54322:5432
-    environment:
-      - POSTGRES_PASSWORD=p@ssword
-      - POSTGRES_USER=admin
-      - POSTGRES_DB=unicef-giga-test
+    volumes:
+      - ./database/scripts/db-initial:/docker-entrypoint-initdb.d

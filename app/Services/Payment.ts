@@ -18,6 +18,7 @@ import utils from 'App/Helpers/utils'
 import { PaymentStatus, roles, ContractStatus } from 'App/Helpers/constants'
 
 import dto from 'App/DTOs/Payment'
+import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
 
 interface File {
   file: string
@@ -28,8 +29,8 @@ export interface CreatePaymentData {
   month: number
   year: number
   description?: string
-  currencyId: string
   amount: number
+  status?: string
   invoice?: File
   receipt?: File
   contractId: string
@@ -62,13 +63,23 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
     if (contract.status === ContractStatus.Completed)
       throw new InvalidStatusException('Invalid status', 400, 'INVALID_STATUS')
 
-    const status = userService.checkUserRole(user, [
-      roles.government,
-      roles.countryOffice,
-      roles.gigaAdmin,
-    ])
-      ? PaymentStatus.Verified
-      : PaymentStatus.Pending
+    let status
+    if (
+      userService.checkUserRole(user, [
+        roles.gigaAdmin,
+        roles.countryContractCreator,
+        roles.countryAccountant,
+        roles.countrySuperAdmin
+        // roles.government,
+        // roles.countryOffice,
+      ])
+    ) {
+      if (data.status !== undefined && Object.values(PaymentStatus).includes(data.status)) {
+        status = PaymentStatus[data.status]
+      } else {
+        status = PaymentStatus.OnHold
+      }
+    }
 
     const { dateFrom, dateTo, metrics } = await checkAndSavePaymentMetrics(
       data.month,
@@ -82,11 +93,11 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
         dateTo,
         contractId: contract.id,
         amount: data.amount,
-        currencyId: parseInt(data.currencyId),
+        currencyId: contract.currencyId,
         description: data.description,
         status: status,
         createdBy: user.id,
-        metrics: metrics,
+        metrics: metrics
       },
       { client: trx }
     )
@@ -104,7 +115,7 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
         {
           ...data.receipt,
           type: AttachmentsType.RECEIPT,
-          typeId: payment.id,
+          typeId: payment.id
         },
         trx
       )
@@ -125,9 +136,9 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
     await trx.rollback()
     if ([404, 422, 400, 413].some((status) => status === error?.status)) throw error
     throw new FailedDependencyException(
-      'Some dependency failed while uploading attachment',
+      'Some database error occurred while uploading attachment',
       424,
-      'FAILED_DEPENDENCY'
+      'DATABASE_ERROR'
     )
   }
 }
@@ -162,6 +173,65 @@ const getPaymentsByContract = async (contractId: string) => {
   return dto.getPaymentsByContractDTO(payments)
 }
 
+const queryBuilder = async (
+  user: User
+): Promise<{ query: ModelQueryBuilderContract<typeof Payment, Payment> }> => {
+  let query = Payment.query()
+
+  if (
+    userService.checkUserRole(
+      user,
+      // These roles see all payments for all contracts.
+      [roles.gigaAdmin, roles.gigaViewOnly]
+    )
+  ) {
+  } else if (
+    userService.checkUserRole(
+      user,
+      // These roles see all payments for the contracts of their country.
+      [roles.countryAccountant, roles.countrySuperAdmin]
+    )
+  ) {
+    query.whereHas('contract', (builder) => {
+      builder.where('countryId', user.countryId)
+    })
+  } else {
+    throw new InvalidStatusException(
+      'The current user does not have the required permissions to list payments.',
+      401,
+      'E_UNAUTHORIZED_ACCESS'
+    )
+  }
+
+  return { query }
+}
+
+const fetchPaymentsList = async (query: ModelQueryBuilderContract<typeof Payment, Payment>) => {
+  return query
+    .preload('currency')
+    .preload('creator', (builder) => builder.preload('roles'))
+    .preload('contract', (builder) => {
+      builder.preload('country')
+      builder.preload('frequency')
+    })
+    .orderBy('date_to', 'desc')
+}
+
+const getPayments = async (user: User) => {
+  const { query } = await queryBuilder(user)
+  let payments: Payment[] = []
+
+  payments = await fetchPaymentsList(query)
+  await Promise.all(
+    payments.map(async (payment) => {
+      if (payment.invoiceId) await payment.load('invoice')
+      if (payment.receiptId) await payment.load('receipt')
+    })
+  )
+
+  return dto.getPaymentsWithDetailsDTO(payments)
+}
+
 const getPayment = async (paymentId: string) => {
   const payment = await Payment.find(paymentId)
   if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
@@ -178,7 +248,7 @@ const changePaymentStatus = async ({ paymentId, status }: ChangePaymentStatusDat
   if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
   if (payment.status === PaymentStatus.Verified)
     throw new InvalidStatusException('Payment already verified', 400, 'INVALID_STATUS')
-  if (payment.status === PaymentStatus.Rejected && PaymentStatus[status] === PaymentStatus.Verified)
+  if (payment.status === PaymentStatus.Unpaid && PaymentStatus[status] === PaymentStatus.Verified)
     throw new InvalidStatusException('Rejected payment cant be verified', 400, 'INVALID_STATUS')
   payment.status = PaymentStatus[status]
   payment.isVerified = true
@@ -199,7 +269,10 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
     const payment = await Payment.find(data.paymentId, { client: trx })
     if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
 
-    if (userService.checkUserRole(user, [roles.isp]) && payment.status === PaymentStatus.Verified) {
+    if (
+      userService.checkUserRole(user, [roles?.ispContractManager, roles?.ispCustomerService]) &&
+      payment.status === PaymentStatus.Verified
+    ) {
       throw new InvalidStatusException(
         'ISPs cant update an verified payment',
         401,
@@ -239,22 +312,37 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
 
     if (
       data.receipt &&
-      userService.checkUserRole(user, [roles.government, roles.countryOffice, roles.gigaAdmin])
+      userService.checkUserRole(user, [
+        roles.gigaAdmin,
+        roles.countryContractCreator,
+        roles.countryAccountant,
+        roles.countrySuperAdmin
+        // roles.government,
+        // roles.countryOffice,
+        // roles.gigaAdmin
+      ])
     ) {
       if (payment.receiptId) await attachmentService.deleteAttachment(payment.receiptId, user, trx)
       const receipt = await attachmentService.uploadAttachment(
         {
           ...data.receipt,
           type: AttachmentsType.RECEIPT,
-          typeId: payment.id,
+          typeId: payment.id
         },
         trx
       )
       payment.receiptId = receipt.id
     }
 
-    if (userService.checkUserRole(user, [roles.isp]) && payment.status === PaymentStatus.Rejected) {
-      payment.status = PaymentStatus.Pending
+    if (
+      userService.checkUserRole(user, [
+        // roles.isp
+        roles.ispContractManager,
+        roles.ispCustomerService
+      ]) &&
+      payment.status === PaymentStatus.Unpaid
+    ) {
+      payment.status = PaymentStatus.OnHold
     }
 
     const updatedPayment = await payment.useTransaction(trx).save()
@@ -271,9 +359,9 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
     await trx.rollback()
     if ([404, 422, 400, 413, 401].some((status) => status === error?.status)) throw error
     throw new FailedDependencyException(
-      'Some dependency failed while uploading attachment',
+      'Some database error occurred while uploading attachment',
       424,
-      'FAILED_DEPENDENCY'
+      'DATABASE_ERROR'
     )
   }
 }
@@ -292,7 +380,7 @@ const checkAndSavePaymentMetrics = async (month: number, year: number, contract:
   const metrics = await measureService.calculateMeasuresByMonthYear({
     contractId: contract.id,
     month: month,
-    year: year,
+    year: year
   })
   return { dateFrom, dateTo, metrics }
 }
@@ -303,10 +391,16 @@ const checkPaymentFileEdit = async (
   trx: TransactionClientContract
 ) => {
   const user = await User.query().useTransaction(trx).where('id', userId).preload('roles')
-  if (userService.checkUserRole(user[0], [roles.isp])) {
+  if (
+    userService.checkUserRole(user[0], [
+      // roles.isp
+      roles.ispContractManager,
+      roles.ispCustomerService
+    ])
+  ) {
     const payment = await Payment.find(paymentId, { client: trx })
-    if (payment?.status === PaymentStatus.Rejected) {
-      payment.status = PaymentStatus.Pending
+    if (payment?.status === PaymentStatus.Unpaid) {
+      payment.status = PaymentStatus.OnHold
       await payment.useTransaction(trx).save()
     }
   }
@@ -315,9 +409,10 @@ const checkPaymentFileEdit = async (
 export default {
   listFrequencies,
   createPayment,
+  getPayments,
   getPaymentsByContract,
   getPayment,
   changePaymentStatus,
   updatePayment,
-  checkPaymentFileEdit,
+  checkPaymentFileEdit
 }

@@ -1,122 +1,138 @@
-# Unicef Giga API
+# Gigacounts Backend
 
-# Getting started
+## Requirements
 
-Rename the `.env.example` file to `.env` and replace the credentials necessary for local setup.
+The App requires:
 
+- [Node.js](https://nodejs.org/) v16+ to run (^16.14.2).
+- [Yarn.js](https://classic.yarnpkg.com/en/docs/install) v1+ to run (^1.22.19).
+- [Docker](https://www.docker.com/products/docker-desktop/) (in case that you desire to start app with docker).
+- PostgreSql ([windows installation](https://www.postgresql.org/download), [linux installation](https://www.postgresql.org/download)).
+
+- You could check version of packages (node, yarn) with these comamnds:
+
+  ```sh
+  node -v
+  yarn -v
+  ```
+
+## Setting up the Database
+
+You can set up the database either running manually installing the database on your local machine or running `docker-compose` command.
+
+### Running Manually
+
+You need to have postgreSql installed.
+
+Then:
+
+- Set postgres database password to the same in .env file (or vice versa). If you need to change password:
+
+```sh
+# linux: sudo -u postgres psql, windows: psql. Then:
+# Important: use the same user name (here "postgres") that you put in .env file.
+ALTER USER postgres PASSWORD 'p@ssword';
 ```
+
+- Ensure that your postgres port is the same that .env file (default postgres port: 5432, actual in .env 54322 (additional "2")).
+
+* Connect to postgresql and then create a database called **unicef_giga**
+
+- Create user **admin** with any password (e.g.: **p@ssword**) and be sure that you put that user and password in .env file.
+
+```sh
+# command to create user with password in command lin
+# important: use the same user name (here "postgres") that you put in .env file
+psql -c "CREATE USER postgres WITH PASSWORD 'p@ssword';"
+```
+
+- Create the database schema and insert the initial and mock data, running all the scripts in the following folder: `./database/scripts`
+
+  - Schema & Initial Data: [./database/scripts/initial-data](./database/scripts/initial-data)
+  - Mock Data: [./database/scripts/mock-data](./database/scripts/mock-data)
+
+  **Important**: The **00_shema.sql** script is using the **admin** user to leave as owner of the tables. That user has to be created in your local database (or put the one you have, in the script, before running it). Example:
+
+  ```sql
+  alter table countries
+    owner to admin;
+  ```
+
+### Running via Docker-Compose
+
+- Alternatively, you could start up the database with docker-compose:
+
+```sh
+docker-compose up -d
+```
+
+SQL Files located on folder `./database/scripts` will be executed automatically during `docker-compose` start-up
+
+> This command executes SQL scripts alphabetically
+
+The default **docker-compose.yml** file, start database with schema and initial data.  
+If you want to include mock data (e.g.: dev environment), you must use **docker-compose-mocks.yml**.
+
+```sh
+docker-compose -f docker-compose-mock.yml up
+```
+
+## Install the dependencies
+
+```sh
+- yarn install # with yarn
+- npm i OR npm i --legacy-peer-deps # with NPM
+```
+
+If you have troubles with dependencies, try this:
+
+```sh
+set http_proxy=
+set https_proxy=
+npm config rm https-proxy
+npm config rm proxy
+npm config set registry "https://registry.npmjs.org"
+yarn cache clean
+yarn config delete proxy
+yarn --network-timeout 100000
+```
+
+Create a .env file running the command in terminal
+
+```sh
+touch .env
+```
+
+## Environment variables
+
+The environment variables bellow needs to be set in the .env file when project is running locally: and in
+/.github/workflows/azure-static-web-app-deploy.yml when project is deployed to Azure.
+
+```sh
+SKIP_PREFLIGHT_CHECK=true
 PG_USER=admin
-PG_PASSWORD=p@ssword
+PG_PASSWORD=some password
 PG_DB_NAME=unicef-giga
 ```
 
-> Note: You can find more info about the others required `.env` variables inside the `.env.example` file.
+> Note: You can find more info about the others required `.env` variables inside the `example_env` file.
 
-## Instaling
+## Start app
 
-You need a couple of things to be installed in order to run this application:
-
-- [Node/NPM](https://nodejs.org/en/)
-
-  > Minimum Version: 16
-
-- [Docker](https://www.docker.com/products/docker-desktop/)
-
-`$ npm install -g yarn `
-
-After installing these programs, run the following commands:
-
-### Setting up the database image
-
-To set up a local database connection:
-
-`$ docker-compose up -d`
-
-### Setting up tables and some users
-
-`$ node ace migration:run`
-
-`$ NODE_ENV=test node ace migration:run`
-
-`$ node ace seed:db`
-
-> This command will create a couple of users/countries/roles on the database
-> Don't run this command on the test database
-
-### Installing project dependencies
-
-`$ yarn install`
-
-## Running
-
-`$ yarn run dev`
-
-## Testing
-
-`$ node ace test`
-
-## Github Actions
-
-### Cron
-
-This action is responsible for handling two daily routines:
-
-- Updating contracts status based on they dates.
-- Getting daily internet measures from the Unicef API
-  > By default the cron action automatic run is disabled, can only be activated manually.
-
-If you want turn on schedule runs of this actions, uncomment the following code (lines 4 to 6) inside the `cron.yml` file, inside `.github/workflows`
-
-```
-name: Cron Job
-
-on:
-# schedule:
-# - cron: '2 0 * * *'
-# - cron: '58 23 * * *'
+```sh
+- yarn dev
+# or
+- npm run dev
 ```
 
-### Create Safe
+---
 
-This action is responsible for creating a new gnosis safe on Ethereum blockchain.
+## Source Code additional Documentation
 
-> Note: The exact chain and the private key of the master wallet has to be defined inside the .env file
+See [./doc/](./.doc/index.md), for documentation about source code and database commands.
 
-Before running this action you need to input an name for the Safe and the target environment.
+## References
 
-#### Running remotely
+- [Convert JSON Data to SQL Inserts command](https://wtools.io/convert-json-to-sql-queries) - This link is useful to convert data from the project connect API to postgresql
 
-Inside this repository's github page, go to `Actions` tab. Choose the `Create Safe` workflow and click `Run workflow`.
-
-#### Running locally
-
-`$ npm run deploy:safe --private_key='...' --name='name for the safe'`
-
-### Assign a User to a Safe
-
-This actions is responsible for adding a users wallet to an gnosis safe.
-
-> Note: The exact chain and the private key of the master wallet has to be defined inside the .env file
-> Note: Make sure that the safe for the user's role is already created.
-
-Before running this action you need to input the User's email and the target environment.
-
-#### Running remotely
-
-Inside this repository's github page, go to `Actions` tab. Choose the `Assign User to Safe` workflow and click `Run workflow`.
-
-#### Running locally
-
-`$ npm run add:user_safe --env=dev --email='user email'`
-
-## DEV/STAGE envs (Azure)
-
-DEV and STAGE environments deploys to Azure via GitHub actions.
-There are 2 secrets configured in GitHub: DEV_ENV_FILE and STAGE_ENV_FILE.
-Each secret contains base64 encoded .env file for the corresponding environment.
-
-In order to update GitHub secret for any environment, prepare .env file locally (look into .env.azure.example), encode it with base64 and provide the result with the repo admin.
-
-Example:
-
-`$ cat .env.azure.dev | base64 > env_azure_dev.txt`
+- [cron-tasks](https://crontab.guru)

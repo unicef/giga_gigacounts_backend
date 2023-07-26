@@ -1,11 +1,9 @@
-import EthersAdapter from '@gnosis.pm/safe-ethers-lib'
-import Safe, { SafeFactory, SafeAccountConfig } from '@gnosis.pm/safe-core-sdk'
+import Safe, { SafeFactory, SafeAccountConfig, EthersAdapter } from '@safe-global/protocol-kit'
 import { ethers } from 'ethers'
 
 import Ethers from 'App/Helpers/ethers'
 import utils from 'App/Helpers/utils'
-
-import { SafeTransaction, TransactionResult } from '@gnosis.pm/safe-core-sdk-types'
+import { SafeTransaction, TransactionResult } from '@safe-global/safe-core-sdk-types'
 
 interface DeploySafeData {
   owners: string[]
@@ -28,7 +26,7 @@ const deploySafe = async ({ owners, threshold = 1 }: DeploySafeData) => {
   const signer = await Ethers.getWalletAndConnect(provider)
   const ethAdapter = new EthersAdapter({
     ethers,
-    signer: signer,
+    signerOrProvider: signer
   })
   const internalWalletAddress = await signer.getAddress()
 
@@ -37,7 +35,7 @@ const deploySafe = async ({ owners, threshold = 1 }: DeploySafeData) => {
   owners.push(internalWalletAddress)
   const safeAccountConfig: SafeAccountConfig = {
     owners,
-    threshold,
+    threshold
   }
   const safeSdk = await safeFactory.deploySafe({ safeAccountConfig })
   return safeSdk.getAddress()
@@ -52,11 +50,11 @@ const addOwnerToSafe = async (
     const signer = await Ethers.getWalletAndConnect(provider)
     const ethAdapter = new EthersAdapter({
       ethers,
-      signer: signer,
+      signerOrProvider: signer
     })
 
     const safeSdk = await Safe.create({ ethAdapter, safeAddress })
-    const tx = await safeSdk.getAddOwnerTx({ ownerAddress: newOwner, threshold: newThreshold })
+    const tx = await safeSdk.createAddOwnerTx({ ownerAddress: newOwner, threshold: newThreshold })
     return trx ? { safeSdk, tx } : safeSdk.executeTransaction(tx)
   } catch (error) {
     if (error.message === 'Address provided is already an owner') {
@@ -71,7 +69,7 @@ const getSafeInfo = async (safeAddress: string) => {
   const signer = await Ethers.getWalletAndConnect(provider)
   const ethAdapter = new EthersAdapter({
     ethers,
-    signer: signer,
+    signerOrProvider: signer
   })
 
   const safeSdk = await Safe.create({ ethAdapter, safeAddress })
@@ -79,7 +77,7 @@ const getSafeInfo = async (safeAddress: string) => {
   return {
     balance: utils.toNormalNumber(await safeSdk.getBalance()),
     owners: await safeSdk.getOwners(),
-    threshold: await safeSdk.getThreshold(),
+    threshold: await safeSdk.getThreshold()
   }
 }
 
@@ -94,11 +92,11 @@ const removeOwnerOfSafe = async (
     const signer = await Ethers.getWalletAndConnect(provider)
     const ethAdapter = new EthersAdapter({
       ethers,
-      signer: signer,
+      signerOrProvider: signer
     })
 
     const safeSdk = await Safe.create({ ethAdapter, safeAddress })
-    const tx = await safeSdk.getRemoveOwnerTx({ ownerAddress, threshold })
+    const tx = await safeSdk.createRemoveOwnerTx({ ownerAddress, threshold })
     return trx ? { safeSdk, tx } : safeSdk.executeTransaction(tx)
   } catch (error) {
     throw { message: error.message, status: 424 }
@@ -109,5 +107,5 @@ export default {
   deploySafe,
   addOwnerToSafe,
   getSafeInfo,
-  removeOwnerOfSafe,
+  removeOwnerOfSafe
 }
