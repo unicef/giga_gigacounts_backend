@@ -25,6 +25,7 @@ import Payment from 'App/Models/Payment'
 import Safe from 'App/Models/Safe'
 import Isp from 'App/Models/Isp'
 import School from 'App/Models/School'
+import Draft from './Draft'
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -156,4 +157,40 @@ export default class User extends BaseModel {
     pivotRelatedForeignKey: 'school_id'
   })
   public school: ManyToMany<typeof School>
+
+  @manyToMany(() => Draft, {
+    pivotTable: 'draft_isp_contacts',
+    localKey: 'id',
+    pivotForeignKey: 'user_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'draft_id'
+  })
+  public ispContactDrafts: ManyToMany<typeof Draft>
+
+  @manyToMany(() => Contract, {
+    pivotTable: 'contract_isp_contacts',
+    localKey: 'id',
+    pivotForeignKey: 'user_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'contract_id'
+  })
+  public ispContactContracts: ManyToMany<typeof Contract>
+
+  @manyToMany(() => Draft, {
+    pivotTable: 'draft_stakeholders',
+    localKey: 'id',
+    pivotForeignKey: 'user_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'draft_id'
+  })
+  public stakeholdersDrafts: ManyToMany<typeof Draft>
+
+  @manyToMany(() => Contract, {
+    pivotTable: 'contract_stakeholders',
+    localKey: 'id',
+    pivotForeignKey: 'user_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'contract_id'
+  })
+  public stakeholderContracts: ManyToMany<typeof Contract>
 }

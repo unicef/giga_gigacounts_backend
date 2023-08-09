@@ -70,10 +70,10 @@ const saveMeasuresFromUnicef = (
 
   return Promise.all(
     filteredMeasures.map(async (measure) => {
-      await Measure.query()
-        .where('contract_id', contractId)
-        .andWhere('school_id', schoolId)
-        .delete()
+      // await Measure.query()
+      //   .where('contract_id', contractId)
+      //   .andWhere('school_id', schoolId)
+      //   .delete()
 
       await Measure.createMany([
         {

@@ -71,6 +71,8 @@
     "@japa/expect": "^1.1.4",
     "@japa/preset-adonis": "^1.0.16",
     "@japa/runner": "^2.0.8",
+    "@types/node": "^20.4.2",
+    "@types/node-cron": "^3.0.7",
     "@types/uuid": "^8.3.4",
     "adonis-preset-ts": "^2.1.0",
     "concurrently": "^8.2.0",
@@ -83,9 +85,7 @@
     "prettier": "^2.6.2",
     "typescript": "~4.6",
     "youch": "^3.2.0",
-    "youch-terminal": "^2.1.4",
-    "@types/node": "^20.4.2",
-    "@types/node-cron": "^3.0.7"
+    "youch-terminal": "^2.1.4"
   },
   "dependencies": {
     "@adonisjs/auth": "^8.2.2",
@@ -96,6 +96,7 @@
     "@safe-global/api-kit": "^1.1.0",
     "@safe-global/protocol-kit": "^1.0.1",
     "@safe-global/safe-core-sdk-types": "^2.0.0",
+    "adonis-request-throttler": "^2.0.3",
     "adonis5-jwt": "^1.1.7",
     "adonis5-scheduler": "^2.0.2",
     "axios": "^0.27.2",
@@ -107,12 +108,12 @@
     "nodemailer": "^6.9.3",
     "pg": "^8.7.3",
     "phc-argon2": "^1.1.3",
+    "pino-pretty": "^10.0.1",
     "proxy-addr": "^2.0.7",
     "reflect-metadata": "^0.1.13",
     "source-map-support": "^0.5.21",
     "uuid": "^8.3.2",
-    "yarn": "^1.22.19",
-    "pino-pretty": "^10.0.1"
+    "yarn": "^1.22.19"
   },
   "resolutions": {
     "glob-parent": "^6.0.2"

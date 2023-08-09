@@ -155,9 +155,12 @@ CREATE TABLE contracts (
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
     notes character varying(5000) NULL,
+    breaking_rules character varying(5000) NULL,
     sign_request_string character varying(255),
     signed_with_wallet boolean default false,
-    signed_wallet_address character varying(255)
+    signed_wallet_address character varying(255),
+    payment_receiver_id bigint,
+    cashback real null default 0
 );
 
 
@@ -174,7 +177,6 @@ CREATE SEQUENCE contracts_id_seq
 -- Name: contracts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 
 ALTER SEQUENCE contracts_id_seq OWNED BY contracts.id;
-
 
 -- Name: countries; Type: TABLE; Schema: public; Owner: -
 
@@ -281,7 +283,9 @@ CREATE TABLE drafts (
     expected_metrics jsonb,
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
-    notes character varying(5000) NULL
+    notes character varying(5000) NULL,
+    breaking_rules character varying(5000) NULL,
+    payment_receiver_id bigint
 );
 
 
@@ -299,6 +303,101 @@ CREATE SEQUENCE drafts_id_seq
 
 ALTER SEQUENCE drafts_id_seq OWNED BY drafts.id;
 
+-- Name: draft_isp_contacts; Type: TABLE; Schema: public; Owner: -
+
+CREATE TABLE draft_isp_contacts (
+    id bigint NOT NULL,
+    draft_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    created_at timestamp with time zone
+);
+
+
+-- Name: draft_isp_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+
+CREATE SEQUENCE draft_isp_contacts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+-- Name: draft_isp_contacts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+
+ALTER SEQUENCE draft_isp_contacts_id_seq OWNED BY draft_isp_contacts.id;
+
+-- Name: contract_isp_contacts; Type: TABLE; Schema: public; Owner: -
+
+CREATE TABLE contract_isp_contacts (
+    id bigint NOT NULL,
+    contract_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    created_at timestamp with time zone
+);
+
+
+-- Name: contract_isp_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+
+CREATE SEQUENCE contract_isp_contacts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+-- Name: contract_isp_contacts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+
+ALTER SEQUENCE contract_isp_contacts_id_seq OWNED BY contract_isp_contacts.id;
+
+-- Name: draft_stakeholders; Type: TABLE; Schema: public; Owner: -
+
+CREATE TABLE draft_stakeholders (
+    id bigint NOT NULL,
+    draft_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    created_at timestamp with time zone
+);
+
+
+-- Name: draft_stakeholders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+
+CREATE SEQUENCE draft_stakeholders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+-- Name: draft_stakeholders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+
+ALTER SEQUENCE draft_stakeholders_id_seq OWNED BY draft_stakeholders.id;
+
+-- Name: contract_stakeholders; Type: TABLE; Schema: public; Owner: -
+
+CREATE TABLE contract_stakeholders (
+    id bigint NOT NULL,
+    contract_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    created_at timestamp with time zone
+);
+
+
+-- Name: contract_stakeholders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+
+CREATE SEQUENCE contract_stakeholders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+-- Name: contract_stakeholders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+
+ALTER SEQUENCE contract_stakeholders_id_seq OWNED BY contract_stakeholders.id;
 
 -- Name: expected_metrics; Type: TABLE; Schema: public; Owner: -
 
@@ -770,6 +869,7 @@ CREATE TABLE payments (
     contract_id bigint NOT NULL,
     paid_by bigint,
     amount integer NOT NULL,
+    discount real null default 0,
     currency_id bigint,
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
@@ -1544,6 +1644,21 @@ ALTER TABLE ONLY draft_attachments ALTER COLUMN id SET DEFAULT nextval('draft_at
 
 ALTER TABLE ONLY drafts ALTER COLUMN id SET DEFAULT nextval('drafts_id_seq'::regclass);
 
+-- Name: draft_isp_contacts id; Type: DEFAULT; Schema: public; Owner: -
+
+ALTER TABLE ONLY draft_isp_contacts ALTER COLUMN id SET DEFAULT nextval('draft_isp_contacts_id_seq'::regclass);
+
+-- Name: contract_isp_contacts id; Type: DEFAULT; Schema: public; Owner: -
+
+ALTER TABLE ONLY contract_isp_contacts ALTER COLUMN id SET DEFAULT nextval('contract_isp_contacts_id_seq'::regclass);
+
+-- Name: draft_stakeholders id; Type: DEFAULT; Schema: public; Owner: -
+
+ALTER TABLE ONLY draft_stakeholders ALTER COLUMN id SET DEFAULT nextval('draft_stakeholders_id_seq'::regclass);
+
+-- Name: contract_stakeholders id; Type: DEFAULT; Schema: public; Owner: -
+
+ALTER TABLE ONLY contract_stakeholders ALTER COLUMN id SET DEFAULT nextval('contract_stakeholders_id_seq'::regclass);
 
 -- Name: expected_metrics id; Type: DEFAULT; Schema: public; Owner: -
 
@@ -1753,6 +1868,45 @@ ALTER TABLE ONLY draft_attachments
 ALTER TABLE ONLY drafts
     ADD CONSTRAINT drafts_pkey PRIMARY KEY (id);
 
+-- Name: draft_isp_contacts draft_isp_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY draft_isp_contacts
+    ADD CONSTRAINT draft_isp_contacts_pkey PRIMARY KEY (id);
+
+-- Name: contract_isp_contacts contract_isp_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY contract_isp_contacts
+    ADD CONSTRAINT contract_isp_contacts_pkey PRIMARY KEY (id);
+
+-- Name: draft_isp_contacts draft_isp_contacts_draft_id_user_id_unique; Type: CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY draft_isp_contacts
+    ADD CONSTRAINT draft_isp_contacts_draft_id_user_id_unique UNIQUE (draft_id, user_id);
+
+-- Name: contract_isp_contacts contract_isp_contacts_contract_id_user_id_unique; Type: CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY contract_isp_contacts
+    ADD CONSTRAINT contract_isp_contacts_contract_id_user_id_unique UNIQUE (contract_id, user_id);
+
+-- Name: draft_stakeholders draft_stakeholders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY draft_stakeholders
+    ADD CONSTRAINT draft_stakeholders_pkey PRIMARY KEY (id);
+
+-- Name: contract_stakeholders contract_stakeholders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY contract_stakeholders
+    ADD CONSTRAINT contract_stakeholders_pkey PRIMARY KEY (id);
+
+-- Name: draft_stakeholders draft_stakeholders_draft_id_user_id_unique; Type: CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY draft_stakeholders
+    ADD CONSTRAINT draft_stakeholders_draft_id_user_id_unique UNIQUE (draft_id, user_id);
+
+-- Name: contract_stakeholders contract_stakeholders_contract_id_user_id_unique; Type: CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY contract_stakeholders
+    ADD CONSTRAINT contract_stakeholders_contract_id_user_id_unique UNIQUE (contract_id, user_id);
 
 -- Name: expected_metrics expected_metrics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 
@@ -1782,7 +1936,6 @@ ALTER TABLE ONLY isp_users
 
 ALTER TABLE ONLY isps
     ADD CONSTRAINT isps_pkey PRIMARY KEY (id);
-
 
 -- Name: lta_isps lta_isps_lta_id_isp_id_unique; Type: CONSTRAINT; Schema: public; Owner: -
 
@@ -2041,6 +2194,15 @@ ALTER TABLE ONLY contracts
 ALTER TABLE ONLY contracts
     ADD CONSTRAINT contracts_lta_id_foreign FOREIGN KEY (lta_id) REFERENCES ltas(id);
 
+-- Name: contracts contracts_payment_receiver_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY contracts
+    ADD CONSTRAINT contracts_payment_receiver_id_foreign FOREIGN KEY (payment_receiver_id) REFERENCES users(id);
+
+-- Name: drafts drafts_payment_receiver_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY drafts
+    ADD CONSTRAINT drafts_payment_receiver_id_foreign FOREIGN KEY (payment_receiver_id) REFERENCES users(id);
 
 -- Name: draft_attachments draft_attachments_attachment_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 
@@ -2088,6 +2250,42 @@ ALTER TABLE ONLY drafts
 
 ALTER TABLE ONLY drafts
     ADD CONSTRAINT drafts_lta_id_foreign FOREIGN KEY (lta_id) REFERENCES ltas(id);
+
+-- Name: draft_isp_contacts draft_isp_contacts_draft_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY draft_isp_contacts
+    ADD CONSTRAINT draft_isp_contacts_draft_id_foreign FOREIGN KEY (draft_id) REFERENCES drafts(id);
+
+-- Name: draft_isp_contacts draft_isp_contacts_user_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+ALTER TABLE ONLY draft_isp_contacts
+    ADD CONSTRAINT draft_isp_contacts_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id);
+
+-- Name: contract_isp_contacts contract_isp_contacts_contract_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY contract_isp_contacts
+    ADD CONSTRAINT contract_isp_contacts_contract_id_foreign FOREIGN KEY (contract_id) REFERENCES contracts(id);
+
+-- Name: contract_isp_contacts contract_isp_contacts_user_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+ALTER TABLE ONLY contract_isp_contacts
+    ADD CONSTRAINT contract_isp_contacts_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id);
+
+-- Name: draft_stakeholders draft_stakeholders_draft_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY draft_stakeholders
+    ADD CONSTRAINT draft_stakeholders_draft_id_foreign FOREIGN KEY (draft_id) REFERENCES drafts(id);
+
+-- Name: draft_stakeholders draft_stakeholders_user_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+ALTER TABLE ONLY draft_stakeholders
+    ADD CONSTRAINT draft_stakeholders_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id);
+
+-- Name: contract_stakeholders contract_stakeholders_contract_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY contract_stakeholders
+    ADD CONSTRAINT contract_stakeholders_contract_id_foreign FOREIGN KEY (contract_id) REFERENCES contracts(id);
+
+-- Name: contract_stakeholders contract_stakeholders_user_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+ALTER TABLE ONLY contract_stakeholders
+    ADD CONSTRAINT contract_stakeholders_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id);
 
 -- Name: help_requests_user_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 
@@ -2367,3 +2565,29 @@ ALTER TABLE ONLY country_currencies ADD CONSTRAINT country_currencies_pkey PRIMA
 ALTER TABLE ONLY country_currencies ADD CONSTRAINT country_currencies_country_id_foreign FOREIGN KEY (country_id) REFERENCES countries(id);
 ALTER TABLE ONLY country_currencies ADD CONSTRAINT country_currencies_currency_id_foreign FOREIGN KEY (currency_id) REFERENCES currencies(id);
 
+
+CREATE TABLE blockchain_transactions (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    contract_id bigint NULL,
+    wallet_address character varying(1000) NOT NULL,
+    network_id integer NOT NULL,
+    network_name character varying(100) NOT NULL,
+    transaction_type character varying(50) NOT NULL,
+    transaction_hash character varying(100) NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone
+);
+
+CREATE SEQUENCE blockchain_transactions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE blockchain_transactions_id_seq OWNED BY blockchain_transactions.id;
+ALTER TABLE ONLY blockchain_transactions ALTER COLUMN id SET DEFAULT nextval('blockchain_transactions_id_seq'::regclass);
+ALTER TABLE ONLY blockchain_transactions ADD CONSTRAINT blockchain_transactions_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY blockchain_transactions ADD CONSTRAINT blockchain_transactions_users_foreign FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE ONLY blockchain_transactions ADD CONSTRAINT blockchain_transactions_contracts_foreign FOREIGN KEY (contract_id) REFERENCES contracts(id);

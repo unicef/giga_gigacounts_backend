@@ -15,6 +15,13 @@ interface EnvInterface {
   CRON_TASK_EMAIL: string
   CRON_TASK_MEASURES: string
   CRON_TASK_CONTRACTS_STATUS: string
+  CRON_TASK_CASHBACK: string
+  CRON_TASK_AUTOMATIC_PAYMENTS: string
+  CRON_TASK_EMAIL_ENABLED: boolean
+  CRON_TASK_MEASURES_ENABLED: boolean
+  CRON_TASK_CONTRACTS_STATUS_ENABLED: boolean
+  CRON_TASK_CASHBACK_ENABLED: boolean
+  CRON_TASK_AUTOMATIC_PAYMENTS_ENABLED: boolean
   EMAIL_FROM: string
   EMAIL_CLIENT_TO_USE: 'ETHEREAL' | 'MAILJET'
   EMAIL_MAILJET_API_KEY: string
@@ -46,6 +53,13 @@ if (NODE_ENV === 'production') {
     CRON_TASK_EMAIL: Env.schema.string(),
     CRON_TASK_MEASURES: Env.schema.string(),
     CRON_TASK_CONTRACTS_STATUS: Env.schema.string(),
+    CRON_TASK_CASHBACK: Env.schema.string(),
+    CRON_TASK_AUTOMATIC_PAYMENTS: Env.schema.string(),
+    CRON_TASK_EMAIL_ENABLED: Env.schema.boolean(),
+    CRON_TASK_MEASURES_ENABLED: Env.schema.boolean(),
+    CRON_TASK_CONTRACTS_STATUS_ENABLED: Env.schema.boolean(),
+    CRON_TASK_CASHBACK_ENABLED: Env.schema.boolean(),
+    CRON_TASK_AUTOMATIC_PAYMENTS_ENABLED: Env.schema.boolean(),
     EMAIL_FROM: Env.schema.string(),
     EMAIL_CLIENT_TO_USE: Env.schema.enum(['ETHEREAL', 'MAILJET'] as const),
     EMAIL_MAILJET_API_KEY: Env.schema.string(),
@@ -73,6 +87,13 @@ if (NODE_ENV === 'production') {
     CRON_TASK_EMAIL: Env.schema.string(),
     CRON_TASK_MEASURES: Env.schema.string(),
     CRON_TASK_CONTRACTS_STATUS: Env.schema.string(),
+    CRON_TASK_CASHBACK: Env.schema.string(),
+    CRON_TASK_AUTOMATIC_PAYMENTS: Env.schema.string(),
+    CRON_TASK_EMAIL_ENABLED: Env.schema.boolean() || false,
+    CRON_TASK_MEASURES_ENABLED: Env.schema.boolean() || false,
+    CRON_TASK_CONTRACTS_STATUS_ENABLED: Env.schema.boolean() || false,
+    CRON_TASK_CASHBACK_ENABLED: Env.schema.boolean() || false,
+    CRON_TASK_AUTOMATIC_PAYMENTS_ENABLED: Env.schema.boolean() || false,
     EMAIL_FROM: Env.schema.string(),
     EMAIL_CLIENT_TO_USE: Env.schema.enum(['ETHEREAL', 'MAILJET'] as const),
     EMAIL_MAILJET_API_KEY: Env.schema.string(),

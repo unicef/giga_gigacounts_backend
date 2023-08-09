@@ -27,8 +27,13 @@ Route.patch(
   'UsersController.updateSettingAutomaticContracts'
 ).middleware([
   'auth:jwt',
-  `acl:${permissions.walletWrite}`,
+  `acl:${permissions.userSettingsWrite}`,
   'validator:updateSettingAutomaticContractsValidator'
+])
+
+Route.get('/user', 'UsersController.listUsers').middleware([
+  'auth:jwt',
+  `acl:${permissions.userRead}`
 ])
 
 /**
@@ -79,10 +84,23 @@ Route.get('/isp', 'IspsController.listIsps').middleware(['auth:jwt', `acl:${perm
 /**
  * METRIC ROUTES
  */
-
 Route.get('/metric/suggested-values', 'MetricsController.listMetricsSuggestedValues').middleware([
   'auth:jwt',
   `acl:${permissions.metricRead}`
+])
+
+/**
+ * BLOCKCHAIN TRANSACTIONS
+ */
+Route.get('/blk/', 'BlockchainTransactionsController.listBlockchainTransactions').middleware([
+  'auth:jwt',
+  `acl:${permissions.blockchainTransactionsRead}`
+])
+
+Route.post('/blk/', 'BlockchainTransactionsController.createBlockchainTransaction').middleware([
+  'auth:jwt',
+  'validator:CreateBlockchainTransactionValidator',
+  `acl:${permissions.blockchainTransactionsWrite}`
 ])
 
 /**
@@ -102,6 +120,12 @@ Route.patch('/school', 'SchoolsController.updateSchoolReliableMeasures').middlew
 Route.post('/school/measures', 'SchoolsController.getSchoolsMeasures').middleware([
   'auth:jwt',
   'validator:SchoolMeasuresValidator',
+  `acl:${permissions.schoolRead}`
+])
+
+Route.post('/school/measures/all', 'SchoolsController.getAllSchoolsMeasures').middleware([
+  'auth:jwt',
+  'validator:SchoolMeasuresAllValidator',
   `acl:${permissions.schoolRead}`
 ])
 
@@ -169,7 +193,7 @@ Route.post('/contract/publish', 'ContractsController.publishContract').middlewar
 Route.post('/contract/approve', 'ContractsController.approveContract').middleware([
   'auth:jwt',
   'validator:approveContractValidator',
-  `acl:${permissions.contractWrite}`
+  `acl:${permissions.contractApprove}`
 ])
 
 Route.get('/contract/details/:contract_id', 'ContractsController.getContractDetails').middleware([
@@ -255,6 +279,34 @@ Route.delete('/attachments/:attachmentId', 'AttachmentsController.deleteAttachme
 Route.get('/attachments/:attachment_id', 'AttachmentsController.getAttachment').middleware([
   'auth:jwt',
   `acl:${permissions.attachmentRead}`
+])
+
+/**
+ * IPS CONTACTS ROUTES - TDOD FIX
+ */
+
+Route.post('/contact/isp', 'IspContactsController.upload').middleware([
+  'auth:jwt',
+  `acl:${permissions.contractWrite}`
+])
+
+Route.delete('/contact/isp', 'IspContactsController.deleteIspContact').middleware([
+  'auth:jwt',
+  `acl:${permissions.contractWrite}`
+])
+
+/**
+ * STAKEHOLDERS ROUTES - TDOD FIX
+ */
+
+Route.post('/stakeholder', 'StakeholdersController.upload').middleware([
+  'auth:jwt',
+  `acl:${permissions.contractWrite}`
+])
+
+Route.delete('/stakeholder', 'StakeholdersController.deleteStakeholder').middleware([
+  'auth:jwt',
+  `acl:${permissions.contractWrite}`
 ])
 
 /**
@@ -404,7 +456,10 @@ Route.get('/help-request-functionalities', 'HelpRequestsController.listFunctiona
   'auth:jwt'
 )
 
-Route.post('/help-request', 'HelpRequestsController.createHelpRequest').middleware('auth:jwt')
+Route.post('/help-request', 'HelpRequestsController.createHelpRequest').middleware([
+  'auth:jwt',
+  'throttle:2,300000' // max-attempts 2, time-limit-after-exceeding-quota: 5 min
+])
 
 /*
  * FEEDBACKS
@@ -412,7 +467,8 @@ Route.post('/help-request', 'HelpRequestsController.createHelpRequest').middlewa
 Route.get('/feedbacks', 'FeedbacksController.listFeedbacks').middleware('auth:jwt')
 Route.post('/feedback', 'FeedbacksController.createFeedback').middleware([
   'auth:jwt',
-  'validator:CreateFeedbackValidator'
+  'validator:CreateFeedbackValidator',
+  'throttle:2,300000' // max-attempts 2, time-limit-after-exceeding-quota: 5 min
 ])
 
 /**
@@ -425,3 +481,12 @@ Route.get('/healthcheck', 'HealthchecksController.healthCheck')
  * FREQUENCY ENDPOINTS
  */
 Route.get('/frequency', 'FrequenciesController.listFrequencies').middleware('auth:jwt')
+
+/**
+ * DASHBOARD
+ */
+
+Route.get('/dashboard/schools', 'DashboardController.listDashboardSchools').middleware([
+  'auth:jwt',
+  `acl:${permissions.schoolRead}`
+])

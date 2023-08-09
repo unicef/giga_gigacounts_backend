@@ -33,6 +33,8 @@ export interface DraftData {
   schools?: { schools: { external_id: string; budget: number }[] }
   expectedMetrics?: { metrics: { metricId: string; value: number }[] }
   notes?: string
+  breakingRules?: string
+  paymentReceiverId?: number
 }
 
 function getSchoolBudgetByExternalId(json, external_id) {
@@ -58,6 +60,9 @@ const getDraft = async (draftId: number) => {
   await draft.load('lta')
   await draft.load('user')
   await draft.load('attachments')
+  await draft.load('ispContacts', (builder) => builder.preload('roles'))
+  await draft.load('stakeholders')
+  await draft.load('paymentReceiver')
 
   const schoolsDest: any[] = destructDraftsArray(draft.schools?.schools)
   const schools = await School.query().whereIn('externalId', schoolsDest)
@@ -107,7 +112,9 @@ const saveDraft = async (draftData: DraftData, user: User): Promise<Draft> => {
       launchDate: draftData.launchDate
         ? utils.formatContractDate(draftData?.launchDate)
         : undefined,
-      notes: draftData.notes
+      notes: draftData.notes,
+      breakingRules: draftData.breakingRules,
+      paymentReceiverId: draftData.paymentReceiverId || undefined
     })
 
     await client.commit()
@@ -150,6 +157,7 @@ const updateDraft = async (draftData: DraftData, user: User): Promise<Draft> => 
     draft.createdBy = draftData?.createdBy
     draft.schools = draftData?.schools
     draft.expectedMetrics = draftData?.expectedMetrics
+    draft.paymentReceiverId = draftData?.paymentReceiverId || undefined
 
     const savedDraft = await draft.save()
     await client.commit()
@@ -178,6 +186,12 @@ const deleteDraft = async (draftId: number) => {
       )
     }
 
+    await draft.useTransaction(trx).load('ispContacts')
+    await draft.useTransaction(trx).related('ispContacts').detach()
+
+    await draft.useTransaction(trx).load('stakeholders')
+    await draft.useTransaction(trx).related('stakeholders').detach()
+
     await draft.useTransaction(trx).delete()
 
     return trx.commit()
@@ -185,7 +199,7 @@ const deleteDraft = async (draftId: number) => {
     await trx.rollback()
     if (error?.status === 404) throw error
     throw new FailedDependencyException(
-      'Some database error occurred while upload attachment',
+      'Some database error occurred while delete Drafts',
       424,
       'DATABASE_ERROR'
     )
@@ -239,7 +253,8 @@ const duplicateDraft = async (draftId, user: User) => {
       startDate: draft.startDate,
       endDate: draft.endDate,
       launchDate: draft.launchDate,
-      notes: draft.notes
+      notes: draft.notes,
+      breakingRules: draft.breakingRules
     })
 
     await client.commit()
@@ -254,15 +269,7 @@ const duplicateDraft = async (draftId, user: User) => {
 }
 
 const isGovernmentBehalf = (user: User, governmentBehalf?: boolean) =>
-  userService.checkUserRole(user, [
-    // roles.government
-    roles.countryAccountant,
-    roles.countryContractCreator,
-    roles.countryMonitor,
-    roles.countrySuperAdmin
-  ])
-    ? true
-    : governmentBehalf
+  userService.checkUserRole(user, [roles.gigaAdmin]) ? true : governmentBehalf
 
 export default {
   saveDraft,

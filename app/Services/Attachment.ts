@@ -34,33 +34,41 @@ const deleteAttachment = async (
   trx?: TransactionClientContract
 ) => {
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  const _trx = trx || (await Database.transaction())
+  const transactionBdd = trx || (await Database.transaction())
   try {
     const attachment = await Attachment.find(attachmentId)
     if (!attachment) throw new NotFoundException('Attachment not found', 404, 'NOT_FOUND')
 
-    await attachment.useTransaction(_trx).load('paymentInvoice')
-    await attachment.useTransaction(_trx).load('paymentReceipt')
+    await attachment.useTransaction(transactionBdd).load('paymentInvoice')
+    await attachment.useTransaction(transactionBdd).load('paymentReceipt')
 
     if (attachment.paymentInvoice.length) {
-      await deletefromPayment(attachment.paymentInvoice[0].id, 'invoice', _trx)
-      await paymentService.checkPaymentFileEdit(attachment.paymentInvoice[0].id, user.id, _trx)
+      await deletefromPayment(attachment.paymentInvoice[0].id, 'invoice', transactionBdd)
+      await paymentService.checkPaymentFileEdit(
+        attachment.paymentInvoice[0].id,
+        user.id,
+        transactionBdd
+      )
     }
 
     if (attachment.paymentReceipt.length) {
-      await deletefromPayment(attachment.paymentReceipt[0].id, 'receipt', _trx)
-      await paymentService.checkPaymentFileEdit(attachment.paymentReceipt[0].id, user.id, _trx)
+      await deletefromPayment(attachment.paymentReceipt[0].id, 'receipt', transactionBdd)
+      await paymentService.checkPaymentFileEdit(
+        attachment.paymentReceipt[0].id,
+        user.id,
+        transactionBdd
+      )
     }
 
     await attachment.related('drafts').detach()
     await attachment.related('contracts').detach()
 
     await storage.deleteFile(attachment.url)
-    await attachment.useTransaction(_trx).delete()
+    await attachment.useTransaction(transactionBdd).delete()
 
-    if (!trx) return _trx.commit()
+    if (!trx) return transactionBdd.commit()
   } catch (error) {
-    await _trx.rollback()
+    await transactionBdd.rollback()
     if (error?.status === 404) throw error
     throw new FailedDependencyException(
       'Some database error occurred while uploading attachment',
@@ -75,35 +83,38 @@ const uploadAttachment = async (
   trx?: TransactionClientContract
 ): Promise<Attachment> => {
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  const _trx = trx || (await Database.transaction())
+  const transactionBdd = trx || (await Database.transaction())
   try {
     const fileUrl = await storage.uploadFile(data.file)
-    const attachment = await Attachment.create({ url: fileUrl, name: data.name }, { client: _trx })
+    const attachment = await Attachment.create(
+      { url: fileUrl, name: data.name },
+      { client: transactionBdd }
+    )
 
     if (data.type === AttachmentsType.DRAFT) {
-      const draft = await Draft.find(data.typeId, { client: _trx })
+      const draft = await Draft.find(data.typeId, { client: transactionBdd })
       if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
-      await draft.related('attachments').attach([attachment.id], _trx)
+      await draft.related('attachments').attach([attachment.id], transactionBdd)
     }
 
     if (data.type === AttachmentsType.CONTRACT) {
-      const contract = await Contract.find(data.typeId, { client: _trx })
+      const contract = await Contract.find(data.typeId, { client: transactionBdd })
       if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
-      await contract.related('attachments').attach([attachment.id], _trx)
+      await contract.related('attachments').attach([attachment.id], transactionBdd)
     }
 
     if (data.type === AttachmentsType.RECEIPT || data.type === AttachmentsType.INVOICE) {
-      const payment = await Payment.find(data.typeId, { client: _trx })
+      const payment = await Payment.find(data.typeId, { client: transactionBdd })
       if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
       payment[`${data.type}Id`] = attachment.id
-      await payment.useTransaction(_trx).save()
+      await payment.useTransaction(transactionBdd).save()
     }
 
-    if (!trx) await _trx.commit()
+    if (!trx) await transactionBdd.commit()
 
     return attachment
   } catch (error) {
-    await _trx.rollback()
+    await transactionBdd.rollback()
     if ([404, 413].some((status) => status === error?.status)) throw error
     throw new FailedDependencyException(
       'Some database error occurred while uploading attachment',

@@ -15,6 +15,7 @@ export default class SendEmailNotifications extends BaseTask {
   }
 
   public async handle() {
+    if (process.env.CRON_TASK_EMAIL_ENABLED?.toLocaleLowerCase() === 'false') return
     console.log('running task send email notifications')
 
     try {

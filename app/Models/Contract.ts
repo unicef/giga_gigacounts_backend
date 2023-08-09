@@ -83,6 +83,12 @@ export default class Contract extends BaseModel {
   public notes: string
 
   @column()
+  public breakingRules: string
+
+  @column()
+  public cashback: number
+
+  @column()
   public signRequestString: string
 
   @column()
@@ -90,6 +96,9 @@ export default class Contract extends BaseModel {
 
   @column()
   public signedWalletAddress: string
+
+  @column({ serializeAs: 'paymentReceiverId' })
+  public paymentReceiverId?: number
 
   /**
    * RELATIONSHIPS
@@ -128,6 +137,24 @@ export default class Contract extends BaseModel {
   })
   public attachments: ManyToMany<typeof Attachment>
 
+  @manyToMany(() => User as LucidModel, {
+    pivotTable: 'contract_isp_contacts',
+    localKey: 'id',
+    pivotForeignKey: 'contract_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'user_id'
+  })
+  public ispContacts: ManyToMany<typeof User>
+
+  @manyToMany(() => User as LucidModel, {
+    pivotTable: 'contract_stakeholders',
+    localKey: 'id',
+    pivotForeignKey: 'contract_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'user_id'
+  })
+  public stakeholders: ManyToMany<typeof User>
+
   @manyToMany(() => School as LucidModel, {
     pivotTable: 'school_contracts',
     localKey: 'id',
@@ -143,4 +170,10 @@ export default class Contract extends BaseModel {
 
   @hasMany(() => Measure as LucidModel)
   public measures: HasMany<typeof Measure>
+  
+  @belongsTo(() => User, {
+    localKey: 'id',
+    foreignKey: 'paymentReceiverId'
+  })
+  public paymentReceiver: BelongsTo<typeof User>
 }

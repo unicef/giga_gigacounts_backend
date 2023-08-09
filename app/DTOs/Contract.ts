@@ -7,6 +7,7 @@ import utils from 'App/Helpers/utils'
 import { DateTime } from 'luxon'
 import { v1 } from 'uuid'
 import Frequency from 'App/Models/Frequency'
+import User from 'App/Models/User'
 
 interface StatusCount {
   status: string
@@ -42,6 +43,8 @@ interface ContractList {
     name: string
   }
   notes?: string
+  breakingRules?: string
+  cashback?: number
 }
 
 export interface SchoolsConnection {
@@ -97,10 +100,24 @@ export interface ContractDetails {
     ipfs_url?: string
     name: string
   }[]
+  ispContacts?: {
+    id: number
+    name: string
+    email: string
+    lastName: string
+  }[]
+  stakeholders?: {
+    id: number
+    name: string
+    email: string
+    lastName: string
+  }[]
   connectionsMedian: ConnectionMedian[]
   budget: number
   numberOfPayments: number
   notes?: string
+  breakingRules?: string
+  cashback?: number
   currency: {
     id: string
     name: string
@@ -110,6 +127,12 @@ export interface ContractDetails {
   totalSpent: {
     amount: string
     percentage: number
+  }
+  paymentReceiver?: {
+    id: number
+    name: string
+    email: string
+    lastName: string
   }
 }
 
@@ -121,13 +144,21 @@ interface ConnectionEquation {
   'Upload speed': number
 }
 
+interface ContactInformation {
+  contactPerson: string
+  email: string
+  phoneNumber: string
+}
+
 export interface ContractSchoolsDetail {
   id: number
   name: string
   budget?: number
   externalId: string
   locations: string
+  educationLevel?: string
   connection: ConnectionEquation
+  contactInformation?: ContactInformation
 }
 
 export interface ContractDTO {
@@ -147,6 +178,18 @@ export interface ContractDTO {
     url: string
     ipfs_url?: string
     name: string
+  }[]
+  ispContacts?: {
+    id: number
+    name: string
+    email: string
+    lastName: string
+  }[]
+  stakeholders?: {
+    id: number
+    name: string
+    email: string
+    lastName: string
   }[]
   startDate: DateTime
   endDate: DateTime
@@ -185,6 +228,14 @@ export interface ContractDTO {
     reliableMeasures: boolean
   }[]
   notes?: string
+  breakingRules?: string
+  cashback?: number
+  paymentReceiver?: {
+    id: number
+    name: string
+    email: string
+    lastName: string
+  }
 }
 
 const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {}) => {
@@ -195,6 +246,13 @@ const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {})
         schoolsMeasures[contract.name][school.name],
         contract.expectedMetrics
       )
+
+      const contactInformation: ContactInformation = {
+        contactPerson: school.contactPerson,
+        email: school.email,
+        phoneNumber: school.phoneNumber
+      }
+
       schools.push({
         id: school.id,
         name: school.name,
@@ -206,7 +264,9 @@ const contractSchoolsDetailDTO = async (contract: Contract, schoolsMeasures: {})
           school?.location3,
           school?.location4
         ]),
-        connection
+        educationLevel: school.educationLevel,
+        connection,
+        contactInformation
       })
     }
   }
@@ -255,16 +315,28 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
       name: contract?.lta?.name
     },
     attachments: contract?.attachments,
+    ispContacts: contract?.ispContacts.map((ispContact) => ({
+      id: ispContact.id,
+      name: ispContact.name,
+      email: ispContact.email,
+      lastName: ispContact.lastName
+    })),
+    stakeholders: contract?.ispContacts.map((ispContact) => ({
+      id: ispContact.id,
+      name: ispContact.name,
+      email: ispContact.email,
+      lastName: ispContact.lastName
+    })),
     startDate: contract.startDate,
     endDate: contract.endDate,
     launchDate: contract.launchDate,
     status: ContractStatus[contract.status],
     country: contract.country
       ? {
-          name: contract.country.name,
-          flagUrl: contract.country.flagUrl,
-          code: contract.country.code
-        }
+        name: contract.country.name,
+        flagUrl: contract.country.flagUrl,
+        code: contract.country.code
+      }
       : undefined,
     expectedMetrics: await Promise.all(
       contract.expectedMetrics.map(async (em) => {
@@ -303,7 +375,15 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
       budget: school?.$extras.pivot_budget || 0,
       reliableMeasures: school?.reliableMeasures
     })),
-    notes: contract.notes
+    notes: contract.notes,
+    breakingRules: contract.breakingRules,
+    cashback: contract.cashback,
+    paymentReceiver: {
+      id: contract.paymentReceiver?.id,
+      name: contract.paymentReceiver?.name,
+      lastName: contract.paymentReceiver?.lastName,
+      email: contract.paymentReceiver?.email
+    }
   }
 }
 
@@ -341,16 +421,28 @@ const contractDeatilsDTO = async (
       name: contract?.lta?.name
     },
     attachments: contract?.attachments,
+    ispContacts: contract?.ispContacts.map((ispContact) => ({
+      id: ispContact.id,
+      name: ispContact.name,
+      email: ispContact.email,
+      lastName: ispContact.lastName
+    })),
+    stakeholders: contract?.ispContacts.map((ispContact) => ({
+      id: ispContact.id,
+      name: ispContact.name,
+      email: ispContact.email,
+      lastName: ispContact.lastName
+    })),
     startDate: contract.startDate,
     endDate: contract.endDate,
     launchDate: contract.launchDate,
     status: ContractStatus[contract.status],
     country: contract.country
       ? {
-          name: contract.country.name,
-          flagUrl: contract.country.flagUrl,
-          code: contract.country.code
-        }
+        name: contract.country.name,
+        flagUrl: contract.country.flagUrl,
+        code: contract.country.code
+      }
       : undefined,
     expectedMetrics: await Promise.all(
       contract.expectedMetrics.map(async (em) => {
@@ -387,6 +479,8 @@ const contractDeatilsDTO = async (
       )
     },
     notes: contract.notes,
+    breakingRules: contract.breakingRules,
+    cashback: contract.cashback,
     connectionsMedian,
     budget: contract.budget,
     numberOfPayments: contract.$extras.payments_count,
@@ -399,6 +493,12 @@ const contractDeatilsDTO = async (
     totalSpent: {
       amount: contract.$extras.total_payments,
       percentage: Math.round(utils.getPercentage(contract.budget, contract.$extras.total_payments))
+    },
+    paymentReceiver: {
+      id: contract.paymentReceiver?.id,
+      name: contract.paymentReceiver?.name,
+      lastName: contract.paymentReceiver?.lastName,
+      email: contract.paymentReceiver?.email
     }
   }
 }
@@ -458,10 +558,10 @@ const contractListDTO = (
       status: 'Draft',
       country: draft.country
         ? {
-            name: draft.country.name,
-            flagUrl: draft.country.flagUrl,
-            code: draft.country.code
-          }
+          name: draft.country.name,
+          flagUrl: draft.country.flagUrl,
+          code: draft.country.code
+        }
         : undefined,
       numberOfSchools: draft.schools?.schools.length,
       budget: draft.budget || 0,
@@ -469,7 +569,9 @@ const contractListDTO = (
         id: draft.lta?.id || 0,
         name: draft.lta?.name || ''
       },
-      notes: draft.notes || ''
+      notes: draft.notes || '',
+      breakingRules: draft.breakingRules || '',
+      cashback: 0,
     }
 
     contracts.push(draftData)
@@ -529,7 +631,9 @@ const contractListDTO = (
         id: contract?.lta?.id,
         name: contract?.lta?.name
       },
-      notes: contract.notes
+      notes: contract.notes,
+      breakingRules: contract.breakingRules,
+      cashback: contract.cashback
     }
     contracts.push(contractData)
   })
