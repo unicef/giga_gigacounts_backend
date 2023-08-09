@@ -14,6 +14,7 @@ export default class UpdateContractsStatus extends BaseTask {
   }
 
   public async handle() {
+    if (process.env.CRON_TASK_CONTRACTS_STATUS_ENABLED?.toLocaleLowerCase() === 'false') return
     console.log('running task Update Contracts Status')
     try {
       const user = (await User.query().where('email', 'giga.scheduler@giga.com').first()) as User

@@ -17,7 +17,8 @@ import GenerateSignContractRandomStringValidator from './GenerateSignContractRan
 import SignContractWithWalletValidator from './SignContractWithWalletValidator'
 import CreateFeedbackValidator from './CreateFeedbackValidator'
 import PublishContractValidator from './PublishContractValidator'
-import ApproveContractValidator from './approveContractValidator'
+import ApproveContractValidator from './ApproveContractValidator'
+import CreateBlockchainTransactionValidator from './CreateBlockchainTransactionValidator'
 
 export default (validator: string) => {
   switch (validator) {
@@ -57,10 +58,12 @@ export default (validator: string) => {
       return SignContractWithWalletValidator
     case 'CreateFeedbackValidator':
       return CreateFeedbackValidator
-    case 'publishContractValidator':
+    case 'PublishContractValidator':
       return PublishContractValidator
-    case 'approveContractValidator':
+    case 'ApproveContractValidator':
       return ApproveContractValidator
+    case 'CreateBlockchainTransactionValidator':
+      return CreateBlockchainTransactionValidator
     default:
       return
   }

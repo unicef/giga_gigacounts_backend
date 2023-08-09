@@ -40,6 +40,7 @@ export const frequencyNames = {
 export const permissions = {
   contractRead: 'contract.read',
   contractWrite: 'contract.write',
+  contractApprove: 'contract.approve',
   paymentRead: 'payment.read',
   paymentWrite: 'payment.write',
   attachmentRead: 'attachment.read',
@@ -59,7 +60,13 @@ export const permissions = {
   countryRead: 'country.read',
   walletRead: 'wallet.read',
   walletWrite: 'wallet.write',
-  contractSignWithWallet: 'contract.sign.with.wallet'
+  contractSignWithWallet: 'contract.sign.with.wallet',
+  userRead: 'user.read',
+  userWrite: 'user.write',
+  blockchainTransactionsRead: 'blockchainTransactions.read',
+  blockchainTransactionsWrite: 'blockchainTransactions.write',
+  userSettingsRead: 'user.settings.read',
+  userSettingsWrite: 'user.settings.write'
 }
 
 export const Metrics = {

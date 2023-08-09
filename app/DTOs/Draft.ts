@@ -5,11 +5,14 @@ import Draft from 'App/Models/Draft'
 import Frequency from 'App/Models/Frequency'
 import Isp from 'App/Models/Isp'
 import School from 'App/Models/School'
+import User from 'App/Models/User'
 import { DateTime } from 'luxon'
 
 interface GetDraftDtoParams {
   draft: Draft
   attachments?: Attachment[]
+  ispContacts?: User[]
+  stakeholders?: User[]
   schools?: School[]
   expectedMetrics?: {
     name?: string
@@ -47,6 +50,22 @@ export interface GetDraftDTOResponse {
     lastName: string
   } | null
   attachments?: Attachment[]
+  ispContacts?: {
+    id: number
+    name: string
+    email: string
+    lastName: string
+    role: {
+      name?: string,
+      code?: string,
+    }
+  }[]
+  stakeholders?: {
+    id: number
+    name: string
+    email: string
+    lastName: string
+  }[]
   schools?: School[]
   expectedMetrics?: {
     name?: string
@@ -54,6 +73,13 @@ export interface GetDraftDTOResponse {
     metricId: string
   }[]
   notes?: string
+  breakingRules?: string,
+  paymentReceiver?: {
+    id: number
+    name: string
+    email: string
+    lastName: string
+  }
 }
 
 const getDraftDTO = ({
@@ -73,32 +99,55 @@ const getDraftDTO = ({
     country: draft.country,
     currency: draft.currency
       ? {
-          id: draft.currency.id.toString(),
-          name: draft.currency.name,
-          code: draft.currency.code,
-          type: CurrencyType[draft.currency.type]
-        }
+        id: draft.currency.id.toString(),
+        name: draft.currency.name,
+        code: draft.currency.code,
+        type: CurrencyType[draft.currency.type]
+      }
       : undefined,
     frequency: draft.frequency,
     isp: draft.isp,
     lta: draft.lta
       ? {
-          id: draft?.lta.id,
-          name: draft?.lta.name
-        }
+        id: draft?.lta.id,
+        name: draft?.lta.name
+      }
       : null,
     createdBy: draft.user
       ? {
-          id: draft?.user.id,
-          name: draft?.user.name,
-          email: draft?.user.email,
-          lastName: draft?.user.lastName
-        }
+        id: draft?.user.id,
+        name: draft?.user.name,
+        email: draft?.user.email,
+        lastName: draft?.user.lastName
+      }
       : null,
     attachments: draft?.attachments,
+    ispContacts: draft?.ispContacts.map((ispContact) => ({
+      id: ispContact.id,
+      name: ispContact.name,
+      email: ispContact.email,
+      lastName: ispContact.lastName,
+      role: {
+        code: ispContact.roles[0]?.code,
+        name: ispContact.roles[0]?.name
+      }
+    })),
+    stakeholders: draft?.ispContacts.map((ispContact) => ({
+      id: ispContact.id,
+      name: ispContact.name,
+      email: ispContact.email,
+      lastName: ispContact.lastName
+    })),
     schools,
     expectedMetrics,
-    notes: draft.notes
+    notes: draft.notes,
+    breakingRules: draft.breakingRules,
+    paymentReceiver: {
+      id: draft.paymentReceiver?.id,
+      name: draft.paymentReceiver?.name,
+      lastName: draft.paymentReceiver?.lastName,
+      email: draft.paymentReceiver?.email
+    }
   }
 }
 

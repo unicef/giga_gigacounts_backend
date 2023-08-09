@@ -40,9 +40,32 @@ const getSchoolsMeasures = async (
 ): Promise<SchoolMeasure[]> => {
   const measures = await Database.rawQuery(
     // eslint-disable-next-line max-len
-    'SELECT date_trunc(?, measures.created_at) date, metrics.name as metric_name, metrics.unit as unit, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from measures INNER JOIN metrics ON metrics.id=metric_id where school_id = ? and contract_id = ? group by metric_id, date, metric_name, unit order by 1',
+    'SELECT date_trunc(?, measures.created_at) date, measures.id as measure_id, metrics.name as metric_name, metrics.unit as unit, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from measures INNER JOIN metrics ON metrics.id=metric_id where school_id = ? and contract_id = ? group by metric_id, date, measure_id, metric_name, unit order by 1',
     [interval, schoolId, contractId]
   )
+
+  return measures.rows as SchoolMeasure[]
+}
+
+const getAllSchoolsMeasures = async (
+  user: User,
+  interval: TimeInterval
+): Promise<SchoolMeasure[]> => {
+  let measures
+
+  if (userService.checkUserRole(user, [roles.gigaAdmin, roles.gigaViewOnly])) {
+    measures = await Database.rawQuery(
+      // eslint-disable-next-line max-len
+      'SELECT date_trunc(?, measures.created_at) date, measures.id as measure_id, schools.name as school_name, schools.external_id as school_external_id, schools.education_level as school_education_level, contracts.name as contract_name, metrics.name as metric_name, metrics.unit as unit, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from measures INNER JOIN metrics ON metrics.id=measures.metric_id INNER JOIN contracts ON contracts.id=measures.contract_id INNER JOIN schools ON schools.id=measures.school_id group by measures.metric_id, measure_id, date, school_name, school_education_level, school_external_id, contract_name, metric_name, unit order by 1',
+      [interval]
+    )
+  } else {
+    measures = await Database.rawQuery(
+      // eslint-disable-next-line max-len
+      'SELECT date_trunc(?, measures.created_at) date, measures.id as measure_id, schools.name as school_name, schools.external_id as school_external_id, schools.education_level as school_education_level, contracts.name as contract_name, metrics.name as metric_name, metrics.unit as unit, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from measures INNER JOIN metrics ON metrics.id=measures.metric_id INNER JOIN contracts ON contracts.id=measures.contract_id INNER JOIN schools ON schools.id=measures.school_id where contracts.country_id = ? group by measures.metric_id, measure_id, date, school_name, school_education_level, school_external_id, contract_name, metric_name, unit order by 1',
+      [interval, user.countryId]
+    )
+  }
 
   return measures.rows as SchoolMeasure[]
 }
@@ -55,8 +78,6 @@ const listSchoolByCountry = async (user: User, countryId?: number): Promise<Scho
       roles.countryAccountant,
       roles.countrySuperAdmin,
       roles.countryMonitor
-      // roles.countryOffice,
-      // roles.government
     ])
   ) {
     countryId = user.countryId
@@ -194,5 +215,6 @@ export default {
   listSchoolByCountry,
   updateSchoolReliableMeasures,
   getSchoolsMeasures,
+  getAllSchoolsMeasures,
   loadSchoolsMeasures
 }

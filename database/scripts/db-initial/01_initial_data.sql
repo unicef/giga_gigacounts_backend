@@ -278,6 +278,7 @@ INSERT INTO public.user_roles (id, user_id, role_id, created_at, updated_at) VAL
 
 INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'contract.read', CURRENT_TIMESTAMP, NULL);
 INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'contract.write', CURRENT_TIMESTAMP, NULL);
+INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'contract.approve', CURRENT_TIMESTAMP, NULL);
 INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'payment.read', CURRENT_TIMESTAMP, NULL);
 INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'payment.write', CURRENT_TIMESTAMP, NULL);
 INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'attachment.read', CURRENT_TIMESTAMP, NULL);
@@ -298,51 +299,56 @@ INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextva
 INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'wallet.read', CURRENT_TIMESTAMP, NULL);
 INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'wallet.write', CURRENT_TIMESTAMP, NULL);
 INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'contract.sign.with.wallet', CURRENT_TIMESTAMP, NULL);
-
+INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'user.read', CURRENT_TIMESTAMP, NULL);
+INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'user.write', CURRENT_TIMESTAMP, NULL);
+INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'blockchainTransactions.read', CURRENT_TIMESTAMP, NULL);
+INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'blockchainTransactions.write', CURRENT_TIMESTAMP, NULL);
+INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'user.settings.read', CURRENT_TIMESTAMP, NULL);
+INSERT INTO public.permissions (id, name, created_at, updated_at) VALUES (nextval('permissions_id_seq'), 'user.settings.write', CURRENT_TIMESTAMP, NULL);
 
 /* permissions: GIGA Admin - Insert ALL Permissions */
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at, updated_at) 
 select nextval('role_permissions_id_seq'), (select id from roles where code = 'GIGA.SUPER.ADMIN'), id, CURRENT_TIMESTAMP, NULL from permissions;
 
-/* permissions: GIGA Read Only - Insert ONLY read Permissions */
+/* permissions: GIGA Read Only */
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at, updated_at) 
 select nextval('role_permissions_id_seq'), (select id from roles where code = 'GIGA.VIEW.ONLY'), id, CURRENT_TIMESTAMP, NULL 
-from permissions p where p.name like '%.read';
+from permissions p where p.name in ('isp.read', 'lta.read', 'safe.read', 'measure.read', 'metric.read', 'attachment.read', 'payment.read', 'contract.read', 'wallet.read', 'country.read', 'school.read', 'blockchainTransactions.read', 'user.settings.read', 'user.settings.write');
 
 /* permissions: ISP.CONTRACT.MANAGER */
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at, updated_at) 
 select nextval('role_permissions_id_seq'), (select id from roles where code = 'ISP.CONTRACT.MANAGER'), id, CURRENT_TIMESTAMP, NULL 
-from permissions p where p.name like '%.read' or p.name in ('wallet.write', 'contract.write', 'attachment.write', 'contract.sign.with.wallet');
+from permissions p where p.name in ('wallet.write', 'wallet.read', 'country.read', 'school.read', 'isp.read', 'lta.read', 'safe.read', 'measure.read', 'metric.read', 'attachment.read', 'payment.read', 'contract.read', 'contract.approve', 'contract.sign.with.wallet', 'blockchainTransactions.read', 'blockchainTransactions.write', 'user.settings.read', 'user.settings.write');
 
 /* permissions: ISP.CUSTOMER.SERVICE */
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at, updated_at) 
 select nextval('role_permissions_id_seq'), (select id from roles where code = 'ISP.CUSTOMER.SERVICE'), id, CURRENT_TIMESTAMP, NULL 
-from permissions p where p.name like '%.read' and p.name not in ('wallet.read');
+from permissions p where p.name in ('school.read', 'country.read', 'metric.read', 'attachment.read', 'payment.read', 'contract.read', 'measure.read', 'safe.read', 'lta.read', 'isp.read', 'blockchainTransactions.read', 'user.settings.read', 'user.settings.write');
 
 /* permissions:  COUNTRY.CONTRACT.CREATOR */
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at, updated_at) 
 select nextval('role_permissions_id_seq'), (select id from roles where code = 'COUNTRY.CONTRACT.CREATOR'), id, CURRENT_TIMESTAMP, NULL 
-from permissions p where p.name like '%.read' or p.name like '%.write' or p.name in ('contract.sign.with.wallet');
+from permissions p where p.name in ('payment.read', 'contract.approve', 'contract.sign.with.wallet', 'wallet.read', 'country.read', 'school.read', 'isp.read', 'lta.read', 'safe.read', 'measure.read', 'metric.read', 'attachment.read', 'contract.read', 'wallet.write', 'school.write', 'isp.write', 'lta.write', 'safe.write', 'measure.write', 'metric.write', 'attachment.write', 'payment.write', 'contract.write', 'user.read', 'blockchainTransactions.read', 'blockchainTransactions.write', 'user.settings.read', 'user.settings.write');
 
 /* permissions: COUNTRY.ACCOUNTANT */
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at, updated_at) 
 select nextval('role_permissions_id_seq'), (select id from roles where code = 'COUNTRY.ACCOUNTANT'), id, CURRENT_TIMESTAMP, NULL 
-from permissions p where p.name like '%.read' or p.name in ('payment.write', 'wallet.write');
+from permissions p where p.name in ('wallet.write', 'payment.write', 'wallet.read', 'contract.read', 'payment.read', 'attachment.read', 'metric.read', 'measure.read', 'safe.read', 'lta.read', 'isp.read', 'school.read', 'country.read', 'blockchainTransactions.read', 'blockchainTransactions.write', 'user.settings.read', 'user.settings.write');
 
 /* permissions: COUNTRY.SUPER.ADMIN */
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at, updated_at) 
 select nextval('role_permissions_id_seq'), (select id from roles where code = 'COUNTRY.SUPER.ADMIN'), id, CURRENT_TIMESTAMP, NULL 
-from permissions p where p.name like '%.read' or p.name like '%.write' or p.name in ('contract.sign.with.wallet');
+from permissions p where p.name in ('user.write', 'contract.read', 'payment.read', 'attachment.read', 'metric.read', 'measure.read', 'safe.read', 'lta.read', 'isp.read', 'school.read', 'country.read', 'wallet.read', 'contract.write', 'payment.write', 'attachment.write', 'metric.write', 'measure.write', 'safe.write', 'lta.write', 'isp.write', 'school.write', 'wallet.write', 'contract.sign.with.wallet', 'contract.approve', 'user.read', 'blockchainTransactions.read', 'blockchainTransactions.write', 'user.settings.read', 'user.settings.write');
 
 /* permissions: COUNTRY.MONITOR */
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at, updated_at) 
 select nextval('role_permissions_id_seq'), (select id from roles where code = 'COUNTRY.MONITOR'), id, CURRENT_TIMESTAMP, NULL 
-from permissions p where p.name like '%.read' and p.name not in ('wallet.read');
+from permissions p where p.name in ('contract.read', 'payment.read', 'attachment.read', 'metric.read', 'measure.read', 'safe.read', 'lta.read', 'isp.read', 'school.read', 'country.read', 'user.settings.read', 'user.settings.write');
 
 /* permissions: SCHOOL.CONNECTIVITY.MANAGER */
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at, updated_at) 
 select nextval('role_permissions_id_seq'), (select id from roles where code = 'SCHOOL.CONNECTIVITY.MANAGER'), id, CURRENT_TIMESTAMP, NULL 
-from permissions p where p.name like '%.read' and p.name not in ('wallet.read');
+from permissions p where p.name in ('safe.read', 'measure.read', 'metric.read', 'attachment.read', 'payment.read', 'contract.read', 'country.read', 'school.read', 'isp.read', 'lta.read', 'user.settings.read', 'user.settings.write');
 
 /* permissions: GIGA Service Scheduler */
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at, updated_at) 

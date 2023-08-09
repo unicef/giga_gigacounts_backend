@@ -36,6 +36,9 @@ export default class Payment extends BaseModel {
   @column()
   public amount: number
 
+  @column()
+  public discount: number
+
   @column({
     serializeAs: 'currencyId',
     serialize: (value: number) => {

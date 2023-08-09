@@ -63,8 +63,17 @@ export default class UsersController {
   public async getPermissionsByEmail({ response, request }: HttpContextContract) {
     try {
       const { email } = request.body()
-      const user = await service.getPermissionsByEmail(email)
-      return response.ok(user)
+      console.log(`Going to retrieve permissions for user: ${email}`)
+      const { permissions, userId, countryId } = await service.getPermissionsByEmail(email)
+      userId as number
+      countryId as number
+      return response.ok({
+        version: '1.0.0',
+        action: 'Continue',
+        extension_Permissions: permissions.join(','),
+        extension_UserId: parseInt(userId.toString()),
+        extension_CountryId: parseInt(countryId.toString())
+      })
     } catch (error) {
       return response.status(error.status).send(error.message)
     }
@@ -82,5 +91,18 @@ export default class UsersController {
     } catch (error) {
       return response.status(error.status).send(error.message)
     }
+  }
+
+  public async listUsers({ response, request, auth }: HttpContextContract) {
+    if (!auth.user) return
+    const { countryId, roles, ispId } = request.qs()
+    let rolesToSearch: string[] = []
+
+    if (roles) {
+      rolesToSearch = roles.split(',')
+    }
+
+    const users = await service.listUsers(auth.user, countryId, rolesToSearch, ispId)
+    return response.ok(users)
   }
 }

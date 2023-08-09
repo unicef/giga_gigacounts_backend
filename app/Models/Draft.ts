@@ -4,6 +4,8 @@ import {
   BelongsTo,
   belongsTo,
   column,
+  HasOne,
+  hasOne,
   ManyToMany,
   manyToMany
 } from '@ioc:Adonis/Lucid/Orm'
@@ -78,6 +80,12 @@ export default class Draft extends BaseModel {
   @column()
   public notes?: string
 
+  @column()
+  public breakingRules?: string
+
+  @column({ serializeAs: 'paymentReceiverId' })
+  public paymentReceiverId?: number
+
   /**
    * RELATIONSHIPS
    */
@@ -111,4 +119,29 @@ export default class Draft extends BaseModel {
     pivotRelatedForeignKey: 'attachment_id'
   })
   public attachments: ManyToMany<typeof Attachment>
+
+  @manyToMany(() => User, {
+    pivotTable: 'draft_isp_contacts',
+    localKey: 'id',
+    pivotForeignKey: 'draft_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'user_id'
+  })
+  public ispContacts: ManyToMany<typeof User>
+
+  @manyToMany(() => User, {
+    pivotTable: 'draft_stakeholders',
+    localKey: 'id',
+    pivotForeignKey: 'draft_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'user_id'
+  })
+  public stakeholders: ManyToMany<typeof User>
+
+  @belongsTo(() => User, {
+    localKey: 'id',
+    foreignKey: 'paymentReceiverId'
+  })
+  public paymentReceiver: BelongsTo<typeof User>
+
 }

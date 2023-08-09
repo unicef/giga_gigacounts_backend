@@ -8,8 +8,6 @@ import Safe from 'App/Models/Safe'
 // import safeService from 'App/Services/Safe'
 // import gnosisSafe, { Tx } from 'App/Helpers/gnosisSafe'
 import Ethers from 'App/Helpers/ethers'
-import utils from 'App/Helpers/utils'
-
 import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
 import NotFoundException from 'App/Exceptions/NotFoundException'
 import SignedMessageException from 'App/Exceptions/SignedMessageException'
@@ -17,6 +15,9 @@ import SignedMessageException from 'App/Exceptions/SignedMessageException'
 import { v1 } from 'uuid'
 import Role from 'App/Services/Role'
 import { Tx } from 'App/Helpers/gnosisSafe'
+import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
+
+import dto, { GetUser } from 'App/DTOs/User'
 
 interface UserProfile {
   id: string
@@ -47,13 +48,7 @@ const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
   if (!user) return
   const userPermissions = await roleService.getRolesPermission(user.roles)
   if (user.safeId) await user.load('safe')
-  if (
-    checkUserRole(user, [
-      // roles.isp
-      roles.ispContractManager,
-      roles.ispCustomerService
-    ])
-  )
+  if (checkUserRole(user, [roles.ispContractManager, roles.ispCustomerService]))
     await user.load('isp')
   return {
     id: user.id.toString(),
@@ -70,11 +65,11 @@ const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
     country:
       userPermissions.some((v) => v === permissions.countryRead) && user.country
         ? {
-            id: user.country?.id,
-            name: user.country?.name,
-            flagUrl: user.country?.flagUrl,
-            code: user.country?.code
-          }
+          id: user.country?.id,
+          name: user.country?.name,
+          flagUrl: user.country?.flagUrl,
+          code: user.country?.code
+        }
         : undefined,
     safeId: user?.safeId,
     safe: user?.safe,
@@ -82,9 +77,9 @@ const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
     isp:
       user.isp?.length > 0
         ? {
-            id: user.isp[0].id,
-            name: user.isp[0].name
-          }
+          id: user.isp[0].id,
+          name: user.isp[0].name
+        }
         : undefined
   }
 }
@@ -170,7 +165,11 @@ const getPermissionsByEmail = async (email: string) => {
 
   if (!user) throw new NotFoundException('User not found', 404, 'NOT_FOUND')
 
-  return await Role.getRolesPermission(user.roles)
+  return {
+    permissions: await Role.getRolesPermission(user.roles),
+    userId: user.id,
+    countryId: user.countryId
+  }
 }
 
 const updateSettingAutomaticContracts = async (
@@ -182,11 +181,67 @@ const updateSettingAutomaticContracts = async (
   return user
 }
 
+const listUsers = async (
+  user: User,
+  countryId?: number,
+  rolesToSearch?: string[],
+  ispId?: number
+): Promise<GetUser[]> => {
+  const { query } = await queryBuilderUser(user, countryId, rolesToSearch, ispId)
+  const users: User[] = await query
+  return dto.getUsersByUserDTO(users)
+}
+
+const queryBuilderUser = async (
+  user: User,
+  countryId?: number,
+  rolesToSearch?: string[],
+  ispId?: number
+): Promise<{
+  query: ModelQueryBuilderContract<typeof User, User>
+}> => {
+  let query = User.query().whereNot('id', user.id).whereNot('email', 'giga.scheduler@giga.com')
+
+  if (
+    checkUserRole(user, [
+      roles.countryContractCreator,
+      roles.countryAccountant,
+      roles.countrySuperAdmin,
+      roles.countryMonitor
+    ])
+  ) {
+    countryId = user.countryId
+  }
+
+  if (countryId) {
+    query.andWhere('country_id', countryId)
+  }
+
+  if (rolesToSearch && rolesToSearch.length > 0) {
+    const rolesToRemove = [roles.gigaAdmin, roles.gigaViewOnly]
+    const filteredRoles = rolesToSearch.filter((role) => !rolesToRemove.includes(role))
+    query.whereHas('roles', (builder) => {
+      builder.whereIn('code', filteredRoles)
+    })
+  }
+  query.preload('roles')
+  query.preload('country')
+
+  if (ispId) {
+    query.whereHas('isp', (builder) => {
+      builder.where('isp_id', ispId)
+    })
+  }
+
+  return { query }
+}
+
 export default {
   getProfile,
   checkUserRole,
   generateWalletRandomString,
   attachWallet,
   getPermissionsByEmail,
-  updateSettingAutomaticContracts
+  updateSettingAutomaticContracts,
+  listUsers
 }

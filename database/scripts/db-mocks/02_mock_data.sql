@@ -280,6 +280,7 @@ INSERT INTO public.payments (id, date_from, date_to, invoice_id, receipt_id, is_
 INSERT INTO public.payments (id, date_from, date_to, invoice_id, receipt_id, is_verified, contract_id, paid_by, amount, currency_id, created_at, updated_at, description, status, created_by, metrics) VALUES (nextval('payments_id_seq'), CURRENT_TIMESTAMP, '2022-07-01 02:59:59.999+00', NULL, NULL, false, 9, NULL, 2222, (select id from currencies where code = 'BRL'), '2023-05-05 10:10:21.56+00', '2023-05-05 10:10:21.56+00', '222', 2, 1, '{"connectionsMedian": [], "withoutConnection": 100, "allEqualOrAboveAvg": 0, "atLeastOneBellowAvg": 0}');
 INSERT INTO public.payments (id, date_from, date_to, invoice_id, receipt_id, is_verified, contract_id, paid_by, amount, currency_id, created_at, updated_at, description, status, created_by, metrics) VALUES (nextval('payments_id_seq'), CURRENT_TIMESTAMP, '2022-06-01 02:59:59.999+00', NULL, NULL, false, 9, NULL, 222, (select id from currencies where code = 'BRL'), '2023-05-05 10:11:59.487+00', '2023-05-05 10:11:59.487+00', '23232', 2, 1, '{"connectionsMedian": [], "withoutConnection": 100, "allEqualOrAboveAvg": 0, "atLeastOneBellowAvg": 0}');
 INSERT INTO public.payments (id, date_from, date_to, invoice_id, receipt_id, is_verified, contract_id, paid_by, amount, currency_id, created_at, updated_at, description, status, created_by, metrics) VALUES (nextval('payments_id_seq'), CURRENT_TIMESTAMP, '2022-01-01 02:59:59.999+00', NULL, NULL, false, 13, NULL, 2, (select id from currencies where code = 'BRL'), '2023-06-06 20:48:59.285+00', '2023-06-06 20:49:40.472+00', 'test', 2, 3, '{"connectionsMedian": [], "withoutConnection": 100, "allEqualOrAboveAvg": 0, "atLeastOneBellowAvg": 0}');
+INSERT INTO public.payments (id, date_from, date_to, invoice_id, receipt_id, is_verified, contract_id, paid_by, amount, currency_id, created_at, updated_at, description, status, created_by, metrics) VALUES (nextval('payments_id_seq'), CURRENT_TIMESTAMP, '2022-01-01 02:59:59.999+00', NULL, NULL, false, 13, NULL, 2, (select id from currencies where code = 'BRL'), '2023-06-06 20:48:59.285+00', '2023-06-06 20:49:40.472+00', 'test2', 1, 3, '{"connectionsMedian": [], "withoutConnection": 100, "allEqualOrAboveAvg": 0, "atLeastOneBellowAvg": 0}');
 
 INSERT INTO public.notifications (id, config_id, user_id, status, title, message, sub_message, created_at, sent_at, viewed_at, discarded_at) VALUES (nextval('notification_id_seq'), 2, 3, 'SENT', 'new contract AA1 created', 'Your contract AA1 has been created', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL, NULL);
 INSERT INTO public.notifications (id, config_id, user_id, status, title, message, sub_message, created_at, sent_at, viewed_at, discarded_at) VALUES (nextval('notification_id_seq'), 2, 2, 'SENT', 'new contract AB2 created', 'Your contract AB2 has been created', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL, NULL);
@@ -294,39 +295,45 @@ inner join isps i
 on i.country_id = c.id;
 
 -- HELP_REQUEST_VALUES MOCK DATA
-INSERT INTO public.help_request_values (id, code, option)
-VALUES (nextval('help_request_values_id_seq'), 'bug', ARRAY ['display','behavior']);
-INSERT INTO public.help_request_values (id, code, option)
-VALUES (nextval('help_request_values_id_seq'), 'feedback', ARRAY ['improvement','new_feature']);
-INSERT INTO public.help_request_values (id, code, option)
-VALUES (nextval('help_request_values_id_seq'), 'other', ARRAY ['improvement','new_feature', 'display','behavior']);
+INSERT INTO public.help_request_values (id, code, option) VALUES (nextval('help_request_values_id_seq'), 'bug', ARRAY ['display','behavior']);
+INSERT INTO public.help_request_values (id, code, option) VALUES (nextval('help_request_values_id_seq'), 'feedback', ARRAY ['improvement','new_feature']);
+INSERT INTO public.help_request_values (id, code, option) VALUES (nextval('help_request_values_id_seq'), 'other', ARRAY ['improvement','new_feature', 'display','behavior']);
 
 -- FUNCTIONALITIES
-INSERT INTO public.functionalities  (id, "name" , code)
-VALUES (nextval('functionalities_id_seq'), 'Login', 'login');
-INSERT INTO public.functionalities  (id, "name" , code)
-VALUES (nextval('functionalities_id_seq'), 'Register', 'register');
-INSERT INTO public.functionalities  (id, "name" , code)
-VALUES (nextval('functionalities_id_seq'), 'Dashboard', 'dashboard');
-INSERT INTO public.functionalities  (id, "name" , code)
-VALUES (nextval('functionalities_id_seq'), 'Profile', 'user_profile');
-INSERT INTO public.functionalities  (id, "name" , code)
-VALUES (nextval('functionalities_id_seq'), 'Account Settings', 'user_settings');
-INSERT INTO public.functionalities  (id, "name" , code)
-VALUES (nextval('functionalities_id_seq'), 'Contract Creation', 'contract_creation');
-INSERT INTO public.functionalities  (id, "name" , code)
-VALUES (nextval('functionalities_id_seq'), 'View Contract', 'contract_viewing');
-INSERT INTO public.functionalities  (id, "name" , code)
-VALUES (nextval('functionalities_id_seq'), 'Payment Creation', 'payment_creation');
-INSERT INTO public.functionalities  (id, "name" , code)
-VALUES (nextval('functionalities_id_seq'), 'Payment Viewing', 'payment_viewing');
-INSERT INTO public.functionalities  (id, "name" , code)
-VALUES (nextval('functionalities_id_seq'), 'Connectivity Viewing', 'connectivity_viewing');
-INSERT INTO public.functionalities  (id, "name" , code)
-VALUES (nextval('functionalities_id_seq'), 'Other', 'other');
+INSERT INTO public.functionalities  (id, "name" , code) VALUES (nextval('functionalities_id_seq'), 'Login', 'login');
+INSERT INTO public.functionalities  (id, "name" , code) VALUES (nextval('functionalities_id_seq'), 'Register', 'register');
+INSERT INTO public.functionalities  (id, "name" , code) VALUES (nextval('functionalities_id_seq'), 'Dashboard', 'dashboard');
+INSERT INTO public.functionalities  (id, "name" , code) VALUES (nextval('functionalities_id_seq'), 'Profile', 'user_profile');
+INSERT INTO public.functionalities  (id, "name" , code) VALUES (nextval('functionalities_id_seq'), 'Account Settings', 'user_settings');
+INSERT INTO public.functionalities  (id, "name" , code) VALUES (nextval('functionalities_id_seq'), 'Contract Creation', 'contract_creation');
+INSERT INTO public.functionalities  (id, "name" , code) VALUES (nextval('functionalities_id_seq'), 'View Contract', 'contract_viewing');
+INSERT INTO public.functionalities  (id, "name" , code) VALUES (nextval('functionalities_id_seq'), 'Payment Creation', 'payment_creation');
+INSERT INTO public.functionalities  (id, "name" , code) VALUES (nextval('functionalities_id_seq'), 'Payment Viewing', 'payment_viewing');
+INSERT INTO public.functionalities  (id, "name" , code) VALUES (nextval('functionalities_id_seq'), 'Connectivity Viewing', 'connectivity_viewing');
+INSERT INTO public.functionalities  (id, "name" , code) VALUES (nextval('functionalities_id_seq'), 'Other', 'other');
 
 -- HELP REQUESTS MOCK DATA
-INSERT INTO public.help_requests (id, code, functionality , "type" , description , user_id , created_at, updated_at)
-VALUES (nextval('help_requests_id_seq'), 'bug', 'login', 'display', 'Not show well', 4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-INSERT INTO public.help_requests (id, code, functionality , "type" , description , user_id , created_at, updated_at)
-VALUES (nextval('help_requests_id_seq'), 'feedback', 'login', 'display', 'New feature', 4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO public.help_requests (id, code, functionality , "type" , description , user_id , created_at, updated_at) VALUES (nextval('help_requests_id_seq'), 'bug', 'login', 'display', 'Not show well', 4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO public.help_requests (id, code, functionality , "type" , description , user_id , created_at, updated_at) VALUES (nextval('help_requests_id_seq'), 'feedback', 'login', 'display', 'New feature', 4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- NEW MEASURES DATA
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 1, 3, 1, '2023-06-29 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 2, 3, 1, '2023-06-29 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 3, 3, 1, '2023-06-29 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 4, 3, 1, '2023-06-29 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 1, 3, 1, '2023-06-30 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 2, 3, 1, '2023-06-30 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 3, 3, 1, '2023-06-30 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 4, 3, 1, '2023-06-30 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 1, 3, 1, '2023-07-29 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 2, 3, 1, '2023-07-29 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 3, 3, 1, '2023-07-29 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 4, 3, 1, '2023-07-29 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 1, 3, 1, '2023-07-30 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 2, 3, 1, '2023-07-30 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 3, 3, 1, '2023-07-30 13:47:55.610 -0600', 1);
+insert into public.measures (id, metric_id, value, school_id, created_at, contract_id) values(nextval('measures_id_seq'), 4, 3, 1, '2023-07-30 13:47:55.610 -0600', 1);
+
+-- BLOCKCHAIN-TRANSACTIONS
+insert into blockchain_transactions (id, user_id, contract_id, wallet_address, network_id, network_name, transaction_type, transaction_hash, status, created_at)
+values (nextval('blockchain_transactions_id_seq'), (select id from users where email = 'admin@giga.com'), (select min(id) from contracts), '0x35dad65F60c1A32c9895BE97f6bcE57D32792E83', 80001, 'Polygon Mumbai', 'FUND_CONTRACT', '0x690a6810c1aec22b88869ebdbf65ecdae04abad926dcf7714598f09e4b75366a', 1, CURRENT_TIMESTAMP);

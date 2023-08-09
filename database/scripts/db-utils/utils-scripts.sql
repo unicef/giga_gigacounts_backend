@@ -101,3 +101,23 @@ BEGIN
         END IF;
     END LOOP;
 END $$;
+
+-- Get Dashboard Schools
+select 
+    sc.id, sc.external_id, sc.name, sc.address, sc.education_level, sc.country_id, 
+    (string_to_array(geopoint, ','))[1] AS lat,
+    (string_to_array(geopoint, ','))[2] AS lng,
+(select avg(value) as avg_uptime from measures where school_id = sc.id and metric_id = 1) as avg_uptime,
+(select avg(value) as avg_latency from measures where school_id = sc.id and metric_id = 2) as avg_latency,
+(select avg(value) as avg_dspeed from measures where school_id = sc.id and metric_id = 3) as avg_dspeed,
+(select avg(value) as avg_uspeed from measures where school_id = sc.id and metric_id = 4) as avg_uspeed
+from schools sc
+
+-- ISP Users
+select i.*, u.email
+from isp_users iu
+inner join isps i
+on i.id = iu.isp_id
+inner join users u
+on u.id = iu.user_id
+

@@ -21,6 +21,19 @@ export default class SchoolsController {
     }
   }
 
+  public async getAllSchoolsMeasures({ auth, response, request }: HttpContextContract) {
+    if (!auth.user) return
+
+    try {
+      const { interval } = request.all()
+      const schools = await service.getAllSchoolsMeasures(auth.user, interval)
+      return response.ok(schools)
+    } catch (error) {
+      if (!error.status) return response.internalServerError(error.message)
+      return response.status(error.status).send(error.message)
+    }
+  }
+
   public async updateSchoolReliableMeasures({ response, request, auth }: HttpContextContract) {
     if (!auth.user) return
 

@@ -70,8 +70,6 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
         roles.countryContractCreator,
         roles.countryAccountant,
         roles.countrySuperAdmin
-        // roles.government,
-        // roles.countryOffice,
       ])
     ) {
       if (data.status !== undefined && Object.values(PaymentStatus).includes(data.status)) {
@@ -93,6 +91,7 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
         dateTo,
         contractId: contract.id,
         amount: data.amount,
+        discount: 0,
         currencyId: contract.currencyId,
         description: data.description,
         status: status,
@@ -185,23 +184,11 @@ const queryBuilder = async (
       [roles.gigaAdmin, roles.gigaViewOnly]
     )
   ) {
-  } else if (
-    userService.checkUserRole(
-      user,
-      // These roles see all payments for the contracts of their country.
-      [roles.countryAccountant, roles.countrySuperAdmin]
-    )
-  ) {
+  } else {    
     query.whereHas('contract', (builder) => {
       builder.where('countryId', user.countryId)
     })
-  } else {
-    throw new InvalidStatusException(
-      'The current user does not have the required permissions to list payments.',
-      401,
-      'E_UNAUTHORIZED_ACCESS'
-    )
-  }
+  } 
 
   return { query }
 }
@@ -213,6 +200,7 @@ const fetchPaymentsList = async (query: ModelQueryBuilderContract<typeof Payment
     .preload('contract', (builder) => {
       builder.preload('country')
       builder.preload('frequency')
+      builder.preload('schools')
     })
     .orderBy('date_to', 'desc')
 }
@@ -317,9 +305,6 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
         roles.countryContractCreator,
         roles.countryAccountant,
         roles.countrySuperAdmin
-        // roles.government,
-        // roles.countryOffice,
-        // roles.gigaAdmin
       ])
     ) {
       if (payment.receiptId) await attachmentService.deleteAttachment(payment.receiptId, user, trx)
@@ -336,7 +321,6 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
 
     if (
       userService.checkUserRole(user, [
-        // roles.isp
         roles.ispContractManager,
         roles.ispCustomerService
       ]) &&

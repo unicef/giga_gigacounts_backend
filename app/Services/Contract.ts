@@ -47,6 +47,8 @@ export interface ContractCreation {
   schools?: { schools: { id: string; budget: number }[] }
   expectedMetrics: { metrics: { metricId: string; value: number }[] }
   notes?: string
+  breakingRules?: string
+  paymentReceiverId?: number
 }
 
 export interface BatchUpdate {
@@ -172,13 +174,17 @@ const getContract = async (contractId: number) => {
     .preload('isp')
     .preload('expectedMetrics')
     .preload('attachments')
+    .preload('ispContacts')
+    .preload('stakeholders')
     .preload('currency')
     .preload('frequency')
     .preload('schools', (query) => {
       query.pivotColumns(['budget'])
     })
+    .preload('paymentReceiver')
 
   if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  // console.log("Here", contract[0])
   return dto.getContractDTO(contract[0])
 }
 
@@ -191,6 +197,7 @@ const getContractDetails = async (contractId: number) => {
     .preload('frequency')
     .preload('expectedMetrics')
     .preload('attachments')
+    .preload('ispContacts')
     .preload('schools')
     .withAggregate('payments', (qry) => {
       qry.sum('amount').as('total_payments')
@@ -198,6 +205,7 @@ const getContractDetails = async (contractId: number) => {
     .preload('currency')
     .withCount('schools')
     .withCount('payments')
+    .preload('paymentReceiver')
 
   if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
 
@@ -264,19 +272,15 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
         ispId: data.ispId,
         automatic: data.automatic,
         status: ContractStatus.Sent,
-        governmentBehalf: userService.checkUserRole(user, [
-          roles.countryAccountant,
-          roles.countryContractCreator,
-          roles.countryMonitor,
-          roles.countrySuperAdmin
-        ])
-          ? true
-          : data.governmentBehalf,
+        governmentBehalf: DraftService.isGovernmentBehalf(user, data.governmentBehalf),
         startDate: utils.formatContractDate(data.startDate, true),
         endDate: utils.formatContractDate(data.endDate),
         launchDate: utils.formatContractDate(data.launchDate),
         createdBy: user.id,
-        frequencyId: data.frequencyId || frequency?.id
+        frequencyId: data.frequencyId || frequency?.id,
+        notes: data.notes,
+        breakingRules: data.breakingRules,
+        paymentReceiverId: data.paymentReceiverId || undefined
       },
       { client: trx }
     )
@@ -304,6 +308,13 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
         trx
       )
       await draft.useTransaction(trx).related('attachments').detach()
+
+      await draft.load('ispContacts')
+      await contract.related('ispContacts').attach(
+        draft.ispContacts.map(({ id }) => id),
+        trx
+      )
+      await draft.useTransaction(trx).related('ispContacts').detach()
 
       await StatusTransition.create(
         {
@@ -691,7 +702,8 @@ const duplicateContract = async (contractId, user: User) => {
       startDate: contract[0].startDate,
       endDate: contract[0].endDate,
       launchDate: contract[0].launchDate,
-      notes: contract[0].notes
+      notes: contract[0].notes,
+      breakingRules: contract[0].breakingRules
     })
 
     await trx.commit()

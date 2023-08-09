@@ -4,6 +4,7 @@ import { ContractStatus, PaymentStatus } from 'App/Helpers/constants'
 import Currency from 'App/Models/Currency'
 import Attachment from 'App/Models/Attachment'
 import { ConnectionMedian } from './Contract'
+import School from 'App/Models/School'
 
 export interface GetPayment {
   id: number
@@ -22,6 +23,7 @@ export interface GetPayment {
   }
   currency: Currency
   amount: number
+  discount: number
   status: string
   metrics?: {
     connectionsMedian: ConnectionMedian[]
@@ -36,6 +38,7 @@ export interface GetPayment {
     role: string
     id: number
   }
+  contractNumberOfSchools?: number
 }
 
 const getPaymentDTO = (payment: Payment): GetPayment => ({
@@ -49,6 +52,7 @@ const getPaymentDTO = (payment: Payment): GetPayment => ({
   dateTo: payment.dateTo?.toISODate(),
   currency: payment.currency,
   amount: payment.amount,
+  discount: payment.discount,
   status: PaymentStatus[payment.status],
   metrics: payment?.metrics,
   invoice: payment?.invoice,
@@ -77,6 +81,7 @@ const getPaymentWithDetailsDTO = (payment: Payment): GetPayment => ({
   dateTo: payment.dateTo?.toISODate(),
   currency: payment.currency,
   amount: payment.amount,
+  discount: payment.discount,
   status: PaymentStatus[payment.status],
   metrics: payment?.metrics,
   invoice: payment?.invoice,
@@ -85,7 +90,8 @@ const getPaymentWithDetailsDTO = (payment: Payment): GetPayment => ({
     name: payment?.creator?.name,
     role: payment?.creator?.roles[0]?.name,
     id: payment?.creator?.id
-  }
+  },
+  contractNumberOfSchools: payment.contract.schools.length
 })
 
 const getPaymentsByContractDTO = (payments: Payment[]): GetPayment[] => {
