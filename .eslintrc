@@ -1,5 +1,6 @@
 {
   "extends": ["plugin:adonis/typescriptPackage"],
+  "ignorePatterns": ["node_modules/", "dist/", "build/", "app/Helpers/abis"],
   "rules": {
     "comma-dangle": "off",
     "@typescript-eslint/space-before-function-paren": "off",

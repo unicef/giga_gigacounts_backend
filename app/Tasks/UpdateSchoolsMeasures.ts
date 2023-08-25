@@ -15,7 +15,7 @@ export default class UpdateSchoolsMeasures extends BaseTask {
 
   public async handle() {
     if (process.env.CRON_TASK_MEASURES_ENABLED?.toLocaleLowerCase() === 'false') return
-    console.log('running task Update Schools Measures')
+    console.info('running task Update Schools Measures')
     await service.loadContractsDailyMeasures()
   }
 }

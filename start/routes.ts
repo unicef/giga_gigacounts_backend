@@ -1,16 +1,15 @@
 import Route from '@ioc:Adonis/Core/Route'
-
 import { permissions } from 'App/Helpers/constants'
 
 /**
  * USER ROUTES
  */
 
-Route.get('/user/profile', 'UsersController.profile').middleware('auth:jwt')
-
 Route.post('/login', 'UsersController.login').middleware('validator:LoginValidator')
 
-Route.get('/wallet-random-string', 'UsersController.generateWalletRandomString').middleware([
+Route.get('/user/profile', 'UsersController.profile').middleware('auth:jwt')
+
+Route.get('/user/wallet-random-string', 'UsersController.generateWalletRandomString').middleware([
   'auth:jwt',
   `acl:${permissions.walletWrite}`
 ])
@@ -19,6 +18,11 @@ Route.post('/user/attach-wallet', 'UsersController.attachWallet').middleware([
   'auth:jwt',
   'validator:AttachWalletValidator'
 ])
+
+Route.get(
+  '/user/giga-token-owner-wallet-address',
+  'UsersController.gigaTokenWalletOwnerAddress'
+).middleware(['auth:jwt'])
 
 Route.post('/user/permissions', 'UsersController.getPermissionsByEmail')
 
@@ -109,7 +113,8 @@ Route.post('/blk/', 'BlockchainTransactionsController.createBlockchainTransactio
 
 Route.get('/school', 'SchoolsController.listSchoolByCountry').middleware([
   'auth:jwt',
-  `acl:${permissions.schoolRead}`
+  `acl:${permissions.schoolRead}`,
+  `cache:${60 * 60 * 4}`
 ])
 
 Route.patch('/school', 'SchoolsController.updateSchoolReliableMeasures').middleware([
@@ -120,26 +125,34 @@ Route.patch('/school', 'SchoolsController.updateSchoolReliableMeasures').middlew
 Route.post('/school/measures', 'SchoolsController.getSchoolsMeasures').middleware([
   'auth:jwt',
   'validator:SchoolMeasuresValidator',
-  `acl:${permissions.schoolRead}`
+  `acl:${permissions.schoolRead}`,
+  `cache:${60 * 60 * 4}`
 ])
 
 Route.post('/school/measures/all', 'SchoolsController.getAllSchoolsMeasures').middleware([
   'auth:jwt',
   'validator:SchoolMeasuresAllValidator',
-  `acl:${permissions.schoolRead}`
+  `acl:${permissions.schoolRead}`,
+  `cache:${60 * 60 * 4}`
 ])
 
 /**
  * CURRENCY ROUTES
  */
 
-Route.get('/currency', 'CurrenciesController.listCurrencies').middleware('auth:jwt')
+Route.get('/currency', 'CurrenciesController.listCurrencies').middleware([
+  'auth:jwt',
+  `cache:${60 * 60 * 24}`
+])
 
 /**
  * COUNTRY ROUTES
  */
 
-Route.get('/country', 'CountriesController.listCountries').middleware('auth:jwt')
+Route.get('/country', 'CountriesController.listCountries').middleware([
+  'auth:jwt',
+  `cache:${60 * 60 * 24}`
+])
 
 /**
  * CONTRACT ROUTES
@@ -238,12 +251,12 @@ Route.get(
 
 Route.post('/contract/duplicate/:contract_id', 'ContractsController.duplicateContract').middleware([
   'auth:jwt',
-  `acl:${permissions.contractWrite}`
+  `acl:${permissions.contractDuplicate}`
 ])
 
 Route.post('/contract/draft/duplicate/:draft_id', 'ContractsController.duplicateDraft').middleware([
   'auth:jwt',
-  `acl:${permissions.contractWrite}`
+  `acl:${permissions.contractDuplicate}`
 ])
 
 Route.post(
@@ -282,7 +295,7 @@ Route.get('/attachments/:attachment_id', 'AttachmentsController.getAttachment').
 ])
 
 /**
- * IPS CONTACTS ROUTES - TDOD FIX
+ * IPS CONTACTS ROUTES - TODO FIX
  */
 
 Route.post('/contact/isp', 'IspContactsController.upload').middleware([
@@ -296,7 +309,7 @@ Route.delete('/contact/isp', 'IspContactsController.deleteIspContact').middlewar
 ])
 
 /**
- * STAKEHOLDERS ROUTES - TDOD FIX
+ * STAKEHOLDERS ROUTES - TODO FIX
  */
 
 Route.post('/stakeholder', 'StakeholdersController.upload').middleware([
@@ -488,5 +501,17 @@ Route.get('/frequency', 'FrequenciesController.listFrequencies').middleware('aut
 
 Route.get('/dashboard/schools', 'DashboardController.listDashboardSchools').middleware([
   'auth:jwt',
-  `acl:${permissions.schoolRead}`
+  `acl:${permissions.schoolRead}`,
+  `cache:${60 * 60 * 4}`
 ])
+
+Route.get('/dashboard/contracts/not-meets', 'DashboardController.listNotMeetsSla').middleware([
+  'auth:jwt',
+  `cache:${60 * 60}`
+])
+
+// dummy
+Route.get('/dummy/k/:contract_id', 'DummyController.dummyCashback').middleware(['auth:jwt'])
+Route.get('/dummy/p/:contract_id', 'DummyController.dummyAutomaticPayment').middleware(['auth:jwt'])
+Route.get('/dummy/e/', 'DummyController.dummyEnvCheck').middleware(['auth:jwt'])
+

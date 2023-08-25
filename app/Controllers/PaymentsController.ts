@@ -12,10 +12,12 @@ export default class PaymentsController {
     return response.ok(frequencies)
   }
 
-  public async getPayments({ response, auth }: HttpContextContract) {
+  public async getPayments({ response, request, auth }: HttpContextContract) {
     try {
       if (!auth.user) return
-      const payments = await service.getPayments(auth.user)
+
+      const { countryId } = request.qs()
+      const payments = await service.getPayments(auth.user, countryId)
       return response.ok(payments)
     } catch (error) {
       return response.status(error.status).send(error.message)

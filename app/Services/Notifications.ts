@@ -1,17 +1,26 @@
 import { DateTime } from 'luxon'
-import Notifications from 'App/Models/Notifications'
+import Notification from 'App/Models/Notification'
 import NotFoundException from 'App/Exceptions/NotFoundException'
 import Database from '@ioc:Adonis/Lucid/Database'
-import { NotificationStatus } from 'App/Helpers/constants'
 import Feedback from 'App/Models/Feedback'
 import User from 'App/Models/User'
 import NotificationConfiguration from 'App/Models/NotificationConfiguration'
 import HelpRequest from 'App/Models/HelpRequest'
-export interface CreateNotificationData {
+import {
+  NotificationChannel,
+  NotificationStatus,
+  NotificationChannelType,
+  NotificationStatusType,
+  NotificationSources
+} from 'App/Helpers/constants'
+import DatabaseException from 'App/Exceptions/DatabaseException'
+import userService from 'App/Services/User'
+
+export interface NotificationData {
   id: number
   userId: number
   configId: number
-  status: NotificationStatus
+  status: NotificationStatusType
   title?: string
   message: string
   subMessage?: string
@@ -20,97 +29,146 @@ export interface CreateNotificationData {
   discardedAt?: DateTime
   sentAt?: DateTime
   email?: string
+  priority: number
+}
+
+const getFilteredNotifications = async (
+  channels: Array<string>,
+  status: Array<string>,
+  userId?: number,
+  notificationId?: number,
+  priority?: number
+): Promise<NotificationData[]> => {
+  try {
+    let someFilter = false
+    let rawQuery = `
+    SELECT distinct n.*, nc.priority
+    FROM notifications n 
+    inner join notification_configurations nc on n.config_id = nc.id`
+
+    if (channels?.length) {
+      someFilter = true
+      rawQuery += ' where nc.channel in (' + channels.map((item) => `'${item}'`).join(',') + ')'
+    }
+    if (status?.length) {
+      rawQuery +=
+        (someFilter ? ' and ' : ' where ') +
+        'n.status in (' +
+        status.map((item) => `'${item}'`).join(',') +
+        ')'
+      someFilter = true
+    }
+    if (userId) {
+      rawQuery += (someFilter ? ' and ' : ' where ') + 'n.user_id = ' + userId.toString()
+      someFilter = true
+    }
+    if (notificationId) {
+      rawQuery += (someFilter ? ' and ' : ' where ') + 'n.id = ' + notificationId.toString()
+      someFilter = true
+    }
+    if (priority) {
+      rawQuery += (someFilter ? ' and ' : ' where ') + 'nc.priority = ' + priority.toString()
+    }
+    rawQuery += ' order by created_at desc'
+    const query = await Database.rawQuery(rawQuery)
+
+
+    return query.rows as NotificationData[]
+    
+    /*
+    let query = Notification.query()
+    .select('notifications.*', 'notification_configurations.priority')
+    .innerJoin(
+      'notification_configurations',
+      'notifications.config_id',
+      'notification_configurations.id'
+    );
+
+    if (channels?.length) {
+      query = query.whereIn('notification_configurations.channel', channels);
+    }
+    if (status?.length) {
+      query = query.whereIn('notifications.status', status);
+    }
+    if (userId) {
+      query = query.where('notifications.user_id', userId);
+    }
+    if (notificationId) {
+      query = query.where('notifications.id', notificationId);
+    }
+    if (priority) {
+      query = query.where('notification_configurations.priority', priority);
+    }
+
+    query = query.orderBy('created_at', 'desc');
+
+    const notifications = await query;
+
+    const mappedNotifications: NotificationData[] = notifications.map((notification) => ({
+      id: notification.id || 0,
+      userId: notification.userId,
+      configId: notification.configId,
+      status: notification.status,
+      title: notification.title,
+      message: notification.message,
+      subMessage: notification.subMessage,
+      createdAt: notification.createdAt,
+      viewedAt: notification.viewedAt,
+      discardedAt: notification.discardedAt,
+      sentAt: notification.sentAt,
+      email: notification.email,
+      priority: notification.configuration?.priority
+    }));
+
+    return mappedNotifications;
+    */
+  } catch (ex) {
+    console.error(ex)
+    throw new DatabaseException('Some database error occurred while getting notifications')
+  }
 }
 
 const getNotifications = async (
   channels: Array<string>,
-  status: Array<string>
-): Promise<CreateNotificationData[]> => {
-  const query = Notifications.query().select('notifications.*')
-
-  if (channels?.length) {
-    query
-      .join(
-        'notification_configurations',
-        'notifications.config_id',
-        'notification_configurations.id'
-      )
-      .whereIn('notification_configurations.channel', channels)
-  }
-
-  if (status?.length) {
-    query.andWhereIn('status', status)
-  }
-
-  return query as unknown as CreateNotificationData[]
+  status: Array<string>,
+  priority?: number
+): Promise<NotificationData[]> => {
+  return await getFilteredNotifications(channels, status, undefined, undefined, priority)
 }
 
 const getNotificationsByUserId = async (
   userId: number,
   channels: Array<string>,
-  status: Array<string>
-): Promise<CreateNotificationData[]> => {
-  const query = Notifications.query().select('notifications.*').where('userId', userId)
-
-  if (channels?.length) {
-    query
-      .join(
-        'notification_configurations',
-        'notifications.config_id',
-        'notification_configurations.id'
-      )
-      .whereIn('notification_configurations.channel', channels)
-  }
-
-  if (status?.length) {
-    query.andWhereIn('status', status)
-  }
-
-  return query as unknown as CreateNotificationData[]
+  status: Array<string>,
+  priority?: number
+): Promise<NotificationData[]> => {
+  return await getFilteredNotifications(channels, status, userId, undefined, priority)
 }
 
 const getNotificationsById = async (
   id: number,
   userId: number,
   channels: Array<string>,
-  status: Array<string>
-): Promise<Notifications> => {
-  const query = Notifications.query()
-    .select('notifications.*')
-    .where('notifications.id', id)
-    .andWhere('userId', userId)
-
-  if (channels?.length) {
-    query
-      .join(
-        'notification_configurations',
-        'notifications.config_id',
-        'notification_configurations.id'
-      )
-      .whereIn('notification_configurations.channel', channels)
-  }
-
-  if (status?.length) {
-    query.andWhereIn('status', status)
-  }
-
-  return (await query.first()) as Notifications
+  status: Array<string>,
+  priority?: number
+): Promise<NotificationData> => {
+  const notifications: NotificationData[] = await getFilteredNotifications(
+    channels,
+    status,
+    userId,
+    id,
+    priority
+  )
+  return notifications[0]
 }
 
-const changeStatusNotificationsById = async (
-  id: number,
-  userId: number,
-  status: string
-): Promise<Notifications> => {
-  let notification = (await Notifications.query()
-    .where('id', id)
-    .andWhere('userId', userId)
-    .first()) as Notifications
-  if (!notification) throw new NotFoundException('Notification not found', 404, 'NOT_FOUND')
+const changeStatusNotificationsById = async (id: number, status: string): Promise<Notification> => {
+  let notification = (await Notification.query().where('id', id).first()) as Notification
+  if (!notification) throw new NotFoundException('Notification not found')
 
   const trx = await Database.transaction()
   try {
-    const data = { status: status } as Notifications
+    const data = { status: status } as Notification
     switch (status.toUpperCase()) {
       case 'READ':
         data.viewedAt = DateTime.now()
@@ -121,7 +179,6 @@ const changeStatusNotificationsById = async (
       case 'SENT':
         data.sentAt = DateTime.now()
         break
-
       default:
         break
     }
@@ -150,24 +207,10 @@ const createNotificationByOperation = async (notificationOperation, contractId: 
   }
 }
 
-const getGigaSuperAdminRole = async () => {
-  const user = await User.query()
-    .join('user_roles', (query) => {
-      query.on((subquery) => {
-        subquery.on('users.id', '=', 'user_roles.user_id')
-      })
-    })
-    .join('roles', (query) => {
-      query.on((subquery) => {
-        subquery.on('roles.id', '=', 'user_roles.role_id')
-      })
-    })
-    .where('roles.code', '=', 'GIGA.SUPER.ADMIN')
-
-  return user
-}
-
-const getCotificationConfig = async (notificationOperation: string) => {
+const getCotificationConfig = async (
+  notificationOperation: string,
+  notificationChannel: NotificationChannelType
+) => {
   const notificationConfig = await NotificationConfiguration.query()
     .select('notification_configurations.id')
     .join(
@@ -176,79 +219,122 @@ const getCotificationConfig = async (notificationOperation: string) => {
       'notification_configurations.source_id'
     )
     .where('notification_sources.code', notificationOperation)
+    .andWhere('notification_configurations.channel', notificationChannel)
 
   return notificationConfig
 }
 
-const createHelpRequestNotification = async (
+const createGenericNotification = async (
   notificationOperation: string,
-  helpRequest: HelpRequest,
-  userFrom: User
+  notificationChannel: NotificationChannelType,
+  title: string,
+  message: string
 ) => {
+  const notification = new Notification()
+
   try {
-    const user = await getGigaSuperAdminRole()
+    const user = await userService.getGigaSuperAdminUser()
+    if (!user) return notification
+    const notificationConfig = await getCotificationConfig(
+      notificationOperation,
+      notificationChannel
+    )
 
-    const notificationConfig = await getCotificationConfig(notificationOperation)
-
-    const notification = new Notifications()
-
-    notification.title = `Help Request Giga Application ID ${helpRequest.id}`
-    notification.message = `
-    ID: ${helpRequest.id},
-    Code: ${helpRequest.code},
-    Functionality: ${helpRequest.functionality},
-    Type of Help Request: ${helpRequest.type},
-    Description: ${helpRequest.description};
-    Created by: ${userFrom.email},
-    Created at: ${helpRequest.createdAt}
-    `
+    notification.title = title
+    notification.message = message
     notification.userId = user[0].id
     notification.configId = notificationConfig[0].id as number
-    notification.status = 'CREATED'
+    notification.status =
+      notificationChannel === NotificationChannel.EMAIL
+        ? NotificationStatus.CREATED
+        : NotificationStatus.SENT
     notification.email = user[0].email
-
+    notification.sentAt = notificationChannel === NotificationChannel.API
+    ? DateTime.now() : undefined
+    
     await Database.transaction(async (trx) => {
       await notification.useTransaction(trx).save()
     })
-
-    return notification
   } catch (error) {
     console.error('Error creating a new notification for: ' + notificationOperation, error)
   }
+
+  return notification
 }
 
-const createFeedbackNotification = async (
-  notificationOperation: string,
+const createHelpRequestNotifications = async (
+  helpRequest: HelpRequest,
+  userFrom: User
+): Promise<Notification[]> => {
+  const title = `Gigacounts - Help Request from User ${userFrom.email}`
+  const message = `
+  ID: ${helpRequest.id},
+  Code: ${helpRequest.code},
+  Functionality: ${helpRequest.functionality},
+  Type of Help Request: ${helpRequest.type},
+  Description: ${helpRequest.description};
+  Created by: ${userFrom.email},
+  Created at: ${helpRequest.createdAt}
+  `
+  const emailNotification: Notification = await createGenericNotification(
+    NotificationSources.helpRequest,
+    NotificationChannel.EMAIL,
+    title,
+    message
+  )
+  const apiNotification: Notification = await createGenericNotification(
+    NotificationSources.helpRequest,
+    NotificationChannel.API,
+    title,
+    message
+  )
+  return [emailNotification, apiNotification]
+}
+
+const createFeedbackNotifications = async (
   feedback: Feedback,
   userFrom: User
-) => {
-  try {
-    const user = await getGigaSuperAdminRole()
-    const notificationConfig = await getCotificationConfig(notificationOperation)
+): Promise<Notification[]> => {
+  const title = `Gigacounts - Feedback from User ${userFrom.email}`
+  const message = `
+  ID: ${feedback.id},
+  Rate: ${feedback.rate},
+  Comment: ${feedback.comment};
+  Created by: ${userFrom.email},
+  Created at: ${feedback.createdAt}
+  `
+  const emailNotification: Notification = await createGenericNotification(
+    NotificationSources.feedback,
+    NotificationChannel.EMAIL,
+    title,
+    message
+  )
+  const apiNotification: Notification = await createGenericNotification(
+    NotificationSources.feedback,
+    NotificationChannel.API,
+    title,
+    message
+  )
+  return [emailNotification, apiNotification]
+}
 
-    const notification = new Notifications()
-
-    notification.title = `Feedback Giga Application ID ${feedback.id}`
-    notification.message = `
-    ID: ${feedback.id},
-    Rate: ${feedback.rate},
-    Comment: ${feedback.comment};
-    Created by: ${userFrom.email},
-    Created at: ${feedback.createdAt}
-    `
-    notification.userId = user[0].id
-    notification.configId = notificationConfig[0].id as number
-    notification.status = 'CREATED'
-    notification.email = user[0].email
-
-    await Database.transaction(async (trx) => {
-      await notification.useTransaction(trx).save()
-    })
-
-    return notification
-  } catch (error) {
-    console.error('Error creating a new notification for: ' + notificationOperation, error)
-  }
+const createGenericAutomaticContractNotifications = async (
+  message: string
+): Promise<Notification[]> => {
+  const title = 'Gigacounts - Automatic Contract Information'
+  const emailNotification: Notification = await createGenericNotification(
+    NotificationSources.automaticContractGeneric,
+    NotificationChannel.EMAIL,
+    title,
+    message
+  )
+  const apiNotification: Notification = await createGenericNotification(
+    NotificationSources.automaticContractGeneric,
+    NotificationChannel.API,
+    title,
+    message
+  )
+  return [emailNotification, apiNotification]
 }
 
 export default {
@@ -257,6 +343,7 @@ export default {
   getNotificationsById,
   changeStatusNotificationsById,
   createNotificationByOperation,
-  createHelpRequestNotification,
-  createFeedbackNotification
+  createHelpRequestNotifications,
+  createFeedbackNotifications,
+  createGenericAutomaticContractNotifications
 }

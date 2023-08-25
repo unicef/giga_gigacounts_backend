@@ -4,8 +4,6 @@ import {
   BelongsTo,
   belongsTo,
   column,
-  HasOne,
-  hasOne,
   ManyToMany,
   manyToMany
 } from '@ioc:Adonis/Lucid/Orm'
@@ -143,5 +141,4 @@ export default class Draft extends BaseModel {
     foreignKey: 'paymentReceiverId'
   })
   public paymentReceiver: BelongsTo<typeof User>
-
 }

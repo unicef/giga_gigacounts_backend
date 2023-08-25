@@ -7,7 +7,12 @@ import roleService from 'App/Services/Role'
 
 export default class UsersController {
   public async profile({ auth, response }: HttpContextContract) {
+    if (!auth.user) return
+
     const user = await service.getProfile(auth.user)
+
+    if (!user) throw new NotFoundException('User not found')
+
     return response.ok(user)
   }
 
@@ -16,7 +21,7 @@ export default class UsersController {
       const { email, password } = request.all()
       const user = (await User.query().where('email', email).first()) as User
 
-      if (!user) throw new NotFoundException('User not found', 404, 'NOT_FOUND')
+      if (!user) throw new NotFoundException('User not found')
 
       const permissions = await roleService.getRolesPermission(user.roles)
 
@@ -60,19 +65,27 @@ export default class UsersController {
     }
   }
 
+  public async gigaTokenWalletOwnerAddress({ response, auth }: HttpContextContract) {
+    try {
+      if (!auth.user) return
+      const walletAddress = await service.gigaTokenWalletOwnerAddress()
+      return response.ok(walletAddress)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
+
   public async getPermissionsByEmail({ response, request }: HttpContextContract) {
     try {
       const { email } = request.body()
-      console.log(`Going to retrieve permissions for user: ${email}`)
       const { permissions, userId, countryId } = await service.getPermissionsByEmail(email)
-      userId as number
-      countryId as number
+
       return response.ok({
         version: '1.0.0',
         action: 'Continue',
         extension_Permissions: permissions.join(','),
-        extension_UserId: parseInt(userId.toString()),
-        extension_CountryId: parseInt(countryId.toString())
+        extension_UserId: Number(userId),
+        extension_CountryId: Number(countryId)
       })
     } catch (error) {
       return response.status(error.status).send(error.message)

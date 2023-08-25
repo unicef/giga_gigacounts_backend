@@ -8,6 +8,7 @@ export default class NotificationController {
     if (!auth.user) return
     let channels: Array<string> = (request.qs().channel as Array<string>) || []
     let status: Array<string> = (request.qs().status as Array<string>) || []
+    let priority: number = request.qs().priority as number
 
     if (!Array.isArray(channels)) {
       channels = [channels]
@@ -17,7 +18,7 @@ export default class NotificationController {
       status = [status]
     }
 
-    const notifications = await service.getNotifications(channels || [], status || [])
+    const notifications = await service.getNotifications(channels || [], status || [], priority)
     return response.ok(notifications)
   }
 
@@ -28,6 +29,7 @@ export default class NotificationController {
     const userId = request.param('userId') as number
     let channels: Array<string> = (request.qs().channel as Array<string>) || []
     let status: Array<string> = (request.qs().status as Array<string>) || []
+    let priority: number = request.qs().priority as number
 
     if (!Array.isArray(channels)) {
       channels = [channels]
@@ -40,7 +42,8 @@ export default class NotificationController {
     const notificationConfigs = await service.getNotificationsByUserId(
       userId,
       channels || [],
-      status || []
+      status || [],
+      priority
     )
     return response.ok(notificationConfigs)
   }
@@ -51,6 +54,7 @@ export default class NotificationController {
     const userId = request.param('userId') as number
     let channels: Array<string> = (request.qs().channel as Array<string>) || []
     let status: Array<string> = (request.qs().status as Array<string>) || []
+    let priority: number = request.qs().priority as number
 
     if (!Array.isArray(channels)) {
       channels = [channels]
@@ -64,7 +68,8 @@ export default class NotificationController {
       id,
       userId,
       channels || [],
-      status || []
+      status || [],
+      priority
     )
     return response.ok(notificationSources)
   }
@@ -72,24 +77,21 @@ export default class NotificationController {
   public async markAsReadNotificationsById({ request, response, auth }: HttpContextContract) {
     if (!auth.user) return
     const id = request.param('notificationId') as number
-    const userId = request.param('userId') as number
-    const notificationSources = await service.changeStatusNotificationsById(id, userId, 'READ')
+    const notificationSources = await service.changeStatusNotificationsById(id, 'READ')
     return response.ok(notificationSources)
   }
 
   public async markAsDiscardedNotificationsById({ request, response, auth }: HttpContextContract) {
     if (!auth.user) return
     const id = request.param('notificationId') as number
-    const userId = request.param('userId') as number
-    const notificationSources = await service.changeStatusNotificationsById(id, userId, 'DISCARDED')
+    const notificationSources = await service.changeStatusNotificationsById(id, 'DISCARDED')
     return response.ok(notificationSources)
   }
 
   public async markAsSentNotificationsById({ request, response, auth }: HttpContextContract) {
     if (!auth.user) return
     const id = request.param('notificationId') as number
-    const userId = request.param('userId') as number
-    const notificationSources = await service.changeStatusNotificationsById(id, userId, 'SENT')
+    const notificationSources = await service.changeStatusNotificationsById(id, 'SENT')
     return response.ok(notificationSources)
   }
 }

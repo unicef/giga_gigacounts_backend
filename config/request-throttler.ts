@@ -1,21 +1,21 @@
 import { ThrottleConfig } from '@ioc:Adonis/Addons/RequestThrottler'
 
 export default {
-	maxAttempts: 10,
+  maxAttempts: 10,
 
-	maxAttemptPeriod: 600000,
+  maxAttemptPeriod: 600000,
 
-	ttlUnits: 'ms',
+  ttlUnits: 'ms',
 
-	cacheStorage: 'in-memory',
+  cacheStorage: 'in-memory',
 
-	useOwnCache: true,
+  useOwnCache: true,
 
-	limitExceptionParams: {
-		code: 'E_LIMIT_EXCEPTION',
-		message: 'Maximum number of login attempts exceeded. Please try again later.',
-		status: 429,
-	},
+  limitExceptionParams: {
+    code: 'E_LIMIT_EXCEPTION',
+    message: 'Maximum number of login attempts exceeded. Please try again later.',
+    status: 429
+  },
 
-	requestKeysForRecognizing: ['method', 'hostname', 'url', 'ip'],
+  requestKeysForRecognizing: ['method', 'hostname', 'url', 'ip']
 } as ThrottleConfig

@@ -56,8 +56,8 @@ export interface GetDraftDTOResponse {
     email: string
     lastName: string
     role: {
-      name?: string,
-      code?: string,
+      name?: string
+      code?: string
     }
   }[]
   stakeholders?: {
@@ -65,6 +65,10 @@ export interface GetDraftDTOResponse {
     name: string
     email: string
     lastName: string
+    role: {
+      name?: string
+      code?: string
+    }
   }[]
   schools?: School[]
   expectedMetrics?: {
@@ -73,7 +77,7 @@ export interface GetDraftDTOResponse {
     metricId: string
   }[]
   notes?: string
-  breakingRules?: string,
+  breakingRules?: string
   paymentReceiver?: {
     id: number
     name: string
@@ -99,27 +103,27 @@ const getDraftDTO = ({
     country: draft.country,
     currency: draft.currency
       ? {
-        id: draft.currency.id.toString(),
-        name: draft.currency.name,
-        code: draft.currency.code,
-        type: CurrencyType[draft.currency.type]
-      }
+          id: draft.currency.id.toString(),
+          name: draft.currency.name,
+          code: draft.currency.code,
+          type: CurrencyType[draft.currency.type]
+        }
       : undefined,
     frequency: draft.frequency,
     isp: draft.isp,
     lta: draft.lta
       ? {
-        id: draft?.lta.id,
-        name: draft?.lta.name
-      }
+          id: draft?.lta.id,
+          name: draft?.lta.name
+        }
       : null,
     createdBy: draft.user
       ? {
-        id: draft?.user.id,
-        name: draft?.user.name,
-        email: draft?.user.email,
-        lastName: draft?.user.lastName
-      }
+          id: draft?.user.id,
+          name: draft?.user.name,
+          email: draft?.user.email,
+          lastName: draft?.user.lastName
+        }
       : null,
     attachments: draft?.attachments,
     ispContacts: draft?.ispContacts.map((ispContact) => ({
@@ -132,11 +136,15 @@ const getDraftDTO = ({
         name: ispContact.roles[0]?.name
       }
     })),
-    stakeholders: draft?.ispContacts.map((ispContact) => ({
-      id: ispContact.id,
-      name: ispContact.name,
-      email: ispContact.email,
-      lastName: ispContact.lastName
+    stakeholders: draft?.stakeholders.map((stakeHolder) => ({
+      id: stakeHolder.id,
+      name: stakeHolder.name,
+      email: stakeHolder.email,
+      lastName: stakeHolder.lastName,
+      role: {
+        code: stakeHolder.roles[0]?.code,
+        name: stakeHolder.roles[0]?.name
+      }
     })),
     schools,
     expectedMetrics,

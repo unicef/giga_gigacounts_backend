@@ -1,8 +1,10 @@
 import { BaseTask } from 'adonis5-scheduler/build'
+import service from 'App/Services/Web3'
+import userSerivce from 'App/Services/User'
 
 export default class AutomaticPayments extends BaseTask {
   public static get schedule() {
-    return process.env.CRON_TASK_AUTOMATIC_PAYMENTS || '* */1 * * *'
+    return process.env.CRON_TASK_AUTOMATIC_PAYMENTS || '* */24 * * *'
   }
 
   public static get useLock() {
@@ -11,7 +13,16 @@ export default class AutomaticPayments extends BaseTask {
 
   public async handle() {
     if (process.env.CRON_TASK_AUTOMATIC_PAYMENTS_ENABLED?.toLocaleLowerCase() === 'false') return
-    console.log('running task Cashback')
-    // TBC
+    console.info('running task Automatic Payments')
+    try {
+      const user = await userSerivce.getGigaSchedulerUser()
+      if (!user) {
+        console.error('Error in task update contracts status: user service not found')
+      } else {
+        await service.automaticPayments(user)
+      }
+    } catch (err) {
+      console.error(err)
+    }
   }
 }

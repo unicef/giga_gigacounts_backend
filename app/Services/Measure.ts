@@ -12,6 +12,7 @@ import utils from 'App/Helpers/utils'
 import { LoadMeasuresType } from 'App/Services/Contract'
 import { MeasurementsData } from 'App/Helpers/unicefApi'
 import dto from 'App/DTOs/Measure'
+import { Metrics } from 'App/Helpers/constants'
 
 export interface CalculatebyMonthYearData {
   contractId: number
@@ -29,7 +30,7 @@ const calculateMeasuresByMonthYear = async ({
     .preload('schools')
     .preload('expectedMetrics')
     .withCount('schools')) as Contract[]
-  if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  if (!contract.length) throw new NotFoundException('Contract not found')
   const { dateFrom, dateTo } = utils.makeFromAndToDate(month, year, contract[0].endDate)
 
   const schoolsMedians = await getSchoolsMedianMeasures(contract, dateFrom, dateTo)
@@ -52,7 +53,7 @@ const saveMeasuresFromUnicef = (
   contractId: number,
   schoolId: number,
   metrics: Metric[],
-  startDate: DateTime,
+  // startDate: DateTime,
   endDate: DateTime,
   type: LoadMeasuresType
 ) => {
@@ -79,28 +80,29 @@ const saveMeasuresFromUnicef = (
         {
           contractId,
           schoolId,
-          metricId: metrics.find((m) => m.name === 'Latency')?.id,
+          metricId: metrics.find((m) => m.name.toLowerCase() === Metrics.Latency.toLowerCase())?.id,
           value: parseFloat(measure['latency']),
           createdAt: DateTime.fromJSDate(new Date(measure['timestamp']))
         },
         {
           contractId,
           schoolId,
-          metricId: metrics.find((m) => m.name === 'Download speed')?.id,
+          metricId: metrics.find((m) => m.name.toLowerCase() === Metrics.Download.toLowerCase())
+            ?.id,
           value: convertKilobitsToMegabits(measure['download']),
           createdAt: DateTime.fromJSDate(new Date(measure['timestamp']))
         },
         {
           contractId,
           schoolId,
-          metricId: metrics.find((m) => m.name === 'Upload speed')?.id,
+          metricId: metrics.find((m) => m.name.toLowerCase() === Metrics.Upload.toLowerCase())?.id,
           value: convertKilobitsToMegabits(measure['upload']),
           createdAt: DateTime.fromJSDate(new Date(measure['timestamp']))
         },
         {
           contractId,
           schoolId,
-          metricId: metrics.find((m) => m.name === 'Uptime')?.id,
+          metricId: metrics.find((m) => m.name.toLowerCase() === Metrics.Uptime.toLowerCase())?.id,
           value: 0,
           createdAt: DateTime.fromJSDate(new Date(measure['timestamp']))
         }

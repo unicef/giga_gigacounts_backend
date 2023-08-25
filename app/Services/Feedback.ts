@@ -1,8 +1,7 @@
 import { RequestContract } from '@ioc:Adonis/Core/Request'
 import User from 'App/Models/User'
-import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
+import DatabaseException from 'App/Exceptions/DatabaseException'
 import NotFoundException from 'App/Exceptions/NotFoundException'
-
 import Feedback from 'App/Models/Feedback'
 import notificationService from 'App/Services/Notifications'
 import Database from '@ioc:Adonis/Lucid/Database'
@@ -11,7 +10,7 @@ import { roles } from 'App/Helpers/constants'
 
 const listFeedbacks = async (user: User) => {
   try {
-    if (!userService.checkUserRole(user, [roles.gigaAdmin])) {
+    if (!(await userService.checkUserRole(user, [roles.gigaAdmin]))) {
       throw new NotFoundException(
         'You do not have the permissions to get the feedback list',
         401,
@@ -22,13 +21,9 @@ const listFeedbacks = async (user: User) => {
     return query as unknown as Feedback[]
   } catch (error) {
     if (error.status === 404) {
-      throw new FailedDependencyException(
-        'Some database error occurred while find Feedbacks',
-        424,
-        'DATABASE_ERROR'
-      )
+      throw new DatabaseException('Some database error occurred while find Feedbacks')
     } else if (error.status === 401) {
-      throw new FailedDependencyException(
+      throw new DatabaseException(
         'You do not have the permissions to get the feedback list',
         401,
         'UNAUTHORIZED'
@@ -41,23 +36,18 @@ const createFeedback = async (user: User, req: RequestContract): Promise<Feedbac
   const client = await Database.transaction()
   try {
     const { rate, comment } = req.body()
-
-    const helprequests = await Feedback.create({
+    const data = await Feedback.create({
       rate,
       comment
     })
 
-    await notificationService.createFeedbackNotification('FDBACK', helprequests, user)
+    await notificationService.createFeedbackNotifications(data, user)
 
     await client.commit()
-    return helprequests
+    return data
   } catch (error) {
     if (error.status === 404) throw error
-    throw new FailedDependencyException(
-      'Some database error occurred while creating Feedback',
-      424,
-      'DATABASE_ERROR'
-    )
+    throw new DatabaseException('Some database error occurred while creating Feedback')
   }
 }
 

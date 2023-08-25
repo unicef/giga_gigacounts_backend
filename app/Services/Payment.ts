@@ -1,7 +1,7 @@
 import Database, { TransactionClientContract } from '@ioc:Adonis/Lucid/Database'
 import { DateTime } from 'luxon/src/luxon'
 
-import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
+import DatabaseException from 'App/Exceptions/DatabaseException'
 import NotFoundException from 'App/Exceptions/NotFoundException'
 import AlreadyHasPaymentException from 'App/Exceptions/AlreadyHasPaymentException'
 import InvalidStatusException from 'App/Exceptions/InvalidStatusException'
@@ -15,7 +15,8 @@ import attachmentService, { AttachmentsType } from 'App/Services/Attachment'
 import userService from 'App/Services/User'
 import measureService from 'App/Services/Measure'
 import utils from 'App/Helpers/utils'
-import { PaymentStatus, roles, ContractStatus } from 'App/Helpers/constants'
+import { PaymentStatus, roles, ContractStatus, NotificationSources } from 'App/Helpers/constants'
+import NotificationsService from 'App/Services/Notifications'
 
 import dto from 'App/DTOs/Payment'
 import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
@@ -30,10 +31,14 @@ export interface CreatePaymentData {
   year: number
   description?: string
   amount: number
-  status?: string
+  status?: PaymentStatus
   invoice?: File
   receipt?: File
   contractId: string
+  discount?: number
+  isVerified?: boolean
+  dateFrom?: string
+  dateTo?: string
 }
 
 export interface ChangePaymentStatusData {
@@ -49,6 +54,9 @@ export interface UpdatePaymentData {
   amount?: number
   invoice?: File
   receipt?: File
+  status?: PaymentStatus
+  dateFrom?: DateTime
+  dateTo?: DateTime
 }
 
 const listFrequencies = async (): Promise<Frequency[]> => {
@@ -59,24 +67,15 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
   const trx = await Database.transaction()
   try {
     const contract = await Contract.find(data.contractId, { client: trx })
-    if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+    if (!contract) throw new NotFoundException('Contract not found')
     if (contract.status === ContractStatus.Completed)
       throw new InvalidStatusException('Invalid status', 400, 'INVALID_STATUS')
 
     let status
-    if (
-      userService.checkUserRole(user, [
-        roles.gigaAdmin,
-        roles.countryContractCreator,
-        roles.countryAccountant,
-        roles.countrySuperAdmin
-      ])
-    ) {
-      if (data.status !== undefined && Object.values(PaymentStatus).includes(data.status)) {
-        status = PaymentStatus[data.status]
-      } else {
-        status = PaymentStatus.OnHold
-      }
+    if (data.status) {
+      status = data.status
+    } else {
+      status = PaymentStatus.OnHold
     }
 
     const { dateFrom, dateTo, metrics } = await checkAndSavePaymentMetrics(
@@ -87,16 +86,18 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
 
     const payment = await Payment.create(
       {
-        dateFrom,
-        dateTo,
+        /* for automatic payments creation, the dateFrom and dateTo is provided in 'data' variable! */
+        dateFrom: (data.dateFrom ? utils.setDateToBeginOfDayFromISO(utils.GetDateTimeFromFormat('yyyyMMddHHmmss', data.dateFrom)) : dateFrom),
+        dateTo: (data.dateTo ? utils.setDateToEndOfDayFromISO(utils.GetDateTimeFromFormat('yyyyMMddHHmmss', data.dateTo)) : dateTo),
         contractId: contract.id,
         amount: data.amount,
-        discount: 0,
+        discount: data.discount || 0,
         currencyId: contract.currencyId,
         description: data.description,
         status: status,
         createdBy: user.id,
-        metrics: metrics
+        metrics: metrics,
+        isVerified: data.isVerified || false
       },
       { client: trx }
     )
@@ -127,18 +128,23 @@ const createPayment = async (data: CreatePaymentData, user: User) => {
     await payment.load('currency')
     await payment.load('creator')
     await payment.creator.load('roles')
+    await payment.load('contract')
+    await payment.contract.load('frequency')
     if (payment.invoiceId) await payment.load('invoice')
     if (payment.receiptId) await payment.load('receipt')
+
+    NotificationsService.createNotificationByOperation(
+      contract.automatic
+        ? NotificationSources.automaticPaymentCreated
+        : NotificationSources.manualPaymentCreated,
+      contract.id?.toString() || '0'
+    )
 
     return dto.getPaymentDTO(payment)
   } catch (error) {
     await trx.rollback()
     if ([404, 422, 400, 413].some((status) => status === error?.status)) throw error
-    throw new FailedDependencyException(
-      'Some database error occurred while uploading attachment',
-      424,
-      'DATABASE_ERROR'
-    )
+    throw new DatabaseException('Some database error occurred creating payment. Detail: ' + error.message)
   }
 }
 
@@ -156,11 +162,12 @@ const checkPaymentInSameMonthYear = async (
 
 const getPaymentsByContract = async (contractId: string) => {
   const contract = await Contract.find(contractId)
-  if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  if (!contract) throw new NotFoundException('Contract not found')
   const payments = await Payment.query()
     .where('contract_id', contractId)
     .preload('currency')
     .preload('creator', (builder) => builder.preload('roles'))
+    .preload('contract', (builder) => builder.preload('frequency'))
     .orderBy('date_to', 'desc')
 
   await Promise.all(
@@ -173,22 +180,25 @@ const getPaymentsByContract = async (contractId: string) => {
 }
 
 const queryBuilder = async (
-  user: User
+  user: User,
+  countryId?: number
 ): Promise<{ query: ModelQueryBuilderContract<typeof Payment, Payment> }> => {
   let query = Payment.query()
+  const isAdmin = await userService.checkUserRole(user,
+    [roles.gigaAdmin, roles.gigaViewOnly]
+  )
 
-  if (
-    userService.checkUserRole(
-      user,
-      // These roles see all payments for all contracts.
-      [roles.gigaAdmin, roles.gigaViewOnly]
-    )
-  ) {
-  } else {    
+  if (isAdmin) {
+    if (countryId) {
+      query.whereHas('contract', (builder) => {
+        builder.where('countryId', countryId);
+      });
+    }
+  } else {
     query.whereHas('contract', (builder) => {
       builder.where('countryId', user.countryId)
     })
-  } 
+  }
 
   return { query }
 }
@@ -205,8 +215,8 @@ const fetchPaymentsList = async (query: ModelQueryBuilderContract<typeof Payment
     .orderBy('date_to', 'desc')
 }
 
-const getPayments = async (user: User) => {
-  const { query } = await queryBuilder(user)
+const getPayments = async (user: User, countryId?: number) => {
+  const { query } = await queryBuilder(user, countryId)
   let payments: Payment[] = []
 
   payments = await fetchPaymentsList(query)
@@ -222,10 +232,12 @@ const getPayments = async (user: User) => {
 
 const getPayment = async (paymentId: string) => {
   const payment = await Payment.find(paymentId)
-  if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
+  if (!payment) throw new NotFoundException('Payment not found')
   await payment.load('currency')
   await payment.load('creator')
   await payment.creator.load('roles')
+  await payment.load('contract')
+  await payment.contract.load('frequency')
   if (payment.invoiceId) await payment.load('invoice')
   if (payment.receiptId) await payment.load('receipt')
   return dto.getPaymentDTO(payment)
@@ -233,7 +245,7 @@ const getPayment = async (paymentId: string) => {
 
 const changePaymentStatus = async ({ paymentId, status }: ChangePaymentStatusData) => {
   const payment = await Payment.find(paymentId)
-  if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
+  if (!payment) throw new NotFoundException('Payment not found')
   if (payment.status === PaymentStatus.Verified)
     throw new InvalidStatusException('Payment already verified', 400, 'INVALID_STATUS')
   if (payment.status === PaymentStatus.Unpaid && PaymentStatus[status] === PaymentStatus.Verified)
@@ -241,10 +253,19 @@ const changePaymentStatus = async ({ paymentId, status }: ChangePaymentStatusDat
   payment.status = PaymentStatus[status]
   payment.isVerified = true
 
+  if (payment.status === PaymentStatus.Verified) {
+    NotificationsService.createNotificationByOperation(
+      NotificationSources.manualPaymentAccepted,
+      payment.contractId.toString() || '0'
+    )
+  }
+
   await payment.save()
   await payment.load('currency')
   await payment.load('creator')
   await payment.creator.load('roles')
+  await payment.load('contract')
+  await payment.contract.load('frequency')
   if (payment.invoiceId) await payment.load('invoice')
   if (payment.receiptId) await payment.load('receipt')
 
@@ -255,12 +276,9 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
   const trx = await Database.transaction()
   try {
     const payment = await Payment.find(data.paymentId, { client: trx })
-    if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
+    if (!payment) throw new NotFoundException('Payment not found')
 
-    if (
-      userService.checkUserRole(user, [roles?.ispContractManager, roles?.ispCustomerService]) &&
-      payment.status === PaymentStatus.Verified
-    ) {
+    if (payment.status === PaymentStatus.Verified) {
       throw new InvalidStatusException(
         'ISPs cant update an verified payment',
         401,
@@ -269,7 +287,7 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
     }
 
     const contract = await Contract.find(payment.contractId, { client: trx })
-    if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+    if (!contract) throw new NotFoundException('Contract not found')
     if (contract.status === ContractStatus.Completed) {
       throw new InvalidStatusException('Contract already completed', 400, 'INVALID_STATUS')
     }
@@ -283,9 +301,8 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
         data.year,
         contract
       )
-
-      payment.dateFrom = dateFrom
-      payment.dateTo = dateTo
+      payment.dateFrom = data.dateFrom ?? dateFrom
+      payment.dateTo = data.dateTo ?? dateTo
       payment.metrics = metrics
     }
 
@@ -300,12 +317,12 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
 
     if (
       data.receipt &&
-      userService.checkUserRole(user, [
+      (await userService.checkUserRole(user, [
         roles.gigaAdmin,
         roles.countryContractCreator,
         roles.countryAccountant,
         roles.countrySuperAdmin
-      ])
+      ]))
     ) {
       if (payment.receiptId) await attachmentService.deleteAttachment(payment.receiptId, user, trx)
       const receipt = await attachmentService.uploadAttachment(
@@ -319,13 +336,9 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
       payment.receiptId = receipt.id
     }
 
-    if (
-      userService.checkUserRole(user, [
-        roles.ispContractManager,
-        roles.ispCustomerService
-      ]) &&
-      payment.status === PaymentStatus.Unpaid
-    ) {
+    if (data.status) {
+      payment.status = data.status
+    } else {
       payment.status = PaymentStatus.OnHold
     }
 
@@ -335,6 +348,8 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
     await updatedPayment.load('currency')
     await updatedPayment.load('creator')
     await updatedPayment.creator.load('roles')
+    await updatedPayment.load('contract')
+    await updatedPayment.contract.load('frequency')
     if (updatedPayment.invoiceId) await updatedPayment.load('invoice')
     if (updatedPayment.receiptId) await updatedPayment.load('receipt')
 
@@ -342,11 +357,7 @@ const updatePayment = async (data: UpdatePaymentData, user: User) => {
   } catch (error) {
     await trx.rollback()
     if ([404, 422, 400, 413, 401].some((status) => status === error?.status)) throw error
-    throw new FailedDependencyException(
-      'Some database error occurred while uploading attachment',
-      424,
-      'DATABASE_ERROR'
-    )
+    throw new DatabaseException('Some database error occurred getting payment DTO')
   }
 }
 
@@ -376,8 +387,7 @@ const checkPaymentFileEdit = async (
 ) => {
   const user = await User.query().useTransaction(trx).where('id', userId).preload('roles')
   if (
-    userService.checkUserRole(user[0], [
-      // roles.isp
+    await userService.checkUserRole(user[0], [
       roles.ispContractManager,
       roles.ispCustomerService
     ])

@@ -7,7 +7,9 @@ export const roles = {
   countryAccountant: 'COUNTRY.ACCOUNTANT',
   countrySuperAdmin: 'COUNTRY.SUPER.ADMIN',
   countryMonitor: 'COUNTRY.MONITOR',
-  schoolConnectivityManager: 'SCHOOL.CONNECTIVITY.MANAGER'
+  schoolConnectivityManager: 'SCHOOL.CONNECTIVITY.MANAGER',
+  InternalContractCreator: 'INTERNAL.CONTRACT.CREATOR',
+  InternalServiceScheduler: 'INTERNAL.SERVICE.SCHEDULER'
 }
 
 export enum ContractStatus {
@@ -41,6 +43,7 @@ export const permissions = {
   contractRead: 'contract.read',
   contractWrite: 'contract.write',
   contractApprove: 'contract.approve',
+  contractDuplicate: 'contract.duplicate',
   paymentRead: 'payment.read',
   paymentWrite: 'payment.write',
   attachmentRead: 'attachment.read',
@@ -77,15 +80,43 @@ export const Metrics = {
 }
 
 export const NotificationSources = {
-  resetPassword: 'PWDRST',
-  manualContractCreation: 'CONCRTM',
-  automaticContractCreation: 'CONCRTA',
+  manualContractCreated: 'MCONCRT',
+  manualContractPublished: 'MCONPUB',
+  manualContractApproved: 'MCONAPP',
+  manualContractExpired: 'MCONEXP',
+  manualContractCompleted: 'MCONEND',
+  automaticContractCreated: 'ACONCRT',
+  automaticContractPublished: 'ACONPUB',
+  automaticContractApproved: 'ACONAPP',
+  automaticContractExpired: 'ACONEXP',
+  automaticContractCompleted: 'ACONEND',
+  automaticContractCashback: 'ACONCSB',
+  automaticContractGeneric: 'ACONGEN',
+  manualPaymentCreated: 'MPAYCRT',
+  manualPaymentAccepted: 'MPAYAPP',
+  automaticPaymentCreated: 'APAYCRT',
   feedback: 'FDBACK',
+  helpRequest: 'HELPREQ',
   slaNotMet: 'SLAKO'
-}
+} as const
 
-export type NotificationChannel = 'EMAIL' | 'PUSH' | 'API'
+export const NotificationChannel = {
+  EMAIL: 'EMAIL',
+  PUSH: 'PUSH',
+  API: 'API'
+} as const
+export type NotificationChannelType = keyof typeof NotificationChannel
 
-export type NotificationStatus = 'CREATED' | 'SENT' | 'READ' | 'DELETED' | 'DISCARDED'
+export const NotificationStatus = {
+  CREATED: 'CREATED',
+  SENT: 'SENT',
+  READ: 'READ',
+  DELETED: 'DELETED',
+  DISCARDED: 'DISCARDED'
+} as const
+export type NotificationStatusType = keyof typeof NotificationStatus
 
 export const requestsFormatDate = 'iso'
+
+export const schedulerUserEmail = 'giga.scheduler@giga.com'
+export const adminUserEmail = 'admin@giga.com'

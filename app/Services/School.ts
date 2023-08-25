@@ -53,7 +53,7 @@ const getAllSchoolsMeasures = async (
 ): Promise<SchoolMeasure[]> => {
   let measures
 
-  if (userService.checkUserRole(user, [roles.gigaAdmin, roles.gigaViewOnly])) {
+  if (await userService.checkUserRole(user, [roles.gigaAdmin, roles.gigaViewOnly])) {
     measures = await Database.rawQuery(
       // eslint-disable-next-line max-len
       'SELECT date_trunc(?, measures.created_at) date, measures.id as measure_id, schools.name as school_name, schools.external_id as school_external_id, schools.education_level as school_education_level, contracts.name as contract_name, metrics.name as metric_name, metrics.unit as unit, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from measures INNER JOIN metrics ON metrics.id=measures.metric_id INNER JOIN contracts ON contracts.id=measures.contract_id INNER JOIN schools ON schools.id=measures.school_id group by measures.metric_id, measure_id, date, school_name, school_education_level, school_external_id, contract_name, metric_name, unit order by 1',
@@ -73,7 +73,7 @@ const getAllSchoolsMeasures = async (
 const listSchoolByCountry = async (user: User, countryId?: number): Promise<School[]> => {
   const query = School.query()
   if (
-    userService.checkUserRole(user, [
+    await userService.checkUserRole(user, [
       roles.countryContractCreator,
       roles.countryAccountant,
       roles.countrySuperAdmin,
@@ -91,7 +91,7 @@ const updateSchoolReliableMeasures = async (
   schoolId: number,
   reliableMeasures: boolean
 ): Promise<School[]> => {
-  if (!userService.checkUserRole(user, [roles.gigaAdmin])) {
+  if (!(await userService.checkUserRole(user, [roles.gigaAdmin]))) {
     throw new InvalidStatusException(
       'The current user does not have the necessary permissions to update the reliability of the school measures.',
       401,
@@ -105,7 +105,7 @@ const updateSchoolReliableMeasures = async (
       .update({ reliable_measures: reliableMeasures })
 
     if (!school.length) {
-      throw new NotFoundException('School not found', 404, 'NOT_FOUND')
+      throw new NotFoundException('School not found')
     }
 
     return school[0]
@@ -202,7 +202,6 @@ const loadAndSaveMeasures = async (
     contractId,
     school.id,
     metrics,
-    startDate,
     endDate,
     type
   )

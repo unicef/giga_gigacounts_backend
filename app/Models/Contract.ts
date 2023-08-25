@@ -89,6 +89,9 @@ export default class Contract extends BaseModel {
   public cashback: number
 
   @column()
+  public cashbackVerified: boolean
+
+  @column()
   public signRequestString: string
 
   @column()
@@ -99,6 +102,8 @@ export default class Contract extends BaseModel {
 
   @column({ serializeAs: 'paymentReceiverId' })
   public paymentReceiverId?: number
+
+  public meetsSla?: boolean
 
   /**
    * RELATIONSHIPS
@@ -170,7 +175,7 @@ export default class Contract extends BaseModel {
 
   @hasMany(() => Measure as LucidModel)
   public measures: HasMany<typeof Measure>
-  
+
   @belongsTo(() => User, {
     localKey: 'id',
     foreignKey: 'paymentReceiverId'

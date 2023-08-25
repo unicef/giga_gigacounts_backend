@@ -1,10 +1,12 @@
 import { BaseModel, column, HasOne, hasOne, LucidModel } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
-import { NotificationStatus } from 'App/Helpers/constants'
+import { NotificationStatusType } from 'App/Helpers/constants'
 import User from 'App/Models/User'
 import NotificationConfiguration from 'App/Models/NotificationConfiguration'
 
-export default class Notifications extends BaseModel {
+export default class Notification extends BaseModel {
+  public static table = 'notifications'
+
   @column({ isPrimary: true })
   public id?: number
 
@@ -24,7 +26,7 @@ export default class Notifications extends BaseModel {
   public configId: number
 
   @column()
-  public status: NotificationStatus
+  public status: NotificationStatusType
 
   @column.dateTime({ autoCreate: true })
   public createdAt?: DateTime

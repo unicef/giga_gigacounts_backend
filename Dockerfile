@@ -1,13 +1,13 @@
 FROM node:16-alpine AS build-stage
 WORKDIR /app
 COPY . .
-RUN yarn install
-RUN yarn run build
+RUN npm install
+RUN npm run build
 
 FROM node:16-alpine
 WORKDIR /app
 COPY --from=build-stage /app/build /app/
 COPY .env /app/
-RUN yarn add reflect-metadata && yarn cache clean --all
+RUN yarn install --production
 EXPOSE 80
-CMD ["yarn", "run", "start"]
+CMD ["node", "server.js"]

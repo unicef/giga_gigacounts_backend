@@ -1,6 +1,7 @@
 import { BaseTask } from 'adonis5-scheduler/build'
 import service from 'App/Services/Contract'
-import User from 'App/Models/User'
+import userSerivce from 'App/Services/User'
+
 export default class UpdateContractsStatus extends BaseTask {
   public static get schedule() {
     return process.env.CRON_TASK_CONTRACTS_STATUS || '0 */10 * * *'
@@ -15,9 +16,9 @@ export default class UpdateContractsStatus extends BaseTask {
 
   public async handle() {
     if (process.env.CRON_TASK_CONTRACTS_STATUS_ENABLED?.toLocaleLowerCase() === 'false') return
-    console.log('running task Update Contracts Status')
+    console.info('running task Update Contracts Status')
     try {
-      const user = (await User.query().where('email', 'giga.scheduler@giga.com').first()) as User
+      const user = await userSerivce.getGigaSchedulerUser()
       if (!user) {
         console.error('Error in task update contracts status: user service not found')
       } else {
