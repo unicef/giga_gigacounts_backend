@@ -9,13 +9,16 @@ import {
   LucidModel,
   ModelQueryBuilderContract
 } from '@ioc:Adonis/Lucid/Orm'
-import NotificationSources from 'App/Models/NotificationSources'
+import NotificationSource from 'App/Models/NotificationSource'
 import Role from 'App/Models/Role'
-import { NotificationChannel } from 'App/Helpers/constants'
+import { NotificationChannelType } from 'App/Helpers/constants'
 import { DateTime } from 'luxon'
-import NotificationMessages from 'App/Models/NotificationMessages'
+import NotificationMessage from 'App/Models/NotificationMessage'
+import Notification from './Notification'
 
 export default class NotificationConfiguration extends BaseModel {
+  public static table = 'notification_configurations'
+
   @column({
     isPrimary: true,
     serialize: (value: number) => {
@@ -25,7 +28,7 @@ export default class NotificationConfiguration extends BaseModel {
   public id?: number
 
   @column()
-  public channel: NotificationChannel
+  public channel: NotificationChannelType
 
   @column()
   public lockedForUser: boolean
@@ -45,6 +48,9 @@ export default class NotificationConfiguration extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt?: DateTime
 
+  @column()
+  public priority: number
+
   @beforeFind()
   public static beforeFindRelations(
     query: ModelQueryBuilderContract<typeof NotificationConfiguration>
@@ -56,11 +62,11 @@ export default class NotificationConfiguration extends BaseModel {
    * RELATIONSHIPS
    */
 
-  @hasOne(() => NotificationSources as LucidModel, {
+  @hasOne(() => NotificationSource as LucidModel, {
     localKey: 'sourceId',
     foreignKey: 'id'
   })
-  public notificationSource: HasOne<typeof NotificationSources>
+  public notificationSource: HasOne<typeof NotificationSource>
 
   @hasOne(() => Role as LucidModel, {
     localKey: 'roleId',
@@ -68,6 +74,12 @@ export default class NotificationConfiguration extends BaseModel {
   })
   public role: HasOne<typeof Role>
 
-  @hasMany(() => NotificationMessages as LucidModel)
-  public messages: HasMany<typeof NotificationMessages>
+  @hasMany(() => NotificationMessage as LucidModel)
+  public messages: HasMany<typeof NotificationMessage>
+
+  @hasMany(() => Notification as LucidModel, {
+    localKey: 'id',
+    foreignKey: 'configId'
+  })
+  public notification: HasMany<typeof Notification>
 }

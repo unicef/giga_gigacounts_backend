@@ -7,7 +7,6 @@ import utils from 'App/Helpers/utils'
 import { DateTime } from 'luxon'
 import { v1 } from 'uuid'
 import Frequency from 'App/Models/Frequency'
-import User from 'App/Models/User'
 
 interface StatusCount {
   status: string
@@ -28,6 +27,9 @@ interface ContractList {
   listId: string
   name: string
   isp?: string
+  frequency: Frequency
+  start_date?: DateTime
+  end_date?: DateTime
   status: string
   country?: {
     name: string
@@ -105,12 +107,20 @@ export interface ContractDetails {
     name: string
     email: string
     lastName: string
+    role: {
+      name?: string
+      code?: string
+    }
   }[]
   stakeholders?: {
     id: number
     name: string
     email: string
     lastName: string
+    role: {
+      name?: string
+      code?: string
+    }
   }[]
   connectionsMedian: ConnectionMedian[]
   budget: number
@@ -184,12 +194,20 @@ export interface ContractDTO {
     name: string
     email: string
     lastName: string
+    role: {
+      name?: string
+      code?: string
+    }
   }[]
   stakeholders?: {
     id: number
     name: string
     email: string
     lastName: string
+    role: {
+      name?: string
+      code?: string
+    }
   }[]
   startDate: DateTime
   endDate: DateTime
@@ -319,13 +337,21 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
       id: ispContact.id,
       name: ispContact.name,
       email: ispContact.email,
-      lastName: ispContact.lastName
+      lastName: ispContact.lastName,
+      role: {
+        code: ispContact.roles[0]?.code,
+        name: ispContact.roles[0]?.name
+      }
     })),
-    stakeholders: contract?.ispContacts.map((ispContact) => ({
-      id: ispContact.id,
-      name: ispContact.name,
-      email: ispContact.email,
-      lastName: ispContact.lastName
+    stakeholders: contract?.stakeholders.map((stakeHolder) => ({
+      id: stakeHolder.id,
+      name: stakeHolder.name,
+      email: stakeHolder.email,
+      lastName: stakeHolder.lastName,
+      role: {
+        code: stakeHolder.roles[0]?.code,
+        name: stakeHolder.roles[0]?.name
+      }
     })),
     startDate: contract.startDate,
     endDate: contract.endDate,
@@ -333,10 +359,10 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
     status: ContractStatus[contract.status],
     country: contract.country
       ? {
-        name: contract.country.name,
-        flagUrl: contract.country.flagUrl,
-        code: contract.country.code
-      }
+          name: contract.country.name,
+          flagUrl: contract.country.flagUrl,
+          code: contract.country.code
+        }
       : undefined,
     expectedMetrics: await Promise.all(
       contract.expectedMetrics.map(async (em) => {
@@ -425,13 +451,21 @@ const contractDeatilsDTO = async (
       id: ispContact.id,
       name: ispContact.name,
       email: ispContact.email,
-      lastName: ispContact.lastName
+      lastName: ispContact.lastName,
+      role: {
+        code: ispContact.roles[0]?.code,
+        name: ispContact.roles[0]?.name
+      }
     })),
-    stakeholders: contract?.ispContacts.map((ispContact) => ({
-      id: ispContact.id,
-      name: ispContact.name,
-      email: ispContact.email,
-      lastName: ispContact.lastName
+    stakeholders: contract?.stakeholders.map((stakeHolder) => ({
+      id: stakeHolder.id,
+      name: stakeHolder.name,
+      email: stakeHolder.email,
+      lastName: stakeHolder.lastName,
+      role: {
+        code: stakeHolder.roles[0]?.code,
+        name: stakeHolder.roles[0]?.name
+      }
     })),
     startDate: contract.startDate,
     endDate: contract.endDate,
@@ -439,10 +473,10 @@ const contractDeatilsDTO = async (
     status: ContractStatus[contract.status],
     country: contract.country
       ? {
-        name: contract.country.name,
-        flagUrl: contract.country.flagUrl,
-        code: contract.country.code
-      }
+          name: contract.country.name,
+          flagUrl: contract.country.flagUrl,
+          code: contract.country.code
+        }
       : undefined,
     expectedMetrics: await Promise.all(
       contract.expectedMetrics.map(async (em) => {
@@ -553,15 +587,17 @@ const contractListDTO = (
       name: draft.name,
       isp: draft.isp?.name,
       frequency: draft.frequency,
+      start_date: draft.startDate || undefined,
+      end_date: draft.endDate || undefined,
       automatic: draft.automatic,
       currencyCode: draft.currency?.code,
       status: 'Draft',
       country: draft.country
         ? {
-          name: draft.country.name,
-          flagUrl: draft.country.flagUrl,
-          code: draft.country.code
-        }
+            name: draft.country.name,
+            flagUrl: draft.country.flagUrl,
+            code: draft.country.code
+          }
         : undefined,
       numberOfSchools: draft.schools?.schools.length,
       budget: draft.budget || 0,
@@ -571,7 +607,7 @@ const contractListDTO = (
       },
       notes: draft.notes || '',
       breakingRules: draft.breakingRules || '',
-      cashback: 0,
+      cashback: 0
     }
 
     contracts.push(draftData)
@@ -600,6 +636,8 @@ const contractListDTO = (
       name: contract.name,
       isp: contract.isp.name,
       frequency: contract.frequency,
+      start_date: contract.startDate,
+      end_date: contract.endDate,
       automatic: contract.automatic,
       signedWithWallet: contract.signedWithWallet,
       signedWalletAddress: contract.signedWalletAddress,

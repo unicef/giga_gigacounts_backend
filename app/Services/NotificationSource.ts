@@ -1,5 +1,5 @@
 import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
-import NotificationSources from 'App/Models/NotificationSources'
+import NotificationSource from 'App/Models/NotificationSource'
 import { DateTime } from 'luxon'
 
 export interface CreateNotificationSourceData {
@@ -11,14 +11,14 @@ export interface CreateNotificationSourceData {
 }
 
 const listNotificationSource = async (): Promise<CreateNotificationSourceData[]> => {
-  const query = NotificationSources.query()
+  const query = NotificationSource.query()
   return query as
     | CreateNotificationSourceData[]
-    | ModelQueryBuilderContract<typeof NotificationSources, NotificationSources>
+    | ModelQueryBuilderContract<typeof NotificationSource, NotificationSource>
 }
 
-const getNotificationSourcesById = async (id: number): Promise<NotificationSources> => {
-  return (await NotificationSources.find(id)) as NotificationSources
+const getNotificationSourcesById = async (id: number): Promise<NotificationSource> => {
+  return (await NotificationSource.find(id)) as NotificationSource
 }
 
 export default {

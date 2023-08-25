@@ -3,9 +3,8 @@ import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
 
 import dto, { GetBlockchainTransaction } from 'App/DTOs/BlockchainTransaction'
 import { DateTime } from 'luxon'
-import User from 'App/Models/User'
 import Database from '@ioc:Adonis/Lucid/Database'
-import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
+import DatabaseException from 'App/Exceptions/DatabaseException'
 
 export interface BlockchainTransactionCreation {
   id: number
@@ -29,21 +28,28 @@ const listBlockchainTransactions = async (
   return dto.getBlockchainTransactionsDTO(blockchainTransactions)
 }
 
+const listBlockchainTransactionsFundContracts = async (
+  contractId: number
+): Promise<GetBlockchainTransaction[]> => {
+  const { query } = await queryBuilderUser(undefined, contractId)
+  const blockchainTransactions: BlockchainTransaction[] = await query
+  return dto.getBlockchainTransactionsDTO(blockchainTransactions)
+}
+
 const createBlockchainTransaction = async (
-  data: BlockchainTransactionCreation,
-  user: User
+  data: BlockchainTransactionCreation
 ): Promise<BlockchainTransaction> => {
   const trx = await Database.transaction()
   try {
     const entity = await BlockchainTransaction.create(
       {
-        userId: data.userId,
-        contractId: data.contractId,
-        walletAddress: data.walletAddress,
-        networkId: data.networkId,
-        networkName: data.networkName,
-        transactionType: data.transactionType,
-        transactionHash: data.transactionHash,
+        userId: data.userId || 0,
+        contractId: data.contractId || 0,
+        walletAddress: data.walletAddress || '',
+        networkId: data.networkId || 0,
+        networkName: data.networkName || '',
+        transactionType: data.transactionType || '',
+        transactionHash: data.transactionHash || '',
         status: data.status
       },
       { client: trx }
@@ -51,14 +57,10 @@ const createBlockchainTransaction = async (
     await trx.commit()
     return entity
   } catch (error) {
-    console.log(error)
+    console.error(error)
     await trx.rollback()
     if (error.status === 404) throw error
-    throw new FailedDependencyException(
-      'Some database error occurred while creating contract',
-      424,
-      'DATABASE_ERROR'
-    )
+    throw new DatabaseException('Some database error occurred while creating blockchain transaction log')
   }
 }
 
@@ -87,5 +89,6 @@ const queryBuilderUser = async (
 
 export default {
   listBlockchainTransactions,
-  createBlockchainTransaction
+  createBlockchainTransaction,
+  listBlockchainTransactionsFundContracts
 }

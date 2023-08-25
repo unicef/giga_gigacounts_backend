@@ -14,11 +14,7 @@
     "Database": "database",
     "Contracts": "contracts"
   },
-  "preloads": [
-    "./start/routes",
-    "./start/kernel",
-    "./start/events"
-  ],
+  "preloads": ["./start/routes", "./start/kernel", "./start/events"],
   "providers": [
     "./providers/AppProvider",
     "@adonisjs/core",
@@ -28,13 +24,9 @@
     "adonis5-jwt",
     "adonis-request-throttler"
   ],
-  "aceProviders": [
-    "@adonisjs/repl"
-  ],
+  "aceProviders": ["@adonisjs/repl"],
   "tests": {},
-  "testProviders": [
-    "@japa/preset-adonis/TestsProvider"
-  ],
+  "testProviders": ["@japa/preset-adonis/TestsProvider"],
   "namespaces": {
     "httpControllers": "App/Controllers"
   }

@@ -16,14 +16,17 @@ export default class SendEmailNotifications extends BaseTask {
 
   public async handle() {
     if (process.env.CRON_TASK_EMAIL_ENABLED?.toLocaleLowerCase() === 'false') return
-    console.log('running task send email notifications')
+    console.info('running task send email notifications')
 
     try {
       // Get notifications (created & channel == MAIL)
       const notifications = await service.getNotifications(['EMAIL'], ['CREATED'])
+      const orderedNotifications = notifications.sort((a, b) => a.id - b.id)
 
       // Build and send mails
-      notifications.map(async (notification) => {
+      orderedNotifications.map(async (notification) => {
+
+    
         switch (process.env.EMAIL_CLIENT_TO_USE) {
           case 'ETHEREAL':
             this.sendWithEthereal(notification)
@@ -36,9 +39,9 @@ export default class SendEmailNotifications extends BaseTask {
             break
         }
         // update notificaciones to sent
-        await service.changeStatusNotificationsById(notification.id, notification.userId, 'SENT')
-        console.log(
-          `mail sent for notification ${notification.title} for user ${
+        await service.changeStatusNotificationsById(notification.id, 'SENT')
+        console.info(
+          `mail sent for notification #${notification.id}: ${notification.title} - user ${
             notification.email || 'no-mail'
           }`
         )
@@ -126,7 +129,6 @@ export default class SendEmailNotifications extends BaseTask {
 
     let contentReplaced = content.replace('giga', gigaReplace)
 
-    return `<br/><br/><br/><img style='display:block;margin-left:auto;margin-right:auto;' alt='gigacounts' src="${urlLogo}" height='100'></img><br/><div style='background: #d6e4fd; border-left: 2px solid #0530ad;'><p style='text-align: center; font-size:20px;font-family:GothamBook;padding: 40px'>${contentReplaced}</p></div><br/><p style='font-size:16px'>Thanks, the <span style='color:##277aff'><a target="_blank" href="${urlGiga}" rel="noopener noreferrer">Gigacounts</a></span> Team.</p><p style='font-size:12px'>If you have any dubt, please <a target="_blank" href="${urlContact}" rel="noopener noreferrer">contact us</a>.</p><p style='font-size:12px'>Gigacounts Ⓒ ${year}</p>
-    `
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><br/><br/><br/><img style='display:block;margin-left:auto;margin-right:auto;' alt='gigacounts' src="${urlLogo}" height='100'></img><br/><div style='background: #d6e4fd; border-left: 2px solid #0530ad;'><p style='text-align: center; font-size:20px;font-family:GothamBook;padding: 40px'>${contentReplaced}</p></div><br/><p style='font-size:16px'>Thanks, the <span style='color:##277aff'><a target="_blank" href="${urlGiga}" rel="noopener noreferrer">Gigacounts</a></span> Team.</p><p style='font-size:12px'>If you have any dubt, please <a target="_blank" href="${urlContact}" rel="noopener noreferrer">contact us</a>.</p><p style='font-size:12px'>Gigacounts Ⓒ ${year}</p></html>`
   }
 }

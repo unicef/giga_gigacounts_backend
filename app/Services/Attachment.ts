@@ -5,7 +5,7 @@ import Payment from 'App/Models/Payment'
 import NotFoundException from 'App/Exceptions/NotFoundException'
 
 import storage from 'App/Services/Storage'
-import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
+import DatabaseException from 'App/Exceptions/DatabaseException'
 import Contract from 'App/Models/Contract'
 import User from 'App/Models/User'
 import paymentService from 'App/Services/Payment'
@@ -37,7 +37,7 @@ const deleteAttachment = async (
   const transactionBdd = trx || (await Database.transaction())
   try {
     const attachment = await Attachment.find(attachmentId)
-    if (!attachment) throw new NotFoundException('Attachment not found', 404, 'NOT_FOUND')
+    if (!attachment) throw new NotFoundException('Attachment not found')
 
     await attachment.useTransaction(transactionBdd).load('paymentInvoice')
     await attachment.useTransaction(transactionBdd).load('paymentReceipt')
@@ -70,11 +70,7 @@ const deleteAttachment = async (
   } catch (error) {
     await transactionBdd.rollback()
     if (error?.status === 404) throw error
-    throw new FailedDependencyException(
-      'Some database error occurred while uploading attachment',
-      424,
-      'DATABASE_ERROR'
-    )
+    throw new DatabaseException('Some database error occurred while uploading attachment')
   }
 }
 
@@ -93,19 +89,19 @@ const uploadAttachment = async (
 
     if (data.type === AttachmentsType.DRAFT) {
       const draft = await Draft.find(data.typeId, { client: transactionBdd })
-      if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
+      if (!draft) throw new NotFoundException('Draft not found')
       await draft.related('attachments').attach([attachment.id], transactionBdd)
     }
 
     if (data.type === AttachmentsType.CONTRACT) {
       const contract = await Contract.find(data.typeId, { client: transactionBdd })
-      if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+      if (!contract) throw new NotFoundException('Contract not found')
       await contract.related('attachments').attach([attachment.id], transactionBdd)
     }
 
     if (data.type === AttachmentsType.RECEIPT || data.type === AttachmentsType.INVOICE) {
       const payment = await Payment.find(data.typeId, { client: transactionBdd })
-      if (!payment) throw new NotFoundException('Payment not found', 404, 'NOT_FOUND')
+      if (!payment) throw new NotFoundException('Payment not found')
       payment[`${data.type}Id`] = attachment.id
       await payment.useTransaction(transactionBdd).save()
     }
@@ -116,17 +112,13 @@ const uploadAttachment = async (
   } catch (error) {
     await transactionBdd.rollback()
     if ([404, 413].some((status) => status === error?.status)) throw error
-    throw new FailedDependencyException(
-      'Some database error occurred while uploading attachment',
-      424,
-      'DATABASE_ERROR'
-    )
+    throw new DatabaseException('Some database error occurred while uploading attachment')
   }
 }
 
 const getAttachment = async (attachmentId: number): Promise<Attachment> => {
   const attachment = await Attachment.find(attachmentId)
-  if (!attachment) throw new NotFoundException('Attachment not found', 404, 'NOT_FOUND')
+  if (!attachment) throw new NotFoundException('Attachment not found')
   attachment.url = storage.generateSasToken(attachment.url)
   return attachment
 }

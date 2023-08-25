@@ -27,7 +27,7 @@ const getSafeByUserRole = async (user: User) => {
   }
 
   const safe = await Safe.findBy('name', safeName)
-  if (!safe) throw new NotFoundException('Safe not found', 404, 'NOT_FOUND')
+  if (!safe) throw new NotFoundException('Safe not found')
 
   return safe
 }
@@ -110,7 +110,7 @@ const findAndAddToSafe = async (
       safeAddress: safe.address
     })
   }
-  console.log(`No safe found: ${safeName}`)
+  console.info(`No safe found: ${safeName}`)
 }
 
 export default {

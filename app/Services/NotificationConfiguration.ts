@@ -1,16 +1,16 @@
-import { NotificationChannel } from 'App/Helpers/constants'
+import { NotificationChannelType } from 'App/Helpers/constants'
 import NotificationConfiguration from 'App/Models/NotificationConfiguration'
 import Role from 'App/Models/Role'
-import NotificationSources from 'App/Models/NotificationSources'
+import NotificationSource from 'App/Models/NotificationSource'
 import Database from '@ioc:Adonis/Lucid/Database'
 import { DateTime } from 'luxon'
 import NotFoundException from 'App/Exceptions/NotFoundException'
-import NotificationMessages from 'App/Models/NotificationMessages'
+import NotificationMessage from 'App/Models/NotificationMessage'
 
 export interface CreateNotificationConfigData {
   roleId: number
   sourceId: number
-  channel: NotificationChannel
+  channel: NotificationChannelType
   lockedForUser?: boolean
   readOnly?: boolean
   updateAt: DateTime
@@ -25,7 +25,7 @@ export interface CreateNotificationConfigMessageData {
 }
 
 const listNotificationConfiguration = async (
-  channel?: NotificationChannel
+  channel?: NotificationChannelType
 ): Promise<NotificationConfiguration[]> => {
   const query = NotificationConfiguration.query()
   if (channel) {
@@ -40,7 +40,7 @@ const getNotificationConfigurationById = async (id: number): Promise<Notificatio
 
 const deleteNotificationConfiguration = async (id: number): Promise<void> => {
   const config = await NotificationConfiguration.find(id)
-  if (!config) throw new NotFoundException('Notification Configuration not found', 404, 'NOT_FOUND')
+  if (!config) throw new NotFoundException('Notification Configuration not found')
   const trx = await Database.transaction()
   try {
     await config.useTransaction(trx).delete()
@@ -56,10 +56,10 @@ const createNotificationConfiguration = async (
   data: CreateNotificationConfigData
 ): Promise<NotificationConfiguration> => {
   const role = await Role.find(data.roleId)
-  if (!role) throw new NotFoundException('Role not found', 404, 'NOT_FOUND')
+  if (!role) throw new NotFoundException('Role not found')
 
-  const source = await NotificationSources.find(data.sourceId)
-  if (!source) throw new NotFoundException('Notification Source not found', 404, 'NOT_FOUND')
+  const source = await NotificationSource.find(data.sourceId)
+  if (!source) throw new NotFoundException('Notification Source not found')
 
   const trx = await Database.transaction()
   try {
@@ -79,18 +79,18 @@ const patchNotificationConfiguration = async (
   data: CreateNotificationConfigData
 ): Promise<NotificationConfiguration> => {
   let config = await NotificationConfiguration.find(id)
-  if (!config) throw new NotFoundException('Notification Configuration not found', 404, 'NOT_FOUND')
+  if (!config) throw new NotFoundException('Notification Configuration not found')
 
   let role: Role
   if (data.roleId) {
     role = (await Role.find(data.roleId)) as Role
-    if (!role) throw new NotFoundException('Role not found', 404, 'NOT_FOUND')
+    if (!role) throw new NotFoundException('Role not found')
   }
 
-  let source: NotificationSources
+  let source: NotificationSource
   if (data.sourceId) {
-    source = (await NotificationSources.find(data.sourceId)) as NotificationSources
-    if (!source) throw new NotFoundException('Notification Source not found', 404, 'NOT_FOUND')
+    source = (await NotificationSource.find(data.sourceId)) as NotificationSource
+    if (!source) throw new NotFoundException('Notification Source not found')
   }
 
   const trx = await Database.transaction()
@@ -108,30 +108,30 @@ const patchNotificationConfiguration = async (
 
 const listNotificationConfigurationMessages = async (
   configId: number
-): Promise<NotificationMessages[]> => {
-  const query = NotificationMessages.query().where('notificationConfigId', configId)
-  return query as unknown as NotificationMessages[]
+): Promise<NotificationMessage[]> => {
+  const query = NotificationMessage.query().where('notificationConfigId', configId)
+  return query as unknown as NotificationMessage[]
 }
 
 const getNotificationConfigurationMessagesById = async (
   configId: number,
   messageId: number
-): Promise<NotificationMessages> => {
-  return (await NotificationMessages.query()
+): Promise<NotificationMessage> => {
+  return (await NotificationMessage.query()
     .where('id', messageId)
     .where('notificationConfigId', configId)
-    .first()) as NotificationMessages
+    .first()) as NotificationMessage
 }
 
 const createNotificationConfigurationMessage = async (
   data: CreateNotificationConfigMessageData
-): Promise<NotificationMessages> => {
+): Promise<NotificationMessage> => {
   const config = await NotificationConfiguration.find(data.notificationConfigId)
-  if (!config) throw new NotFoundException('Notification Configuration not found', 404, 'NOT_FOUND')
+  if (!config) throw new NotFoundException('Notification Configuration not found')
 
   const trx = await Database.transaction()
   try {
-    const configMsg = await NotificationMessages.create(data, { client: trx })
+    const configMsg = await NotificationMessage.create(data, { client: trx })
 
     await trx.commit()
 
@@ -146,11 +146,11 @@ const deleteNotificationConfigurationMessage = async (
   configId: number,
   messageId: number
 ): Promise<void> => {
-  let message = (await NotificationMessages.query()
+  let message = (await NotificationMessage.query()
     .where('id', messageId)
     .where('notificationConfigId', configId)
-    .first()) as NotificationMessages
-  if (!message) throw new NotFoundException('Notification Message not found', 404, 'NOT_FOUND')
+    .first()) as NotificationMessage
+  if (!message) throw new NotFoundException('Notification Message not found')
 
   const trx = await Database.transaction()
   try {
@@ -167,12 +167,12 @@ const patchNotificationConfigurationMessage = async (
   configId: number,
   messageId: number,
   data: CreateNotificationConfigMessageData
-): Promise<NotificationMessages> => {
-  let message = (await NotificationMessages.query()
+): Promise<NotificationMessage> => {
+  let message = (await NotificationMessage.query()
     .where('id', messageId)
     .where('notificationConfigId', configId)
-    .first()) as NotificationMessages
-  if (!message) throw new NotFoundException('Notification Message not found', 404, 'NOT_FOUND')
+    .first()) as NotificationMessage
+  if (!message) throw new NotFoundException('Notification Message not found')
 
   const trx = await Database.transaction()
   try {
@@ -181,7 +181,7 @@ const patchNotificationConfigurationMessage = async (
       message: data.message,
       subMessage: data.subMessage,
       title: data.title
-    } as NotificationMessages)
+    } as NotificationMessage)
     await message.save()
     await trx.commit()
 

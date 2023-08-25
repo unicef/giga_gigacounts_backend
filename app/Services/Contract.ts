@@ -10,14 +10,14 @@ import Lta from 'App/Models/Lta'
 import Metric from 'App/Models/Metric'
 
 import { Exception } from '@adonisjs/core/build/standalone'
-import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
+import DatabaseException from 'App/Exceptions/DatabaseException'
 import NotFoundException from 'App/Exceptions/NotFoundException'
 import InvalidStatusException from 'App/Exceptions/InvalidStatusException'
 import SignedMessageException from 'App/Exceptions/SignedMessageException'
 import SignWalletException from 'App/Exceptions/SignWalletException'
 import UnhandledException from 'App/Exceptions/UnhandledException'
 
-import { roles, ContractStatus, NotificationSources, frequencyNames } from 'App/Helpers/constants'
+import { roles, ContractStatus, NotificationSources, frequencyNames, PaymentStatus } from 'App/Helpers/constants'
 import userService from 'App/Services/User'
 import metricService from 'App/Services/Metric'
 import dto, { ContractsStatusCount } from 'App/DTOs/Contract'
@@ -53,7 +53,9 @@ export interface ContractCreation {
 
 export interface BatchUpdate {
   confirmedContracts: ContractsMap[]
-  ongoingContracts: number[]
+  ongoingCompletedContracts: ContractsMap[]
+  ongoingExpiredContracts: ContractsMap[]
+  expiredCompletedContracts: ContractsMap[]
 }
 
 export type LoadMeasuresType = 'daily' | 'historic'
@@ -75,6 +77,31 @@ interface FreqObj {
   frequency?: string
 }
 
+function getRawQuery(initialStatus: ContractStatus, finalStatus: ContractStatus) {
+  const query = `
+  WITH UpdatedContracts AS (
+    UPDATE contracts AS c
+    SET status = ${finalStatus}
+    FROM (
+        SELECT c.id
+        FROM contracts c
+        LEFT JOIN (
+            SELECT contract_id, SUM(amount)+SUM(discount) AS total_verified_payments
+            FROM payments
+            WHERE status = ${PaymentStatus.Verified}
+            GROUP BY contract_id
+        ) p ON c.id = p.contract_id
+        WHERE COALESCE(p.total_verified_payments, 0) = c.budget AND c.end_date < CURRENT_TIMESTAMP AND c.status = ${initialStatus}
+    ) AS subquery
+    WHERE c.id = subquery.id
+    RETURNING c.id, c.automatic 
+  )     
+
+  SELECT *  FROM UpdatedContracts;`
+
+  return query
+}
+
 const loadContractsDailyMeasures = async () => {
   const contracts = await Contract.query().where('status', ContractStatus.Ongoing).select('id')
   const contractsId: ContractsMap[] = contracts.map(({ id }) => ({ id: id.toString() }))
@@ -90,11 +117,14 @@ const loadContractsDailyMeasures = async () => {
 
 const contractStatusBatchUpdate = async (user: User): Promise<BatchUpdate> => {
   const today = DateTime.now()
+  const queryOngoingToCompleted = getRawQuery(ContractStatus.Ongoing, ContractStatus.Completed)
+  const queryOngoingToExpired = getRawQuery(ContractStatus.Ongoing, ContractStatus.Expired)
+  const queryExpiredToCompleted = getRawQuery(ContractStatus.Expired, ContractStatus.Completed)
 
   const confirmedContracts = await Contract.query()
     .where('status', ContractStatus.Confirmed)
-    .andWhere('start_date', '<=', today.toString())
-    .update('status', ContractStatus.Ongoing, ['id'])
+    .andWhere('launch_date', '<=', today.toString())
+    .update('status', ContractStatus.Ongoing, ['id', 'automatic'])
 
   await batchStatusTransitions(
     confirmedContracts,
@@ -103,21 +133,38 @@ const contractStatusBatchUpdate = async (user: User): Promise<BatchUpdate> => {
     ContractStatus.Ongoing
   )
 
-  const ongoingContracts = await Contract.query()
-    .where('status', ContractStatus.Ongoing)
-    .andWhere('end_date', '<=', today.toString())
-    .update('status', ContractStatus.Expired, ['id'])
+  const ongoingCompletedContracts = await Database.rawQuery(queryOngoingToCompleted)
 
   await batchStatusTransitions(
-    ongoingContracts,
+    ongoingCompletedContracts.rows,
+    user.id,
+    ContractStatus.Ongoing,
+    ContractStatus.Confirmed
+  )
+
+  const ongoingExpiredContracts = await Database.rawQuery(queryOngoingToExpired)
+
+  await batchStatusTransitions(
+    ongoingExpiredContracts.rows,
     user.id,
     ContractStatus.Ongoing,
     ContractStatus.Expired
   )
 
-  if (confirmedContracts.length > 0) loadContractsMeasures(confirmedContracts, 'historic')
+  const expiredCompletedContracts = await Database.rawQuery(queryExpiredToCompleted)
 
-  return { confirmedContracts, ongoingContracts }
+  await batchStatusTransitions(
+    expiredCompletedContracts.rows,
+    user.id,
+    ContractStatus.Expired,
+    ContractStatus.Completed
+  )
+
+  // if (confirmedContracts.length > 0) {
+  //   loadContractsMeasures(confirmedContracts, 'historic')
+  // }
+
+  return { confirmedContracts, ongoingCompletedContracts, ongoingExpiredContracts, expiredCompletedContracts }
 }
 
 const getContractSchools = async (contractId: number) => {
@@ -131,7 +178,7 @@ const getContractSchools = async (contractId: number) => {
     .preload('schools')
     .withCount('schools')
 
-  if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  if (!contract.length) throw new NotFoundException('Contract not found')
 
   const schoolsMeasures = await getContractSchoolsMeasures(contract)
 
@@ -140,17 +187,17 @@ const getContractSchools = async (contractId: number) => {
 
 const getContractSchoolConnectivity = async (user: User) => {
   if (
-    !userService.checkUserRole(user, [
+    !(await userService.checkUserRole(user, [
       roles.countryMonitor,
       roles.countrySuperAdmin,
       roles.gigaAdmin,
       roles.gigaViewOnly
-    ])
+    ]))
   )
     return
 
   let contracts: Contract[]
-  if (userService.checkUserRole(user, [roles.countryMonitor, roles.countrySuperAdmin])) {
+  if (await userService.checkUserRole(user, [roles.countryMonitor, roles.countrySuperAdmin])) {
     contracts = await Contract.query()
       .preload('expectedMetrics')
       .preload('schools')
@@ -159,7 +206,7 @@ const getContractSchoolConnectivity = async (user: User) => {
     contracts = await Contract.query().preload('expectedMetrics').preload('schools')
   }
 
-  if (!contracts.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  if (!contracts.length) throw new NotFoundException('Contract not found')
 
   const schoolsMeasures = await getContractSchoolsMeasures(contracts)
 
@@ -174,8 +221,8 @@ const getContract = async (contractId: number) => {
     .preload('isp')
     .preload('expectedMetrics')
     .preload('attachments')
-    .preload('ispContacts')
-    .preload('stakeholders')
+    .preload('ispContacts', (builder) => builder.preload('roles'))
+    .preload('stakeholders', (builder) => builder.preload('roles'))
     .preload('currency')
     .preload('frequency')
     .preload('schools', (query) => {
@@ -183,8 +230,7 @@ const getContract = async (contractId: number) => {
     })
     .preload('paymentReceiver')
 
-  if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
-  // console.log("Here", contract[0])
+  if (!contract.length) throw new NotFoundException('Contract not found')
   return dto.getContractDTO(contract[0])
 }
 
@@ -197,7 +243,8 @@ const getContractDetails = async (contractId: number) => {
     .preload('frequency')
     .preload('expectedMetrics')
     .preload('attachments')
-    .preload('ispContacts')
+    .preload('ispContacts', (builder) => builder.preload('roles'))
+    .preload('stakeholders', (builder) => builder.preload('roles'))
     .preload('schools')
     .withAggregate('payments', (qry) => {
       qry.sum('amount').as('total_payments')
@@ -207,7 +254,7 @@ const getContractDetails = async (contractId: number) => {
     .withCount('payments')
     .preload('paymentReceiver')
 
-  if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  if (!contract.length) throw new NotFoundException('Contract not found')
 
   const schoolsMeasures = await getContractSchoolsMeasures(contract)
 
@@ -223,7 +270,6 @@ const getContractDetails = async (contractId: number) => {
 const getContractList = async (user: User, status?: number) => {
   try {
     const { query, draftQuery } = await queryBuilderContract(user)
-
     let drafts: Draft[] = []
     let contracts: Contract[] = []
 
@@ -233,7 +279,7 @@ const getContractList = async (user: User, status?: number) => {
 
     if (
       (status === undefined || status === 0) &&
-      !userService.checkUserRole(user, [roles.schoolConnectivityManager])
+      !(await userService.checkUserRole(user, [roles.schoolConnectivityManager]))
     ) {
       drafts = await getDraft(draftQuery)
     }
@@ -244,13 +290,9 @@ const getContractList = async (user: User, status?: number) => {
     // return dto.contractListDTO(contracts, drafts, ltas, schoolsMeasures, status)
     return dto.contractListDTO(contracts, drafts, schoolsMeasures)
   } catch (error) {
-    console.log(error)
+    console.error(error)
     if (error.status === 404) throw error
-    throw new FailedDependencyException(
-      'Some database error occurred while read contracts',
-      424,
-      'DATABASE_ERROR'
-    )
+    throw new DatabaseException('Some database error occurred while read contracts')
   }
 }
 
@@ -272,7 +314,7 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
         ispId: data.ispId,
         automatic: data.automatic,
         status: ContractStatus.Sent,
-        governmentBehalf: DraftService.isGovernmentBehalf(user, data.governmentBehalf),
+        governmentBehalf: await DraftService.isGovernmentBehalf(user, data.governmentBehalf),
         startDate: utils.formatContractDate(data.startDate, true),
         endDate: utils.formatContractDate(data.endDate),
         launchDate: utils.formatContractDate(data.launchDate),
@@ -299,7 +341,7 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
 
     if (data.draftId) {
       const draft = await Draft.findBy('id', data.draftId, { client: trx })
-      if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
+      if (!draft) throw new NotFoundException('Draft not found')
 
       // ATTACHMENTS
       await draft.load('attachments')
@@ -336,21 +378,17 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
 
     NotificationsService.createNotificationByOperation(
       contract.automatic
-        ? NotificationSources.automaticContractCreation
-        : NotificationSources.manualContractCreation,
+        ? NotificationSources.automaticContractCreated
+        : NotificationSources.manualContractCreated,
       contract.id?.toString() || '0'
     )
 
     return contract
   } catch (error) {
-    console.log(error)
+    console.error(error)
     await trx.rollback()
     if (error.status === 404) throw error
-    throw new FailedDependencyException(
-      'Some database error occurred while creating contract',
-      424,
-      'DATABASE_ERROR'
-    )
+    throw new DatabaseException('Some database error occurred while creating contract')
   }
 }
 
@@ -382,29 +420,16 @@ const queryBuilderContract = async (
   let draftQuery = Draft.query()
   let ltaQuery = Lta.query()
 
-  if (userService.checkUserRole(user, [roles.gigaAdmin, roles.gigaViewOnly])) {
-    // [roles.gigaAdmin, roles.gigaViewOnly] these roles see all contracts for all countries.
-  } else {
+  if (!(await userService.checkUserRole(user, [roles.gigaAdmin, roles.gigaViewOnly]))) {
     // The rest of roles, need to see contracts related to their respective countries.
     query.where('countryId', user.countryId)
     draftQuery.where('countryId', user.countryId)
     ltaQuery.where('countryId', user.countryId)
 
-    // filter contracts for country related roles.
-    if (
-      userService.checkUserRole(user, [
-        roles.countryContractCreator,
-        roles.countryAccountant,
-        roles.countrySuperAdmin,
-        roles.countryMonitor
-      ])
-    ) {
-      query.andWhere('governmentBehalf', true)
-      draftQuery.andWhere('governmentBehalf', true)
-    }
-
     // filter contracts for ISP related roles.
-    if (userService.checkUserRole(user, [roles.ispContractManager, roles.ispCustomerService])) {
+    if (
+      await userService.checkUserRole(user, [roles.ispContractManager, roles.ispCustomerService])
+    ) {
       await user.load('isp')
       query.whereHas('isp', (qry) => {
         qry.where('isp_id', user.isp[0].id)
@@ -418,7 +443,7 @@ const queryBuilderContract = async (
     }
 
     // filter contracts for School related roles.
-    if (userService.checkUserRole(user, [roles.schoolConnectivityManager])) {
+    if (await userService.checkUserRole(user, [roles.schoolConnectivityManager])) {
       await user.load('school')
       query.whereHas('schools', (qry) => {
         qry.where('school_id', user.school[0].id)
@@ -435,11 +460,33 @@ const queryBuilderContract = async (
 }
 
 const publishContract = async (contractId: number, userId?: number) => {
-  return changeStatus(contractId, ContractStatus.Sent, userId)
+  const contract = await changeStatus(contractId, ContractStatus.Sent, userId)
+
+  if (contract) {
+    NotificationsService.createNotificationByOperation(
+      contract.automatic
+        ? NotificationSources.automaticContractPublished
+        : NotificationSources.manualContractPublished,
+      contract.id?.toString() || '0'
+    )
+  }
+
+  return contract
 }
 
 const approveContract = async (contractId: number, userId?: number) => {
-  return changeStatus(contractId, ContractStatus.Confirmed, userId)
+  const contract = await changeStatus(contractId, ContractStatus.Confirmed, userId)
+
+  if (contract) {
+    NotificationsService.createNotificationByOperation(
+      contract.automatic
+        ? NotificationSources.automaticContractApproved
+        : NotificationSources.manualContractApproved,
+      contract.id?.toString() || '0'
+    )
+  }
+
+  return contract
 }
 
 const changeStatus = async (contractId: number, newStatus: ContractStatus, userId?: number) => {
@@ -448,7 +495,7 @@ const changeStatus = async (contractId: number, newStatus: ContractStatus, userI
   try {
     const contract = await Contract.find(contractId, { client: trx })
 
-    if (!contract) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+    if (!contract) throw new NotFoundException('Contract not found')
 
     let oldStatus = contract.status
     if (oldStatus + 1 !== newStatus || !(newStatus in ContractStatus)) {
@@ -473,11 +520,7 @@ const changeStatus = async (contractId: number, newStatus: ContractStatus, userI
   } catch (error) {
     await trx.rollback()
     if (error) throw error
-    throw new FailedDependencyException(
-      'Some database error occurred while updating contract status',
-      424,
-      'DATABASE_ERROR'
-    )
+    throw new DatabaseException('Some database error occurred while updating contract status')
   }
 }
 
@@ -568,20 +611,36 @@ const loadContractMeasures = async (
 // }
 
 const batchStatusTransitions = async (
-  contractIds: { id: string }[],
+  contractIds: { id: string; automatic: boolean }[],
   who: number,
   initialStatus: ContractStatus,
   finalStatus: ContractStatus
 ) => {
   return Promise.all(
-    contractIds.map(({ id }) =>
+    contractIds.map(({ id, automatic }) => {
       StatusTransition.create({
         who,
         contractId: id,
         initialStatus,
         finalStatus
       })
-    )
+
+      if (finalStatus === ContractStatus.Expired) {
+        NotificationsService.createNotificationByOperation(
+          automatic
+            ? NotificationSources.automaticContractExpired
+            : NotificationSources.manualContractExpired,
+          id?.toString() || '0'
+        )
+      } else if (finalStatus === ContractStatus.Completed) {
+        NotificationsService.createNotificationByOperation(
+          automatic
+            ? NotificationSources.automaticContractCompleted
+            : NotificationSources.manualContractCompleted,
+          id?.toString() || '0'
+        )
+      }
+    })
   )
 }
 
@@ -590,7 +649,8 @@ const getContractAvailablePayments = async (contractId: string) => {
     .where('id', contractId)
     .preload('payments')
     .preload('frequency')
-  if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+
+  if (!contract.length) throw new NotFoundException('Contract not found')
   const endMonth = DateTime.now().endOf('month')
 
   let endDate: DateTime | string = endMonth > contract[0].endDate ? contract[0].endDate : endMonth
@@ -638,18 +698,11 @@ const getContractAvailablePayments = async (contractId: string) => {
 }
 
 const duplicateContract = async (contractId, user: User) => {
-  if (!userService.checkUserRole(user, [roles.gigaAdmin, roles.ispContractManager]))
-    throw new InvalidStatusException(
-      'The current user does not have the required permissions to duplicate the contract.',
-      401,
-      'E_UNAUTHORIZED_ACCESS'
-    )
-
   const trx = await Database.transaction()
   try {
     const contract = await Contract.query().where('id', contractId)
     const completeContract = await getContract(contractId)
-    if (!contract.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+    if (!contract.length) throw new NotFoundException('Contract not found')
     if (!completeContract)
       throw new UnhandledException('Contract is not completed', 400, 'NOT_FOUND')
 
@@ -698,7 +751,7 @@ const duplicateContract = async (contractId, user: User) => {
       expectedMetrics: {
         metrics: expectedMetrics
       },
-      governmentBehalf: DraftService.isGovernmentBehalf(user, contract[0].governmentBehalf),
+      governmentBehalf: await DraftService.isGovernmentBehalf(user, contract[0].governmentBehalf),
       startDate: contract[0].startDate,
       endDate: contract[0].endDate,
       launchDate: contract[0].launchDate,
@@ -710,17 +763,16 @@ const duplicateContract = async (contractId, user: User) => {
     return draft
   } catch (error) {
     await trx.rollback()
-    console.log(error)
+    console.error(error)
     if (error instanceof Exception) throw error
     throw new UnhandledException(error.message, 400, error.code)
   }
 }
 
 const generateSignContractRandomString = async (contractId: number) => {
-  if (!contractId || contractId === 0)
-    throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  if (!contractId || contractId === 0) throw new NotFoundException('Contract not found')
   const contracts = await Contract.query().where('id', contractId)
-  if (!contracts.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  if (!contracts.length) throw new NotFoundException('Contract not found')
   const randomString = `This is a verification message to sign contract. Please sign it with your wallet.\n${v1()}`
   const trx = await Database.transaction()
 
@@ -732,7 +784,7 @@ const generateSignContractRandomString = async (contractId: number) => {
     return randomString
   } catch (error) {
     await trx.rollback()
-    console.log(error)
+    console.error(error)
     if (error instanceof Exception) throw error
     throw new UnhandledException(error.message, 400, error.code)
   }
@@ -744,14 +796,12 @@ const signContractWithWallet = async (
   signatureHash: string,
   user: User
 ) => {
-  if (!contractId || contractId === 0)
-    throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
-  if (!walletAddress) throw new NotFoundException('Wallet could net be emtpy', 404, 'NOT_FOUND')
-  if (!signatureHash)
-    throw new NotFoundException('Signature Hash could not be emtpy', 404, 'NOT_FOUND')
+  if (!contractId || contractId === 0) throw new NotFoundException('Contract not found')
+  if (!walletAddress) throw new NotFoundException('Wallet could net be emtpy')
+  if (!signatureHash) throw new NotFoundException('Signature Hash could not be emtpy')
 
   const contracts = await Contract.query().where('id', contractId)
-  if (!contracts.length) throw new NotFoundException('Contract not found', 404, 'NOT_FOUND')
+  if (!contracts.length) throw new NotFoundException('Contract not found')
   if (
     !(
       user.walletAddress &&
@@ -782,7 +832,7 @@ const signContractWithWallet = async (
     return contract
   } catch (error) {
     await trx.rollback()
-    console.log(error.message, error.reason, error.code, error.status)
+    console.error(error.message, error.reason, error.code, error.status)
     if (error?.code === '23505')
       throw new SignedMessageException('Wallet address is incorrect', 400, 'INCORRECT_WALLET')
     if (error instanceof Exception) throw error

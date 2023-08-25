@@ -13,7 +13,7 @@ export default class BlockchainTransactionsController {
     try {
       if (!auth.user) return
       const data = request.all() as BlockchainTransactionCreation
-      const result = await service.createBlockchainTransaction(data, auth.user)
+      const result = await service.createBlockchainTransaction(data)
       return response.ok(result)
     } catch (error) {
       return response.status(error.status).send(error.message)

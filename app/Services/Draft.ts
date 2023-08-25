@@ -1,7 +1,7 @@
 import Database from '@ioc:Adonis/Lucid/Database'
 
 import NotFoundException from 'App/Exceptions/NotFoundException'
-import FailedDependencyException from 'App/Exceptions/FailedDependencyException'
+import DatabaseException from 'App/Exceptions/DatabaseException'
 import Draft from 'App/Models/Draft'
 import Metric from 'App/Models/Metric'
 import School from 'App/Models/School'
@@ -51,7 +51,7 @@ function getSchoolBudgetByExternalId(json, external_id) {
 const getDraft = async (draftId: number) => {
   const draft = await Draft.find(draftId)
 
-  if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
+  if (!draft) throw new NotFoundException('Draft not found')
 
   await draft.load('country')
   await draft.load('currency')
@@ -61,7 +61,7 @@ const getDraft = async (draftId: number) => {
   await draft.load('user')
   await draft.load('attachments')
   await draft.load('ispContacts', (builder) => builder.preload('roles'))
-  await draft.load('stakeholders')
+  await draft.load('stakeholders', (builder) => builder.preload('roles'))
   await draft.load('paymentReceiver')
 
   const schoolsDest: any[] = destructDraftsArray(draft.schools?.schools)
@@ -104,7 +104,7 @@ const saveDraft = async (draftData: DraftData, user: User): Promise<Draft> => {
       createdBy: draftData.createdBy,
       schools: draftData.schools,
       expectedMetrics: draftData.expectedMetrics,
-      governmentBehalf: isGovernmentBehalf(user, draftData.governmentBehalf),
+      governmentBehalf: await isGovernmentBehalf(user, draftData.governmentBehalf),
       startDate: draftData.startDate
         ? utils.formatContractDate(draftData?.startDate, true)
         : undefined,
@@ -121,7 +121,7 @@ const saveDraft = async (draftData: DraftData, user: User): Promise<Draft> => {
 
     return draft
   } catch (error) {
-    console.log(error)
+    console.error(error)
     await client.rollback()
     if (error?.status === 404) throw error
     throw error
@@ -135,13 +135,13 @@ const destructDraftsArray = (object?: { external_id: string }[]) => {
 const updateDraft = async (draftData: DraftData, user: User): Promise<Draft> => {
   const draft = await Draft.find(draftData.id)
 
-  if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
+  if (!draft) throw new NotFoundException('Draft not found')
 
   const client = await Database.transaction()
   try {
     draft.name = draftData?.name || draft.name
     draft.countryId = draftData?.countryId
-    draft.governmentBehalf = isGovernmentBehalf(user, draftData?.governmentBehalf)
+    draft.governmentBehalf = await isGovernmentBehalf(user, draftData?.governmentBehalf)
     draft.ltaId = draftData?.ltaId
     draft.currencyId = draftData?.currencyId
     draft.budget = draftData?.budget
@@ -164,7 +164,7 @@ const updateDraft = async (draftData: DraftData, user: User): Promise<Draft> => 
 
     return savedDraft
   } catch (error) {
-    console.log(error)
+    console.error(error)
     await client.rollback()
     if (error?.status === 404) throw error
     throw error
@@ -175,7 +175,7 @@ const deleteDraft = async (draftId: number) => {
   const trx = await Database.transaction()
   try {
     const draft = await Draft.find(draftId, { client: trx })
-    if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
+    if (!draft) throw new NotFoundException('Draft not found')
 
     await draft.useTransaction(trx).load('attachments')
     await draft.useTransaction(trx).related('attachments').detach()
@@ -198,26 +198,29 @@ const deleteDraft = async (draftId: number) => {
   } catch (error) {
     await trx.rollback()
     if (error?.status === 404) throw error
-    throw new FailedDependencyException(
-      'Some database error occurred while delete Drafts',
-      424,
-      'DATABASE_ERROR'
-    )
+    throw new DatabaseException('Some database error occurred while delete Drafts')
   }
 }
 
 const duplicateDraft = async (draftId, user: User) => {
   const client = await Database.transaction()
   try {
-    if (!userService.checkUserRole(user, [roles.gigaAdmin, roles.ispContractManager]))
+    const draft = await Draft.find(draftId)
+    if (!draft) throw new NotFoundException('Draft not found')
+
+    if (
+      (await userService.checkUserRole(user, [
+        roles.ispContractManager,
+        roles.countryContractCreator,
+        roles.countrySuperAdmin
+      ])) &&
+      user.countryId !== draft.countryId
+    )
       throw new InvalidStatusException(
-        'The current user does not have the required permissions to duplicate the contract.',
+        'The current user does not have the required permissions to duplicate the draft.',
         401,
         'E_UNAUTHORIZED_ACCESS'
       )
-
-    const draft = await Draft.find(draftId)
-    if (!draft) throw new NotFoundException('Draft not found', 404, 'NOT_FOUND')
 
     let draftName = draft.name
     var regex = /(\d+)/g
@@ -249,7 +252,7 @@ const duplicateDraft = async (draftId, user: User) => {
       createdBy: draft.createdBy,
       schools: draft.schools,
       expectedMetrics: draft.expectedMetrics,
-      governmentBehalf: isGovernmentBehalf(user, draft.governmentBehalf),
+      governmentBehalf: await isGovernmentBehalf(user, draft.governmentBehalf),
       startDate: draft.startDate,
       endDate: draft.endDate,
       launchDate: draft.launchDate,
@@ -261,15 +264,15 @@ const duplicateDraft = async (draftId, user: User) => {
 
     return newDraft
   } catch (error) {
-    console.log(error)
+    console.error(error)
     await client.rollback()
     if (error?.status === 404) throw error
     throw error
   }
 }
 
-const isGovernmentBehalf = (user: User, governmentBehalf?: boolean) =>
-  userService.checkUserRole(user, [roles.gigaAdmin]) ? true : governmentBehalf
+const isGovernmentBehalf = async (user: User, governmentBehalf?: boolean) =>
+  (await userService.checkUserRole(user, [roles.gigaAdmin])) ? true : governmentBehalf
 
 export default {
   saveDraft,

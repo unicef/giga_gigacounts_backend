@@ -7,7 +7,7 @@ import dto, { CountryData } from 'App/DTOs/Country'
 const listCountries = async (user: User): Promise<CountryData[]> => {
   const query = Country.query()
   if (
-    userService.checkUserRole(user, [
+    await userService.checkUserRole(user, [
       roles.countryContractCreator,
       roles.countryAccountant,
       roles.countrySuperAdmin,

@@ -32,6 +32,11 @@ interface EnvInterface {
   JWT_PRIVATE_KEY: string
   JWT_PUBLIC_KEY: string
   URL_FRONTEND: string
+  WEB3_NETWORK_ID: number
+  WEB3_NODE_PROVIDER_URL: string
+  WEB3_NODE_PROVIDER_KEY: string
+  WEB3_OWNER_SK: string
+  WEB3_CONTRACTS_HANDLER_ADR: string
 }
 
 let rules: EnvInterface
@@ -69,7 +74,12 @@ if (NODE_ENV === 'production') {
     EMAIL_ETHEREAL_SECRET: Env.schema.string(),
     JWT_PRIVATE_KEY: Env.schema.string(),
     JWT_PUBLIC_KEY: Env.schema.string(),
-    URL_FRONTEND: Env.schema.string()
+    URL_FRONTEND: Env.schema.string(),
+    WEB3_NETWORK_ID: Env.schema.number(),
+    WEB3_NODE_PROVIDER_URL: Env.schema.string(),
+    WEB3_NODE_PROVIDER_KEY: Env.schema.string(),
+    WEB3_OWNER_SK: Env.schema.string(),
+    WEB3_CONTRACTS_HANDLER_ADR: Env.schema.string()
   })
 } else {
   rules = Env.rules({
@@ -103,7 +113,12 @@ if (NODE_ENV === 'production') {
     EMAIL_ETHEREAL_SECRET: Env.schema.string(),
     JWT_PRIVATE_KEY: Env.schema.string(),
     JWT_PUBLIC_KEY: Env.schema.string(),
-    URL_FRONTEND: Env.schema.string()
+    URL_FRONTEND: Env.schema.string(),
+    WEB3_NETWORK_ID: Env.schema.number(),
+    WEB3_NODE_PROVIDER_URL: Env.schema.string(),
+    WEB3_NODE_PROVIDER_KEY: Env.schema.string(),
+    WEB3_OWNER_SK: Env.schema.string(),
+    WEB3_CONTRACTS_HANDLER_ADR: Env.schema.string()
   })
 }
 

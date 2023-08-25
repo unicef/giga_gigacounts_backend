@@ -44,6 +44,9 @@ const diffOfDays = (date1: DateTime, date2: DateTime) =>
 const setDateToBeginOfDayFromISO = (date: DateTime) =>
   DateTime.fromISO(date.toString()).startOf('day')
 
+const setDateToEndOfDayFromISO = (date: DateTime) =>
+  DateTime.fromISO(date.toString()).endOf('day')
+
 const getFirstAndLastDaysMonth = (date: DateTime) => {
   const firstDay = date.startOf('month')
   const lastDay = date.endOf('month')
@@ -85,6 +88,18 @@ const toNormalNumber = (bigNumber: BigNumber) => {
 
 const handleDBError = (message: string, status: number) => ({ status, message })
 
+const GetDateTimeFromFormat = (dateFormat: string, stringDate?: string) => {
+  if (!stringDate) {
+    const _date = new Date()
+    stringDate = `
+      ${_date.getFullYear()}${_date.getMonth()+1}${_date.getDay()}
+      ${_date.getHours()}${_date.getMinutes()}${_date.getSeconds()}`
+    return DateTime.fromFormat(stringDate, 'yyyyMMddHHmmss')
+  }
+
+  return DateTime.fromFormat(stringDate, dateFormat)
+}
+
 export default {
   removeProperty,
   getPercentage,
@@ -92,6 +107,7 @@ export default {
   businessDiff,
   diffOfMonths,
   setDateToBeginOfDayFromISO,
+  setDateToEndOfDayFromISO,
   getFirstAndLastDaysMonth,
   removeDuplicateTimestamps,
   formatContractDate,
@@ -99,5 +115,6 @@ export default {
   makeFromAndToDate,
   diffOfDays,
   toNormalNumber,
-  handleDBError
+  handleDBError,
+  GetDateTimeFromFormat
 }

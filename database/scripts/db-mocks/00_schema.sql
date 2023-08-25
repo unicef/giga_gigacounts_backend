@@ -160,7 +160,8 @@ CREATE TABLE contracts (
     signed_with_wallet boolean default false,
     signed_wallet_address character varying(255),
     payment_receiver_id bigint,
-    cashback real null default 0
+    cashback real null default 0,
+    cashback_verified boolean not null default false
 );
 
 
@@ -763,6 +764,7 @@ CREATE TABLE notification_configurations (
     channel notification_channel NOT NULL,
     locked_for_user boolean DEFAULT false,
     read_only boolean DEFAULT false,
+    priority integer not null default 0,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone
 );
@@ -856,7 +858,6 @@ CREATE SEQUENCE notification_source_id_seq
 
 ALTER SEQUENCE notification_source_id_seq OWNED BY notification_sources.id;
 
-
 -- Name: payments; Type: TABLE; Schema: public; Owner: -
 
 CREATE TABLE payments (
@@ -868,8 +869,8 @@ CREATE TABLE payments (
     is_verified boolean DEFAULT false,
     contract_id bigint NOT NULL,
     paid_by bigint,
-    amount integer NOT NULL,
-    discount real null default 0,
+    amount decimal(20,2) NOT NULL default 0,
+    discount decimal(20,2) NOT NULL default 0,
     currency_id bigint,
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
@@ -1210,6 +1211,7 @@ END;
 $BODY$;
 
 
+
 CREATE OR REPLACE FUNCTION notifications_create_messages_conditions(
 	config_code notification_sources.code%TYPE, 
 	contract_id integer)
@@ -1336,7 +1338,7 @@ CREATE OR REPLACE FUNCTION notifications_get_replaced_messages(
 	config_code character varying,
 	msg_title character varying,
 	msg_description text,
-	contract_id bigint)
+	param_contract_id bigint)
     RETURNS TABLE(final_msg_title character varying, final_msg_description text) 
     LANGUAGE 'plpgsql'
     VOLATILE PARALLEL UNSAFE
@@ -1344,39 +1346,67 @@ CREATE OR REPLACE FUNCTION notifications_get_replaced_messages(
 AS $BODY$
 DECLARE
 	contract_name contracts.name%TYPE;
+  contract_launch_date contracts.launch_date%TYPE;
 	contract_created_at contracts.created_at%TYPE;
+  contract_full_cashback character varying;
+  payment_id payments.id%TYPE;
+  payment_full_amount character varying;
 BEGIN	
-		RAISE NOTICE 'notifications_get_replaced_messages - config_code: % - particular replace by config type', config_code;
+    RAISE NOTICE 'notifications_get_replaced_messages - config_code: % - particular replace by config type', config_code;
+    RAISE NOTICE 'notifications_get_replaced_messages - config_code: % - get contract data', config_code;
+    SELECT name, created_at, launch_date
+    INTO contract_name, contract_created_at, contract_launch_date
+    FROM contracts c
+    WHERE c.id = param_contract_id
+    LIMIT 1;
+    final_msg_title := REPLACE(msg_title, '#{{CONTRACT_NAME}}', contract_name);
+    final_msg_description := REPLACE(msg_description, '#{{CONTRACT_NAME}}', contract_name);
+    final_msg_description := REPLACE(final_msg_description, '#{{INSTALLATION_DATE}}', TO_CHAR(contract_launch_date, 'MM-DD-YYYY HH24:MI:SS'));
+    final_msg_description := REPLACE(final_msg_description, '#{{CREATION_DATE}}', TO_CHAR(contract_created_at, 'MM-DD-YYYY HH24:MI:SS'));
 		CASE
-			WHEN UPPER(config_code) = 'CONCRTM' or UPPER(config_code) = 'CONCRTA' THEN
-				-- Get contract data
-				RAISE NOTICE 'notifications_get_replaced_messages - config_code: % - get contract data', config_code;
-				SELECT name, created_at
-				INTO contract_name, contract_created_at
-				FROM contracts
-				WHERE id = contract_id
-				LIMIT 1;
-				final_msg_title := REPLACE(msg_title, '#{{contractId}}', contract_name);
-				final_msg_description := REPLACE(msg_description, '#{{contractId}}', contract_name);
-				final_msg_description := REPLACE(final_msg_description, '#{{creationDate}}', TO_CHAR(contract_created_at, 'MM-DD-YYYY HH24:MI:SS'));
+			WHEN
+        UPPER(config_code) = 'MPAYCRT' or 
+        UPPER(config_code) = 'APAYCRT' or
+        UPPER(config_code) = 'MPAYAPP' THEN
+        -- Get payment data
+        RAISE NOTICE 'notifications_get_replaced_messages - config_code: % - get payment data', config_code;
+        select p.id || '', c.code || ' ' || COALESCE(p.amount, 0) as fullAmount
+        into payment_id, payment_full_amount
+        from payments p
+        inner join currencies c
+        on c.id = p.currency_id
+        where p.contract_id = param_contract_id
+        order by p.id desc 
+        limit 1;
+
+        IF COALESCE(payment_id, 0) != 0 THEN
+          final_msg_description := REPLACE(final_msg_description, '#{{PAYMENT_ID}}', payment_id || '');
+          final_msg_description := REPLACE(final_msg_description, '#{{PAYMENT_AMOUNT}}', payment_full_amount);
+        END IF;
+
+			WHEN
+        UPPER(config_code) = 'ACONCSB' THEN
+        -- Get cashback data
+        RAISE NOTICE 'notifications_get_replaced_messages - config_code: % - get cashback data', config_code;
+        select cy.code || ' ' || COALESCE(c.cashback, 0) as fullCashbach
+        into contract_full_cashback
+        from contracts c
+        inner join currencies cy
+        on cy.id = c.currency_id
+        WHERE c.id = param_contract_id
+        LIMIT 1;
+
+        IF COALESCE(contract_full_cashback, '') != '' THEN
+          final_msg_description := REPLACE(final_msg_description, '#{{CONTRACT_CASHBACK}}', contract_full_cashback);
+        END IF;
 
       WHEN UPPER(config_code) = 'SLAKO' THEN
         RAISE NOTICE 'notifications_get_replaced_messages - config_code: % - get measure data', config_code;
-        SELECT name
-				INTO contract_name
-				FROM contracts
-				WHERE id = contract_id
-				LIMIT 1;
-				final_msg_title := REPLACE(msg_title, '#{{contractId}}', contract_name);
-				final_msg_description := REPLACE(msg_description, '#{{measureDate}}', TO_CHAR(CURRENT_TIMESTAMP, 'MM-DD-YYYY HH24:MI:SS'));
-        final_msg_description := REPLACE(final_msg_description, '#{{contractId}}', contract_name);
+				final_msg_description := REPLACE(final_msg_description, '#{{measureDate}}', TO_CHAR(CURRENT_TIMESTAMP, 'MM-DD-YYYY HH24:MI:SS'));
 
-			WHEN UPPER(config_code) = 'PWDRST' THEN
-				final_msg_title := msg_title;
-				final_msg_description := msg_description;
 			ELSE
-				final_msg_title := msg_title;
-				final_msg_description := msg_description;
+				final_msg_title := final_msg_title;
+				final_msg_description := final_msg_description;
 		END CASE;
 
   RETURN QUERY SELECT final_msg_title, final_msg_description; 
@@ -1386,6 +1416,7 @@ WHEN OTHERS THEN
   insert into logs (type, description) values ('NOTIFICATIONS', SQLERRM);
 END;
 $BODY$;
+
 
 
 CREATE OR REPLACE FUNCTION notifications_get_users (role_code roles.code%TYPE, config_code notification_sources.code%TYPE, contract_id contracts.id%TYPE)
@@ -1504,7 +1535,7 @@ BEGIN
       and u.country_id = (select country_id from contracts where id = contract_id);
 			RETURN NEXT record;
     WHEN 'SCHOOL.CONNECTIVITY.MANAGER' THEN
-      -- pending relationship
+      -- for now, without relationship
       select * into record from users where id = 0;
       RETURN NEXT record;
     ELSE
@@ -1517,10 +1548,10 @@ WHEN OTHERS THEN
 END;
 $BODY$;
 
-
 CREATE OR REPLACE FUNCTION notifications_support_fill_tables(
 	source_code notification_sources.code%TYPE,
   role_code roles.code%TYPE,
+  priority notification_configurations.priority%TYPE,
   msg_channel notification_configurations.channel%TYPE,
   msg_language notification_messages.preferred_language%TYPE,
   msg_title notification_messages.title%TYPE,
@@ -1535,7 +1566,7 @@ DECLARE
   config_id_exists boolean;
 BEGIN
 
-  -- config id could already exists if the message was insert by another langauges
+  -- config id could already exists if the message was inserted by another langauges
   SELECT id
   INTO config_id
   from notification_configurations
@@ -1544,12 +1575,11 @@ BEGIN
 	and channel = msg_channel;
 
   IF (COALESCE(config_id, 0) = 0) THEN
-    INSERT INTO notification_configurations(id, source_id, role_id, channel, locked_for_user, read_only, created_at, updated_at) 
+    INSERT INTO notification_configurations(id, source_id, role_id, channel, locked_for_user, read_only, priority, created_at, updated_at) 
     VALUES (nextval('notification_configurations_id_seq'), 
             (select id from notification_sources where code = source_code), 
             (select id from roles where code = role_code), 
-            msg_channel, false, false, CURRENT_TIMESTAMP, NULL);
-
+            msg_channel, false, false, priority, CURRENT_TIMESTAMP, NULL);
     select id 
     into config_id
     from notification_configurations
@@ -2590,4 +2620,278 @@ ALTER SEQUENCE blockchain_transactions_id_seq OWNED BY blockchain_transactions.i
 ALTER TABLE ONLY blockchain_transactions ALTER COLUMN id SET DEFAULT nextval('blockchain_transactions_id_seq'::regclass);
 ALTER TABLE ONLY blockchain_transactions ADD CONSTRAINT blockchain_transactions_pkey PRIMARY KEY (id);
 ALTER TABLE ONLY blockchain_transactions ADD CONSTRAINT blockchain_transactions_users_foreign FOREIGN KEY (user_id) REFERENCES users(id);
-ALTER TABLE ONLY blockchain_transactions ADD CONSTRAINT blockchain_transactions_contracts_foreign FOREIGN KEY (contract_id) REFERENCES contracts(id);
+
+CREATE TYPE contracts_for_automatic_payments_type AS (
+    contract_id bigint,
+    contract_name character varying(255),
+    payment_receiver_id bigint, 
+    contract_budget decimal(20,2), 
+    frecuency_id integer,
+    start_date timestamp with time zone,
+    end_date timestamp with time zone,
+    currency_id bigint, 
+    contract_Uptime real,
+    contract_Latency real,
+    contract_DSpeed real,
+    contract_USeepd real,
+    qtty_schools_sla_ok_period integer,
+    payment_amount decimal(20,2),
+    payment_discount decimal(20,2),
+    payment_date_from text,
+    payment_date_to text
+);
+
+
+CREATE OR REPLACE FUNCTION get_school_metrics(contract_id_val contracts.id%TYPE, metric_id_val measures.metric_id%TYPE, start_date_val TEXT, end_date_val TEXT)
+RETURNS TABLE (
+  contract_id bigint,
+  school_id bigint,
+  avg_school_value numeric,
+  contract_value numeric,
+  school_qtty_days_sla_ok integer,
+  school_qtty_measures_records integer,
+  qtty_days_in_period integer,
+  contempled_qtty_days_sla_ok integer,
+  contempled_sla_ok_percent numeric
+)
+LANGUAGE 'plpgsql'
+VOLATILE PARALLEL UNSAFE
+AS $BODY$
+BEGIN
+    qtty_days_in_period = CAST(COALESCE(CAST(LEFT(end_date_val, 8) AS BIGINT) - CAST(LEFT(start_date_val, 8) AS integer),0) as integer);
+
+    RETURN QUERY
+    SELECT
+      CAST(contract_id_val as bigint) as contract_id,
+      CAST(x.school_id as bigint) as school_id,
+      CAST(x.avg_school_value as numeric) as avg_school_value,
+      CAST(x.contract_value as numeric) as contract_value,
+      CAST(x.school_qtty_days_sla_ok as integer) as school_qtty_days_sla_ok,
+      CAST(x.school_qtty_measures_records as integer) as school_qtty_measures_records,
+      CAST(qtty_days_in_period as integer) as qtty_days_in_period,
+      CAST((qtty_days_in_period-x.school_qtty_measures_records+x.school_qtty_days_sla_ok) as integer) 
+        as contempled_qtty_days_sla_ok,
+      CAST((((qtty_days_in_period-x.school_qtty_measures_records+x.school_qtty_days_sla_ok)*100)/qtty_days_in_period) as numeric)
+        as contempled_sla_ok_percent
+    FROM (
+      SELECT 
+        sch.id as school_id, 
+        COALESCE(avg(ms.value), 0) avg_school_value,
+        COALESCE((select max(value) from expected_metrics em where em.contract_id = c.id and em.metric_id = metric_id_val), 0) as contract_value,
+        SUM(CASE 
+          WHEN COALESCE(ms.value, 0) >= COALESCE((select max(value) from expected_metrics em where em.contract_id = c.id and em.metric_id = metric_id_val),0) THEN 1
+          ELSE 0
+        END) as school_qtty_days_sla_ok,
+        COALESCE(COUNT(ms.id),0) as school_qtty_measures_records      
+      from school_contracts schc
+      inner join contracts c
+      on schc.contract_id = c.id
+      inner join schools sch
+      on sch.id = schc.school_id
+      left join measures ms
+      on ms.school_id = sch.id
+      where c.id = contract_id_val
+      and ms.metric_id = metric_id_val
+      and CAST(TO_CHAR(ms.created_at, 'YYYYMMDDHH24MISS') AS BIGINT) between CAST(start_date_val AS BIGINT) and CAST(end_date_val AS BIGINT)
+      group by c.id, sch.id
+    ) as x;
+
+EXCEPTION
+WHEN OTHERS THEN
+	RAISE EXCEPTION 'Error in function get_school_metrics: %', SQLERRM;
+END;
+$BODY$;
+
+
+CREATE OR REPLACE FUNCTION contracts_for_automatic_payments_conditions()
+RETURNS SETOF contracts_for_automatic_payments_type
+LANGUAGE plpgsql
+AS
+$BODY$
+DECLARE
+    cursor_config CURSOR FOR 
+    SELECT 
+      c.id as contract_id, 
+      c.name as contract_name, 
+      c.payment_receiver_id,
+      c.budget as contract_budget, 
+      c.frequency_id, 
+      UPPER(f.name) as frequency_name,
+      c.start_date, 
+      c.end_date, 
+      c.currency_id,
+      DATE_PART('day', c.end_date - c.start_date) contract_days_difference, 
+      UPPER(f.name) contract_frequency_name,
+      (CASE UPPER(f.name) 
+        WHEN 'MONTHLY' THEN DATE_PART('day', c.end_date - c.start_date) / 30
+        WHEN 'BIWEEKLY' THEN DATE_PART('day', c.end_date - c.start_date) / 15
+        WHEN 'WEEKLY' THEN DATE_PART('day', c.end_date - c.start_date) / 7
+        WHEN 'DAILY' THEN DATE_PART('day', c.end_date - c.start_date)
+        ELSE DATE_PART('day', c.end_date - c.start_date)
+      END) AS contract_qtty_payments_todo,
+      COALESCE(sum(amount),0) contract_total_payments_amount,
+      COALESCE(sum(discount),0) contract_total_payments_discount,
+      COALESCE(COUNT(p.id),0) contract_qtty_payments_done,
+      MAX(p.date_to) as contract_payment_max_date,
+      COALESCE(CAST(TO_CHAR(MAX(p.date_to), 'YYYYMMDD') AS bigint),0) as contract_max_payment_date_yyyymmdd,
+      COALESCE(CAST(TO_CHAR(MAX(p.date_to), 'YYYYMM') AS bigint),0) as contract_max_payment_date_yyyymm,
+      CAST(TO_CHAR(NOW(), 'YYYYMMDD') AS BIGINT) as current_date_yyyymmdd,
+      CAST(TO_CHAR(NOW(), 'YYYYMM') AS BIGINT) as current_date_yyyymm
+    FROM
+      contracts c
+    INNER JOIN
+      frequencies f on f.id = c.frequency_id
+    LEFT JOIN
+      payments p on p.contract_id = c.id
+    WHERE
+      c.automatic = true
+    AND
+      c.status = (select id from contract_status where upper(code) = 'ONGOING')
+    GROUP BY
+      c.id, c.budget, c.start_date, c.end_date, f.name;
+
+    record RECORD;
+    result contracts_for_automatic_payments_type;
+    verified_payments_done boolean;
+    verified_payments_period boolean;
+    payment_date_from text;
+    payment_date_to text;
+    contracts_qtty_schools integer;
+BEGIN
+    OPEN cursor_config;
+    LOOP
+      FETCH cursor_config INTO record;
+      EXIT WHEN NOT FOUND;
+
+      SELECT COALESCE(count(1), 0)
+      INTO contracts_qtty_schools
+      FROM school_contracts
+      WHERE contract_id = record.contract_id;
+
+      verified_payments_done = false;
+      verified_payments_period = false;
+
+      IF (record.contract_qtty_payments_done > 0) THEN
+        /* Check payments already done in all periods */
+        IF ((COALESCE(record.contract_total_payments_amount,0) + 
+          COALESCE(record.contract_total_payments_discount,0)) < record.contract_budget)
+          AND (record.contract_qtty_payments_done < record.contract_qtty_payments_todo) THEN
+          verified_payments_done = true;
+        END IF;
+
+        /* Check payments in current period and set payment's dates */
+        IF UPPER(record.frequency_name) = 'MONTHLY' AND
+          (record.contract_max_payment_date_yyyymm < record.current_date_yyyymm) THEN
+          payment_date_from = TO_CHAR((record.contract_payment_max_date + INTERVAL '1 day'), 'YYYYMMDD000000');
+          payment_date_to = TO_CHAR((record.contract_payment_max_date + INTERVAL '1 month'), 'YYYYMMDD235959');
+          verified_payments_period = true;
+        END IF;
+        IF UPPER(record.frequency_name) = 'BIWEEKLY' AND
+          (record.contract_max_payment_date_yyyymm < record.current_date_yyyymm) THEN
+          payment_date_from = TO_CHAR((record.contract_payment_max_date + INTERVAL '1 day'), 'YYYYMMDD000000');
+          payment_date_to = TO_CHAR((record.contract_payment_max_date + INTERVAL '15 day'), 'YYYYMMDD235959');
+          verified_payments_period = true;
+        END IF;
+        IF UPPER(record.frequency_name) = 'WEEKLY' AND
+          (record.contract_max_payment_date_yyyymm < record.current_date_yyyymm) THEN
+          payment_date_from = TO_CHAR((record.contract_payment_max_date + INTERVAL '1 day'), 'YYYYMMDD000000');
+          payment_date_to = TO_CHAR((record.contract_payment_max_date + INTERVAL '7 day'), 'YYYYMMDD235959');
+          verified_payments_period = true;
+        END IF;
+        IF UPPER(record.frequency_name) = 'DAILY' AND
+          (record.contract_max_payment_date_yyyymmdd < record.current_date_yyyymmdd) THEN
+          payment_date_from = TO_CHAR((record.contract_payment_max_date + INTERVAL '1 day'), 'YYYYMMDD000000');
+          payment_date_to = TO_CHAR((record.contract_payment_max_date + INTERVAL '1 day'), 'YYYYMMDD235959');
+          verified_payments_period = true;
+        END IF;
+      ELSE
+        /* no payments done yet */ 
+        verified_payments_period = true;
+        verified_payments_done = true;
+
+        IF UPPER(record.frequency_name) = 'MONTHLY' THEN
+          payment_date_from = TO_CHAR(DATE_TRUNC('month', NOW()), 'YYYYMMDD000000');
+          payment_date_to = TO_CHAR((DATE_TRUNC('month', NOW()) + INTERVAL '1 month - 1 second'), 'YYYYMMDDHH24MISS');
+        END IF;
+
+        IF UPPER(record.frequency_name) = 'BIWEEKLY' THEN
+          payment_date_from = TO_CHAR(NOW(), 'YYYYMMDD000000');
+          payment_date_to = TO_CHAR(NOW() + INTERVAL '15 day', 'YYYYMMDD235959');
+        END IF;
+
+        IF UPPER(record.frequency_name) = 'WEEKLY' THEN
+          payment_date_from = TO_CHAR(NOW(), 'YYYYMMDD000000');
+          payment_date_to = TO_CHAR(NOW() + INTERVAL '7 day', 'YYYYMMDD235959');
+        END IF;
+
+        IF UPPER(record.frequency_name) = 'DAILY' THEN
+          payment_date_from = TO_CHAR(NOW(), 'YYYYMMDD000000');
+          payment_date_to = TO_CHAR(NOW(), 'YYYYMMDD235959');
+        END IF;
+      END IF;
+
+      IF (verified_payments_done = true and verified_payments_period = true) THEN
+        SELECT 
+            c.id as contract_id, 
+            c.name as contract_name, 
+            c.payment_receiver_id,
+            c.budget as contract_budget, 
+            c.frequency_id, 
+            c.start_date, 
+            c.end_date, 
+            c.currency_id,
+            sla_metrics.contract_uptime,
+            sla_metrics.contract_latency,
+            sla_metrics.contract_dspeed,
+            sla_metrics.contract_uspeed,
+            sla_metrics.qtty_schools_sla_ok_period,
+            (record.contract_budget / record.contract_qtty_payments_todo) payment_amount,
+            CASE 
+              WHEN COALESCE(contracts_qtty_schools, 0) = 0 THEN 0 
+              ELSE 1-(ROUND(
+                    (CAST(sla_metrics.qtty_schools_sla_ok_period as numeric) / 
+                    CAST(contracts_qtty_schools as numeric)), 2)) 
+            END payment_discount_percent,
+            payment_date_from,
+            payment_date_to
+        INTO result
+        FROM contracts c
+        left join
+          ( select 
+            metrics_uptime.contract_id,
+            max(metrics_uptime.contract_value) as contract_uptime,
+            max(metrics_latency.contract_value) as contract_latency,
+            max(metrics_dspeed.contract_value) as contract_dspeed,
+            max(metrics_uspeed.contract_value) as contract_uspeed,
+            SUM(CASE WHEN metrics_latency.contempled_sla_ok_percent = 100 AND metrics_dspeed.contempled_sla_ok_percent = 100 THEN 1
+                ELSE 0 END) as qtty_schools_sla_ok_period
+            from get_school_metrics (record.contract_id, 1, payment_date_from, payment_date_to) as metrics_uptime
+            inner join get_school_metrics (record.contract_id, 2, payment_date_from, payment_date_to) as metrics_latency
+            on metrics_uptime.school_id = metrics_latency.school_id
+            inner join get_school_metrics (record.contract_id, 3, payment_date_from, payment_date_to) as metrics_dspeed
+            on metrics_latency.school_id = metrics_dspeed.school_id
+            inner join get_school_metrics (record.contract_id, 4, payment_date_from, payment_date_to) as metrics_uspeed
+            on metrics_dspeed.school_id = metrics_uspeed.school_id
+            group by metrics_uptime.contract_id
+          ) as sla_metrics
+        on c.id = sla_metrics.contract_id
+        WHERE c.id = record.contract_id;
+
+        RETURN NEXT result;
+      END IF;
+
+    END LOOP;
+    CLOSE cursor_config;
+
+EXCEPTION
+WHEN OTHERS THEN
+	RAISE EXCEPTION 'Error in function contracts_for_automatic_payments_conditions: %', SQLERRM;
+END;
+$BODY$;
+
+
+
+CREATE OR REPLACE VIEW contracts_for_automatic_payments AS
+SELECT * 
+FROM contracts_for_automatic_payments_conditions();
+

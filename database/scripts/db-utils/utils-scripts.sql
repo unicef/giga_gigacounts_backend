@@ -7,6 +7,19 @@ inner join permissions p
 on p.id = rp.permission_id
 order by r.code, r.name;
 
+-- Get permission by yser
+select u.email, r.code, r.name, p.name
+from roles r
+inner join role_permissions rp
+on r.id = rp.role_id 
+inner join permissions p
+on p.id = rp.permission_id
+inner join user_roles ur
+on ur.role_id = r.id
+inner join users u
+on u.id = ur.user_id
+where ur.user_id = (select id from users where email = 'isp.cm1.brazil@giga.com')
+order by r.code, r.name;
 
 -- Get notifications config
 select nc.id as config_id, ns.name, nc.channel, r.name, nm.preferred_language, nm.title, nm.message
@@ -17,8 +30,26 @@ inner join roles r
 on r.id = nc.role_id
 left join notification_messages nm
 on nm.notification_config_id = nc.id
+where notification_config_id in (
+    select id from notification_configurations 
+    where source_id = (select id from notification_sources where code = 'APAYCRT'))
 order by ns.name;
 
+-- Get notifications config with replaced messages (test with contract = 1)
+select 
+  nc.id as config_id, ns.code , ns.name, nc.channel, 
+  r.name, nm.preferred_language, nm.title, nm.message,
+  x.*
+from notification_configurations nc
+inner join notification_sources ns
+on ns.id = nc.source_id
+inner join roles r
+on r.id = nc.role_id
+left join notification_messages nm
+on nm.notification_config_id = nc.id
+inner join notifications_get_replaced_messages (ns.code, nm.title, nm.message, 1)  x
+on 1=1
+order by ns.name;
 
 -- Get notifictions messages by config code
 select * 
@@ -31,19 +62,20 @@ where notification_config_id in (
 -- Get notifications with role, config, channel, etc.
 select distinct n.id, ns.code, nc.channel,  n.status, u.email, n.title, n.message
 from notifications n
-inner join notification_configurations nc
+left join notification_configurations nc
 on nc.id = n.config_id
-inner join notification_sources ns
+left join notification_sources ns
 on ns.id = nc.source_id
-inner join roles r
+left join roles r
 on r.id = nc.role_id
-inner join notification_messages nm
+left join notification_messages nm
 on nm.notification_config_id = nc.id
-inner join users u 
+left join users u 
 on u.id = n.user_id
-inner join user_roles ur
+left join user_roles ur
 on ur.user_id = u.id
 and ur.role_id = r.id
+where ns.code = 'FDBACK'
 order by n.id desc limit 10;
 
 
@@ -83,6 +115,53 @@ where x.contractId  = 1
 and TO_CHAR(x.createdAt, 'YYYYMMDD') =  '20230707' -- TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD');
 
 
+-- Get average schools measures in period by contract_id (example contract_id = 1)
+select 
+    metrics_uptime.school_id,
+    metrics_uptime.avg_school_value as avg_sch_uptime,
+    metrics_uptime.contract_value as contract_uptime,
+    metrics_uptime.school_qtty_days_sla_ok as school_qtty_days_sla_ok_uptime,
+    metrics_latency.avg_school_value as avg_sch_latency,
+    metrics_latency.contract_value as contract_latency,
+    metrics_latency.school_qtty_days_sla_ok as school_qtty_days_sla_ok_latency, 
+    metrics_dspeed.avg_school_value as avg_sch_dspeed,
+    metrics_dspeed.contract_value as contract_dspeed,
+    metrics_dspeed.school_qtty_days_sla_ok as school_qtty_days_sla_ok_dspeed, 
+    metrics_uspeed.avg_school_value as avg_sch_ospeed,
+    metrics_uspeed.contract_value as contract_ospeed,
+    metrics_uspeed.school_qtty_days_sla_ok as school_qtty_days_sla_ok_ospeed
+from  get_school_metrics (1, 1, '20230707000000', '20230731595959') as metrics_uptime
+inner join get_school_metrics (1, 2, '20230707000000', '20230731595959') as metrics_latency
+on metrics_uptime.school_id = metrics_latency.school_id
+inner join get_school_metrics (1, 3, '20230707000000', '20230731595959') as metrics_dspeed
+on metrics_latency.school_id = metrics_dspeed.school_id
+inner join get_school_metrics (1, 4, '20230707000000', '20230731595959') as metrics_uspeed
+on metrics_dspeed.school_id = metrics_uspeed.school_id;
+
+-- Get average schools measures in period by contract_id (example contract_id = 1) Summary
+SELECT
+    metrics_uptime.school_id,
+    metrics_latency.contempled_sla_ok_percent as sla_ok_latency, 
+    metrics_dspeed.contempled_sla_ok_percent as sla_ok_dspeed,
+    max(metrics_uptime.contract_value) as contract_uptime,
+    max(metrics_latency.contract_value) as contract_latency,
+    max(metrics_dspeed.contract_value) as contract_dspeed,
+    max(metrics_uspeed.contract_value) as contract_uspeed,
+    COUNT(CASE 
+    WHEN metrics_latency.contempled_sla_ok_percent = 100 AND metrics_dspeed.contempled_sla_ok_percent = 100 THEN 1
+    ELSE 0 
+    END) as qtty_schools_sla_ok_period
+from  get_school_metrics (1, 1, '20230707000000', '20230731595959') as metrics_uptime
+inner join get_school_metrics (1, 2, '20230707000000', '20230731595959') as metrics_latency
+on metrics_uptime.school_id = metrics_latency.school_id
+inner join get_school_metrics (1, 3, '20230707000000', '20230731595959') as metrics_dspeed
+on metrics_latency.school_id = metrics_dspeed.school_id
+inner join get_school_metrics (1, 4, '20230707000000', '20230731595959') as metrics_uspeed
+on metrics_dspeed.school_id = metrics_uspeed.school_id
+group by
+    metrics_uptime.school_id,
+    metrics_latency.contempled_sla_ok_percent, 
+    metrics_dspeed.contempled_sla_ok_percent
 
 -- Update all sequence for all tables
 DECLARE
@@ -120,4 +199,10 @@ inner join isps i
 on i.id = iu.isp_id
 inner join users u
 on u.id = iu.user_id
+
+-- Insert metrics mock
+insert into measures (metric_id, value, school_id, created_at, contract_id)
+select metric_id, value, school_id, created_at + interval '1 month', contract_id
+from measures
+where contract_id = 1;
 

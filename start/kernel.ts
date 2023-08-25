@@ -42,5 +42,6 @@ Server.middleware.registerNamed({
   auth: () => import('App/Middleware/Auth'),
   validator: () => import('App/Middleware/Validator'),
   acl: () => import('App/Middleware/AccessControlList'),
+  cache: () => import('App/Middleware/Cache'),
   throttle: 'Adonis/Addons/RequestThrottler/Middleware'
 })

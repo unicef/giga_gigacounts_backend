@@ -2,7 +2,9 @@ import { BaseModel, column, HasMany, hasMany, LucidModel } from '@ioc:Adonis/Luc
 import { DateTime } from 'luxon'
 import NotificationConfiguration from 'App/Models/NotificationConfiguration'
 
-export default class NotificationSources extends BaseModel {
+export default class NotificationSource extends BaseModel {
+  public static table = 'notification_sources'
+
   @column({
     isPrimary: true,
     serialize: (value: number) => {

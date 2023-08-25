@@ -6,7 +6,7 @@ export interface GetUser {
   lastName: string
   completeName: string
   role: {
-    code?: string,
+    code?: string
     name?: string
   }
   countryId?: number
