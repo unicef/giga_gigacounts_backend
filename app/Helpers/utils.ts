@@ -2,6 +2,7 @@ import { DateTime as DateTimeLBD } from 'luxon-business-days'
 import { DateTime } from 'luxon'
 import { BigNumber, ethers } from 'ethers'
 import InvalidTypeException from 'App/Exceptions/InvalidTypeException'
+import { frequencyNames } from './constants'
 
 interface DiffMonths {
   months: number
@@ -44,8 +45,7 @@ const diffOfDays = (date1: DateTime, date2: DateTime) =>
 const setDateToBeginOfDayFromISO = (date: DateTime) =>
   DateTime.fromISO(date.toString()).startOf('day')
 
-const setDateToEndOfDayFromISO = (date: DateTime) =>
-  DateTime.fromISO(date.toString()).endOf('day')
+const setDateToEndOfDayFromISO = (date: DateTime) => DateTime.fromISO(date.toString()).endOf('day')
 
 const getFirstAndLastDaysMonth = (date: DateTime) => {
   const firstDay = date.startOf('month')
@@ -74,11 +74,44 @@ const formatContractDate = (date: string, start: boolean = false) => {
 
 const toFixedFloat = (num: number, digits: number = 2) => parseFloat(num.toFixed(digits))
 
-const makeFromAndToDate = (month: number, year: number, contractEndDate: DateTime) => {
-  const startMonth = DateTime.now().set({ month, year }).startOf('month')
-  const endMonth = DateTime.now().set({ month, year }).endOf('month')
-  const dateTo = endMonth > contractEndDate ? contractEndDate : endMonth
-  return { dateFrom: startMonth, dateTo }
+const makeFromAndToDate = (
+  frecuency: string,
+  month: number,
+  year: number,
+  contractEndDate: DateTime,
+  contractStartDate: DateTime,
+  day?: number
+) => {
+  let startPeriod
+  let endPeriod
+  let dateTo
+
+  if (frecuency === frequencyNames.Monthly) {
+    startPeriod = DateTime.now().set({ month, year }).startOf('month')
+    endPeriod = DateTime.now().set({ month, year }).endOf('month').startOf('day')
+  } else {
+    if (day) {
+      if (frecuency === frequencyNames.Weekly) {
+        startPeriod = DateTime.now().set({ day, month, year }).startOf('week')
+        endPeriod = DateTime.now().set({ day, month, year }).endOf('week').startOf('day')
+      } else if (frecuency === frequencyNames.Biweekly) {
+        const startDate = DateTime.now().set({ day, month, year })
+        const daysDiff = startDate.diff(contractStartDate, 'days').days
+        const numberOfBiweeks = Math.floor(daysDiff / 14) // 14 days in a biweek
+
+        startPeriod = contractStartDate.plus({ weeks: numberOfBiweeks * 2 })
+        endPeriod = startPeriod.plus({ days: 13 }).endOf('week').startOf('day')
+      } else if (frecuency === frequencyNames.Daily) {
+        startPeriod = DateTime.now().set({ day, month, year }).startOf('day')
+        endPeriod = DateTime.now().set({ day, month, year }).startOf('day')
+      }
+    } else {
+      throw new Error('The day parameter is required for weekly or biweekly payments.')
+    }
+  }
+
+  dateTo = endPeriod > contractEndDate ? contractEndDate : endPeriod
+  return { dateFrom: startPeriod, dateTo }
 }
 
 const toNormalNumber = (bigNumber: BigNumber) => {
@@ -90,10 +123,10 @@ const handleDBError = (message: string, status: number) => ({ status, message })
 
 const GetDateTimeFromFormat = (dateFormat: string, stringDate?: string) => {
   if (!stringDate) {
-    const _date = new Date()
+    const dateValue = new Date()
     stringDate = `
-      ${_date.getFullYear()}${_date.getMonth()+1}${_date.getDay()}
-      ${_date.getHours()}${_date.getMinutes()}${_date.getSeconds()}`
+      ${dateValue.getFullYear()}${dateValue.getMonth() + 1}${dateValue.getDay()}
+      ${dateValue.getHours()}${dateValue.getMinutes()}${dateValue.getSeconds()}`
     return DateTime.fromFormat(stringDate, 'yyyyMMddHHmmss')
   }
 

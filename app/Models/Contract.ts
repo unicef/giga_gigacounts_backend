@@ -22,6 +22,7 @@ import Attachment from 'App/Models/Attachment'
 import School from 'App/Models/School'
 import Payment from 'App/Models/Payment'
 import Measure from 'App/Models/Measure'
+import ExternalContact from './ExternalContact'
 
 export default class Contract extends BaseModel {
   @column({ isPrimary: true })
@@ -159,6 +160,15 @@ export default class Contract extends BaseModel {
     pivotRelatedForeignKey: 'user_id'
   })
   public stakeholders: ManyToMany<typeof User>
+
+  @manyToMany(() => ExternalContact, {
+    pivotTable: 'contract_external_contacts',
+    localKey: 'id',
+    pivotForeignKey: 'contract_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'external_contact_id'
+  })
+  public externalContacts: ManyToMany<typeof ExternalContact>
 
   @manyToMany(() => School as LucidModel, {
     pivotTable: 'school_contracts',

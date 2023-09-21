@@ -10,16 +10,13 @@ export default class HelpRequest extends BaseModel {
   public id: number
 
   @column()
-  public code: string
-
-  @column()
-  public functionality: string
-
-  @column()
   public type: string
 
   @column()
   public description: string
+
+  @column()
+  public path: string
 
   @column()
   public userId: number

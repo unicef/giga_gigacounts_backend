@@ -18,6 +18,7 @@ import { Tx } from 'App/Helpers/gnosisSafe'
 import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
 
 import dto, { GetUser } from 'App/DTOs/User'
+import ExternalContact from 'App/Models/ExternalContact'
 
 interface UserProfile {
   id: string
@@ -128,8 +129,12 @@ const attachWallet = async ({ user, address, message }: AttachWalletData) => {
     let addTx: Tx | undefined
 
     const AddressFromSignedMessage = Ethers.recoverAddress(user.walletRequestString!, message)
-    console.log(AddressFromSignedMessage, address,  AddressFromSignedMessage.toLowerCase() == address.toLowerCase())
-    if ( AddressFromSignedMessage.toLowerCase() == address.toLowerCase()) {
+    console.log(
+      AddressFromSignedMessage,
+      address,
+      AddressFromSignedMessage.toLowerCase() === address.toLowerCase()
+    )
+    if (AddressFromSignedMessage.toLowerCase() === address.toLowerCase()) {
       user.walletAddress = address
       user.walletRequestString = undefined
       await user.useTransaction(trx).save()
@@ -214,13 +219,27 @@ const updateSettingAutomaticContracts = async (
 
 const listUsers = async (
   user: User,
+  externalUsers: boolean,
   countryId?: number,
   rolesToSearch?: string[],
   ispId?: number
 ): Promise<GetUser[]> => {
   const { query } = await queryBuilderUser(user, countryId, rolesToSearch, ispId)
   const users: User[] = await query
-  return dto.getUsersByUserDTO(users)
+
+  if (externalUsers) {
+    const { queryExternalContacts } = await queryBuilderExternalContact(user, countryId, ispId)
+    const exContacts: ExternalContact[] = await queryExternalContacts
+
+    const usersDTO = dto.getUsersByUserDTO(users)
+    const externalContactsDTO = dto.getExternalContactsByExternalContactDTO(exContacts)
+
+    return [...usersDTO, ...externalContactsDTO]
+  } else {
+    const usersDTO = dto.getUsersByUserDTO(users)
+
+    return usersDTO
+  }
 }
 
 const queryBuilderUser = async (
@@ -265,6 +284,39 @@ const queryBuilderUser = async (
   }
 
   return { query }
+}
+
+const queryBuilderExternalContact = async (
+  user: User,
+  countryId?: number,
+  ispId?: number
+): Promise<{
+  queryExternalContacts: ModelQueryBuilderContract<typeof ExternalContact, ExternalContact>
+}> => {
+  let queryExternalContacts = ExternalContact.query().preload('isp').preload('country')
+
+  if (
+    await checkUserRole(user, [
+      roles.countryContractCreator,
+      roles.countryAccountant,
+      roles.countrySuperAdmin,
+      roles.countryMonitor
+    ])
+  ) {
+    countryId = user.countryId
+  }
+
+  if (countryId) {
+    queryExternalContacts.andWhere('country_id', countryId)
+  }
+
+  if (ispId) {
+    queryExternalContacts.whereHas('isp', (builder) => {
+      builder.where('isp_id', ispId)
+    })
+  }
+
+  return { queryExternalContacts }
 }
 
 const getGigaSuperAdminUser = async () => {

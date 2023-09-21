@@ -1,6 +1,8 @@
 import { GuardsList } from '@ioc:Adonis/Addons/Auth'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { AuthenticationException } from '@adonisjs/auth/build/standalone'
+import validate from 'App/Helpers/jwt'
+import User from 'App/Models/User'
 
 /**
  * Auth middleware is meant to restrict un-authenticated access to a given route
@@ -60,17 +62,51 @@ export default class AuthMiddleware {
   /**
    * Handle request
    */
-  public async handle(
-    { auth }: HttpContextContract,
-    next: () => Promise<void>,
-    customGuards: (keyof GuardsList)[]
-  ) {
+  public async handle({ request, response, auth }: HttpContextContract, next: () => Promise<void>) {
+    const authHeader = request.headers().authorization
+    if (authHeader) {
+      try {
+        const tenantName = process.env.TENANT_NAME || ''
+        const policyName = process.env.POLICY_NAME || ''
+        const tenantId = process.env.TENANT_ID || ''
+        const applicationId = process.env.APPLICATION_ID || ''
+
+        const token = authHeader.split(' ')[1]
+        const decodedToken = await validate(token, {
+          tenantId,
+          tenantName,
+          policyName,
+          applicationId
+        })
+
+        const user = (await User.findBy(
+          'id',
+          decodedToken.payload.extension_UserId as number
+        )) as User
+
+        // user.name = decodedToken.payload.given_name as string
+        // user.id = decodedToken.payload.extension_UserId as number
+
+        await auth.use('api').generate(user)
+        request.permissions = decodedToken.payload.extension_Permissions as string[]
+      } catch (error) {
+        console.log(error)
+        response.unauthorized({
+          error: 'Unable to decode B2C JWT Token'
+        })
+      }
+    } else {
+      response.unauthorized({
+        error: 'Missing Authorization header'
+      })
+    }
+
     /**
      * Uses the user defined guards or the default guard mentioned in
      * the config file
      */
-    const guards = customGuards.length ? customGuards : [auth.name]
-    await this.authenticate(auth, guards)
+    //const guards = customGuards.length ? customGuards : [auth.name]
+    //await this.authenticate(auth, guards)
     await next()
   }
 }

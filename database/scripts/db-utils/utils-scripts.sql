@@ -37,9 +37,9 @@ order by ns.name;
 
 -- Get notifications config with replaced messages (test with contract = 1)
 select 
-  nc.id as config_id, ns.code , ns.name, nc.channel, 
-  r.name, nm.preferred_language, nm.title, nm.message,
-  x.*
+nc.id as config_id, ns.code , ns.name, nc.channel, 
+r.name, nm.preferred_language, nm.title, nm.message,
+x.*
 from notification_configurations nc
 inner join notification_sources ns
 on ns.id = nc.source_id
@@ -47,7 +47,7 @@ inner join roles r
 on r.id = nc.role_id
 left join notification_messages nm
 on nm.notification_config_id = nc.id
-inner join notifications_get_replaced_messages (ns.code, nm.title, nm.message, 1)  x
+inner join notifications_get_replaced_messages (ns.code, nm.title, nm.message, 1) x
 on 1=1
 order by ns.name;
 
@@ -58,6 +58,16 @@ where notification_config_id in (
     select id from notification_configurations 
     where source_id = (select id from notification_sources where code = 'SLAKO'));
 
+
+-- Get notifications messages by config_id
+Select *
+from notification_messages
+where notification_config_id in 
+	(select id
+	from notification_configurations
+	where source_id in (select id from notification_sources where code in ('ACONPUB','MCONPUB'))
+	and role_id in (select id from roles where code = 'ISP.CONTRACT.MANAGER'))
+	
 
 -- Get notifications with role, config, channel, etc.
 select distinct n.id, ns.code, nc.channel,  n.status, u.email, n.title, n.message
@@ -206,3 +216,11 @@ select metric_id, value, school_id, created_at + interval '1 month', contract_id
 from measures
 where contract_id = 1;
 
+
+-- delete frafts
+SELECT conname, conrelid::regclass AS table_name FROM pg_constraint WHERE confrelid = 'drafts'::regclass;
+delete from draft_external_contacts;
+delete from draft_attachments;
+delete from draft_stakeholders;
+delete from draft_isp_contacts;
+delete from drafts;

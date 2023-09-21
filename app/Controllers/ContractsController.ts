@@ -17,7 +17,8 @@ export default class ContractsController {
     try {
       if (!auth.user) return
       const data = request.all() as ContractCreation
-      const contract = await service.createContract(data, auth.user)
+      const { confirmation } = request.qs()
+      const contract = await service.createContract(data, auth.user, Boolean(Number(confirmation)))
       return response.ok(contract)
     } catch (error) {
       return response.status(error.status).send(error.message)

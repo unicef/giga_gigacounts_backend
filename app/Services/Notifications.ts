@@ -72,9 +72,8 @@ const getFilteredNotifications = async (
     rawQuery += ' order by created_at desc'
     const query = await Database.rawQuery(rawQuery)
 
-
     return query.rows as NotificationData[]
-    
+
     /*
     let query = Notification.query()
     .select('notifications.*', 'notification_configurations.priority')
@@ -193,12 +192,17 @@ const changeStatusNotificationsById = async (id: number, status: string): Promis
   }
 }
 
-const createNotificationByOperation = async (notificationOperation, contractId: string) => {
+const createNotificationByOperation = async (
+  notificationOperation,
+  contractId: string,
+  isDraft: boolean = false
+) => {
   const client = await Database.transaction()
   try {
-    await client.rawQuery('select notifications_create_messages(?, ?);', [
+    await client.rawQuery('select notifications_create_messages(?, ?, ?);', [
       notificationOperation,
-      contractId
+      contractId,
+      isDraft
     ])
     await client.commit()
   } catch (error) {
@@ -249,9 +253,9 @@ const createGenericNotification = async (
         ? NotificationStatus.CREATED
         : NotificationStatus.SENT
     notification.email = user[0].email
-    notification.sentAt = notificationChannel === NotificationChannel.API
-    ? DateTime.now() : undefined
-    
+    notification.sentAt =
+      notificationChannel === NotificationChannel.API ? DateTime.now() : undefined
+
     await Database.transaction(async (trx) => {
       await notification.useTransaction(trx).save()
     })
@@ -269,10 +273,9 @@ const createHelpRequestNotifications = async (
   const title = `Gigacounts - Help Request from User ${userFrom.email}`
   const message = `
   ID: ${helpRequest.id},
-  Code: ${helpRequest.code},
-  Functionality: ${helpRequest.functionality},
   Type of Help Request: ${helpRequest.type},
   Description: ${helpRequest.description};
+  Path: ${helpRequest.path};
   Created by: ${userFrom.email},
   Created at: ${helpRequest.createdAt}
   `
@@ -299,7 +302,8 @@ const createFeedbackNotifications = async (
   const message = `
   ID: ${feedback.id},
   Rate: ${feedback.rate},
-  Comment: ${feedback.comment};
+  Comment: ${feedback.comment},
+  Path: ${feedback.path};
   Created by: ${userFrom.email},
   Created at: ${feedback.createdAt}
   `

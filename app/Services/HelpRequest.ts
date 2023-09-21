@@ -15,7 +15,7 @@ const listHelpRequests = async (user: User) => {
     const query = HelpRequest.query()
     if (!(await userService.checkUserRole(user, [roles.gigaAdmin]))) {
       throw new NotFoundException(
-        'You do not have the permissions to get the feedback list',
+        'You do not have the permissions to get the help requests list',
         401,
         'UNAUTHORIZED'
       )
@@ -23,10 +23,10 @@ const listHelpRequests = async (user: User) => {
     return query as unknown as HelpRequest[]
   } catch (error) {
     if (error.status === 404) {
-      throw new DatabaseException('Some database error occurred while find Feedbacks')
+      throw new DatabaseException('Some database error occurred while find Help Requests')
     } else if (error.status === 401) {
       throw new DatabaseException(
-        'You do not have the permissions to get the feedback list',
+        'You do not have the permissions to get the help requests list',
         401,
         'UNAUTHORIZED'
       )
@@ -37,14 +37,13 @@ const listHelpRequests = async (user: User) => {
 const createHelpRequest = async (user: User, req: RequestContract): Promise<HelpRequest> => {
   const client = await Database.transaction()
   try {
-    const { code, functionality, type, description } = req.body()
+    const { type, description, path } = req.body()
     const userId = user.id
 
     const data = await HelpRequest.create({
-      code,
-      functionality,
       type,
       description,
+      path,
       userId
     })
 

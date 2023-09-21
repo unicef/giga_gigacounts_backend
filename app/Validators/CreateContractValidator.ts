@@ -9,6 +9,7 @@ export default class CreateContractValidator {
     name: schema.string({}, [
       rules.unique({ table: 'contracts', column: 'name', caseInsensitive: true })
     ]),
+    automatic: schema.boolean(),
     countryId: schema.string(),
     governmentBehalf: schema.boolean.optional(),
     ltaId: schema.string.nullableAndOptional(),
@@ -18,6 +19,7 @@ export default class CreateContractValidator {
     endDate: schema.date({}, [rules.afterOrEqualToField('startDate')]),
     launchDate: schema.date(),
     ispId: schema.string(),
+    paymentReceiverId: schema.number.optional([rules.requiredWhen('automatic', 'in', ['true'])]),
     schools: schema.object().members({
       schools: schema.array().members(schema.object().members({ id: schema.string() }))
     }),

@@ -13,6 +13,7 @@ import { LoadMeasuresType } from 'App/Services/Contract'
 import { MeasurementsData } from 'App/Helpers/unicefApi'
 import dto from 'App/DTOs/Measure'
 import { Metrics } from 'App/Helpers/constants'
+import { frequencyNames } from '../Helpers/constants'
 
 export interface CalculatebyMonthYearData {
   contractId: number
@@ -31,7 +32,13 @@ const calculateMeasuresByMonthYear = async ({
     .preload('expectedMetrics')
     .withCount('schools')) as Contract[]
   if (!contract.length) throw new NotFoundException('Contract not found')
-  const { dateFrom, dateTo } = utils.makeFromAndToDate(month, year, contract[0].endDate)
+  const { dateFrom, dateTo } = utils.makeFromAndToDate(
+    frequencyNames.Monthly,
+    month,
+    year,
+    contract[0].endDate,
+    contract[0].startDate
+  )
 
   const schoolsMedians = await getSchoolsMedianMeasures(contract, dateFrom, dateTo)
 

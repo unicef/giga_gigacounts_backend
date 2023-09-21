@@ -7,7 +7,9 @@ The App requires:
 - [Node.js](https://nodejs.org/) v16+ to run (^16.14.2).
 - [Yarn.js](https://classic.yarnpkg.com/en/docs/install) v1+ to run (^1.22.19).
 - [Docker](https://www.docker.com/products/docker-desktop/) (in case that you desire to start app with docker).
+- [Azure Active Directory B2C installed and configured in Azure Subscription](https://learn.microsoft.com/en-us/azure/active-directory-b2c/overview)
 - PostgreSql ([windows installation](https://www.postgresql.org/download), [linux installation](https://www.postgresql.org/download)).
+- The Smart Contracts from Blockchain project deployed in Polygon Testnet Network.
 
 - You could check version of packages (node, yarn) with these comamnds:
 

@@ -15,6 +15,7 @@ import Lta from 'App/Models/Lta'
 import Country from 'App/Models/Country'
 import User from 'App/Models/User'
 import Attachment from 'App/Models/Attachment'
+import ExternalContact from './ExternalContact'
 
 export default class Draft extends BaseModel {
   @column({ isPrimary: true })
@@ -135,6 +136,15 @@ export default class Draft extends BaseModel {
     pivotRelatedForeignKey: 'user_id'
   })
   public stakeholders: ManyToMany<typeof User>
+
+  @manyToMany(() => ExternalContact, {
+    pivotTable: 'draft_external_contacts',
+    localKey: 'id',
+    pivotForeignKey: 'draft_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'external_contact_id'
+  })
+  public externalContacts: ManyToMany<typeof ExternalContact>
 
   @belongsTo(() => User, {
     localKey: 'id',

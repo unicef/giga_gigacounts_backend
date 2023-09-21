@@ -27,7 +27,10 @@ export interface DahsboardNotMetSLA {
   sla_complience: string
 }
 
-const listDashboardSchools = async (user: User, countryId?: number): Promise<DashboardSchools[]> => {
+const listDashboardSchools = async (
+  user: User,
+  countryId?: number
+): Promise<DashboardSchools[]> => {
   let rawQuery = `
   WITH MetricValidity AS (
     SELECT
@@ -78,16 +81,13 @@ const listDashboardSchools = async (user: User, countryId?: number): Promise<Das
   `
 
   try {
-    const isAdmin = await userService.checkUserRole(
-      user,
-      [roles.gigaAdmin, roles.gigaViewOnly]
-    );
-    
+    const isAdmin = await userService.checkUserRole(user, [roles.gigaAdmin, roles.gigaViewOnly])
+
     if (isAdmin) {
-      const targetCountryId = countryId || user.countryId;
-      rawQuery += ' WHERE sc.country_id = ' + targetCountryId;
+      const targetCountryId = countryId || user.countryId
+      rawQuery += ' WHERE sc.country_id = ' + targetCountryId
     } else {
-      rawQuery += ' WHERE sc.country_id = ' + user.countryId;;
+      rawQuery += ' WHERE sc.country_id = ' + user.countryId
     }
 
     rawQuery +=
@@ -111,9 +111,9 @@ const listNotMeetsSla = async (user: User, countryId?: number) => {
     .padStart(2, '0')}`
 
   const contractListNotMeetsSLA: Contract[] = []
-  const isAdmin = await userService.checkUserRole(user,[roles.gigaAdmin, roles.gigaViewOnly]);
-  const targetCountryId = isAdmin && countryId !== undefined ? countryId : user.countryId;
-  
+  const isAdmin = await userService.checkUserRole(user, [roles.gigaAdmin, roles.gigaViewOnly])
+  const targetCountryId = isAdmin && countryId !== undefined ? countryId : user.countryId
+
   let rawQuery = `
       WITH contract_sla_ranked AS (
         SELECT

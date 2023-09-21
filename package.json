@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "server": "node ace serve --watch",
     "dev": "concurrently \"node ace serve --watch\" \"npm run scheduler\"",
+    "start": "node build\\server.js",
     "scheduler": "node ace scheduler:run",
     "build": "node ace build --production --ignore-ts-errors",
-    "start": "node build\\server.js",
     "serve": "node ace serve",
     "lint": "eslint . --ext=.ts",
     "lint:fix": "eslint --fix --ext .ts .",

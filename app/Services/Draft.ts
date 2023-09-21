@@ -9,10 +9,11 @@ import Attachment from 'App/Models/Attachment'
 
 import dto from 'App/DTOs/Draft'
 import userService from 'App/Services/User'
-import { roles } from 'App/Helpers/constants'
+import { NotificationSources, roles } from 'App/Helpers/constants'
 import User from 'App/Models/User'
 import utils from 'App/Helpers/utils'
 import InvalidStatusException from 'App/Exceptions/InvalidStatusException'
+import NotificationsService from 'App/Services/Notifications'
 
 export interface DraftData {
   id: number
@@ -101,7 +102,7 @@ const saveDraft = async (draftData: DraftData, user: User): Promise<Draft> => {
       frequencyId: draftData.frequencyId,
       ispId: draftData.ispId,
       automatic: draftData.automatic,
-      createdBy: draftData.createdBy,
+      createdBy: user.id,
       schools: draftData.schools,
       expectedMetrics: draftData.expectedMetrics,
       governmentBehalf: await isGovernmentBehalf(user, draftData.governmentBehalf),
@@ -118,6 +119,16 @@ const saveDraft = async (draftData: DraftData, user: User): Promise<Draft> => {
     })
 
     await client.commit()
+
+    /*
+    Moved to createContract
+    NotificationsService.createNotificationByOperation(
+      draftData.automatic
+        ? NotificationSources.automaticContractCreated
+        : NotificationSources.manualContractCreated,
+      draftData.id?.toString() || '0', true // draft.id has value here or is draftData?
+    )
+    */
 
     return draft
   } catch (error) {
@@ -154,7 +165,7 @@ const updateDraft = async (draftData: DraftData, user: User): Promise<Draft> => 
       ? utils.formatContractDate(draftData.launchDate)
       : undefined
     draft.ispId = draftData?.ispId
-    draft.createdBy = draftData?.createdBy
+    draft.createdBy = user.id
     draft.schools = draftData?.schools
     draft.expectedMetrics = draftData?.expectedMetrics
     draft.paymentReceiverId = draftData?.paymentReceiverId || undefined

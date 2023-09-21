@@ -22,9 +22,8 @@ export enum ContractStatus {
 }
 
 export enum PaymentStatus {
-  OnHold,
+  Draft,
   Unpaid,
-  Verified,
   Paid
 }
 
@@ -36,7 +35,8 @@ export enum CurrencyType {
 export const frequencyNames = {
   Weekly: 'Weekly',
   Biweekly: 'Biweekly',
-  Monthly: 'Monthly'
+  Monthly: 'Monthly',
+  Daily: 'Daily'
 }
 
 export const permissions = {

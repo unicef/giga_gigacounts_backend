@@ -16,6 +16,9 @@ export default class Feedback extends BaseModel {
   @column()
   public comment: string
 
+  @column()
+  public path: string
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 }
