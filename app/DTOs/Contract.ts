@@ -729,8 +729,10 @@ const calculateSchoolsMeasure = async (
 
 const concatLocations = (locations: string[]) => locations.filter((l) => l).join(',')
 
-const contractAvailablePaymentsDTO = (paymentsDates: { dates: string }[]) => {
-  return paymentsDates.map(({ dates }) => {
+const contractAvailablePaymentsDTO = (
+  paymentsDates: { dates: string; budget_per_element: number }[]
+) => {
+  const periods = paymentsDates.map(({ dates }) => {
     if (dates.split('-').length > 2) {
       const [day, month, year] = dates.split('-')
       return {
@@ -746,6 +748,11 @@ const contractAvailablePaymentsDTO = (paymentsDates: { dates: string }[]) => {
       }
     }
   })
+
+  return {
+    amount: Number(paymentsDates[0].budget_per_element.toFixed(4)) || 0,
+    periods: periods
+  }
 }
 
 export default {

@@ -60,7 +60,9 @@ const createBlockchainTransaction = async (
     console.error(error)
     await trx.rollback()
     if (error.status === 404) throw error
-    throw new DatabaseException('Some database error occurred while creating blockchain transaction log')
+    throw new DatabaseException(
+      'Some database error occurred while creating blockchain transaction log'
+    )
   }
 }
 

@@ -108,14 +108,20 @@ export default class UsersController {
 
   public async listUsers({ response, request, auth }: HttpContextContract) {
     if (!auth.user) return
-    const { countryId, roles, ispId } = request.qs()
+    const { countryId, roles, ispId, externalUsers } = request.qs()
     let rolesToSearch: string[] = []
 
     if (roles) {
       rolesToSearch = roles.split(',')
     }
 
-    const users = await service.listUsers(auth.user, countryId, rolesToSearch, ispId)
+    const users = await service.listUsers(
+      auth.user,
+      Boolean(Number(externalUsers)),
+      countryId,
+      rolesToSearch,
+      ispId
+    )
     return response.ok(users)
   }
 }

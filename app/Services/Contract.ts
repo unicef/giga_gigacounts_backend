@@ -17,7 +17,13 @@ import SignedMessageException from 'App/Exceptions/SignedMessageException'
 import SignWalletException from 'App/Exceptions/SignWalletException'
 import UnhandledException from 'App/Exceptions/UnhandledException'
 
-import { roles, ContractStatus, NotificationSources, frequencyNames, PaymentStatus } from 'App/Helpers/constants'
+import {
+  roles,
+  ContractStatus,
+  NotificationSources,
+  frequencyNames,
+  PaymentStatus
+} from 'App/Helpers/constants'
 import userService from 'App/Services/User'
 import metricService from 'App/Services/Metric'
 import dto, { ContractsStatusCount } from 'App/DTOs/Contract'
@@ -77,7 +83,11 @@ interface FreqObj {
   frequency?: string
 }
 
-function getRawQuery(initialStatus: ContractStatus, finalStatus: ContractStatus) {
+function getRawQuery(
+  initialStatus: ContractStatus,
+  finalStatus: ContractStatus,
+  paidAmountComparisonOperator: string
+) {
   const query = `
   WITH UpdatedContracts AS (
     UPDATE contracts AS c
@@ -88,10 +98,10 @@ function getRawQuery(initialStatus: ContractStatus, finalStatus: ContractStatus)
         LEFT JOIN (
             SELECT contract_id, SUM(amount)+SUM(discount) AS total_verified_payments
             FROM payments
-            WHERE status = ${PaymentStatus.Verified}
+            WHERE status = ${PaymentStatus.Paid}
             GROUP BY contract_id
         ) p ON c.id = p.contract_id
-        WHERE COALESCE(p.total_verified_payments, 0) = c.budget AND c.end_date < CURRENT_TIMESTAMP AND c.status = ${initialStatus}
+        WHERE COALESCE(p.total_verified_payments, 0) ${paidAmountComparisonOperator} c.budget AND c.end_date < CURRENT_TIMESTAMP AND c.status = ${initialStatus}
     ) AS subquery
     WHERE c.id = subquery.id
     RETURNING c.id, c.automatic 
@@ -111,15 +121,15 @@ const loadContractsDailyMeasures = async () => {
   // just left call here by each contract in ongoing state and for the schools getted)
 
   contractsId.forEach((cId) => {
-    NotificationsService.createNotificationByOperation(NotificationSources.slaNotMet, cId.id)
+    NotificationsService.createNotificationByOperation(NotificationSources.slaNotMet, cId.id, false)
   })
 }
 
 const contractStatusBatchUpdate = async (user: User): Promise<BatchUpdate> => {
   const today = DateTime.now()
-  const queryOngoingToCompleted = getRawQuery(ContractStatus.Ongoing, ContractStatus.Completed)
-  const queryOngoingToExpired = getRawQuery(ContractStatus.Ongoing, ContractStatus.Expired)
-  const queryExpiredToCompleted = getRawQuery(ContractStatus.Expired, ContractStatus.Completed)
+  const queryOngoingToCompleted = getRawQuery(ContractStatus.Ongoing, ContractStatus.Completed, '=')
+  const queryOngoingToExpired = getRawQuery(ContractStatus.Ongoing, ContractStatus.Expired, '<')
+  const queryExpiredToCompleted = getRawQuery(ContractStatus.Expired, ContractStatus.Completed, '=')
 
   const confirmedContracts = await Contract.query()
     .where('status', ContractStatus.Confirmed)
@@ -164,7 +174,12 @@ const contractStatusBatchUpdate = async (user: User): Promise<BatchUpdate> => {
   //   loadContractsMeasures(confirmedContracts, 'historic')
   // }
 
-  return { confirmedContracts, ongoingCompletedContracts, ongoingExpiredContracts, expiredCompletedContracts }
+  return {
+    confirmedContracts,
+    ongoingCompletedContracts,
+    ongoingExpiredContracts,
+    expiredCompletedContracts
+  }
 }
 
 const getContractSchools = async (contractId: number) => {
@@ -299,7 +314,11 @@ const getContractList = async (user: User, status?: number) => {
 const destructObjArrayWithId = (object?: { id: string; budget: number }[]) => {
   return (object || []).map(({ id, budget }) => ({ id, budget }))
 }
-const createContract = async (data: ContractCreation, user: User): Promise<Contract> => {
+const createContract = async (
+  data: ContractCreation,
+  user: User,
+  confirmation?: boolean
+): Promise<Contract> => {
   const trx = await Database.transaction()
   try {
     const frequency = await Frequency.findBy('name', 'Monthly')
@@ -313,7 +332,8 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
         budget: data.budget,
         ispId: data.ispId,
         automatic: data.automatic,
-        status: ContractStatus.Sent,
+        // automatic contracts MUST be confirmed signing with wallet!
+        status: confirmation && !data.automatic ? ContractStatus.Confirmed : ContractStatus.Sent,
         governmentBehalf: await DraftService.isGovernmentBehalf(user, data.governmentBehalf),
         startDate: utils.formatContractDate(data.startDate, true),
         endDate: utils.formatContractDate(data.endDate),
@@ -351,6 +371,13 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
       )
       await draft.useTransaction(trx).related('attachments').detach()
 
+      await draft.load('externalContacts')
+      await contract.related('externalContacts').attach(
+        draft.externalContacts.map(({ id }) => id),
+        trx
+      )
+      await draft.useTransaction(trx).related('externalContacts').detach()
+
       await draft.load('ispContacts')
       await contract.related('ispContacts').attach(
         draft.ispContacts.map(({ id }) => id),
@@ -358,12 +385,19 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
       )
       await draft.useTransaction(trx).related('ispContacts').detach()
 
+      await draft.load('stakeholders')
+      await contract.related('stakeholders').attach(
+        draft.stakeholders.map(({ id }) => id),
+        trx
+      )
+      await draft.useTransaction(trx).related('stakeholders').detach()
+
       await StatusTransition.create(
         {
           who: user.id,
           contractId: contract.id.toString(),
           initialStatus: ContractStatus.Draft,
-          finalStatus: ContractStatus.Sent,
+          finalStatus: confirmation ? ContractStatus.Confirmed : ContractStatus.Sent,
           data: {
             draftCreation: draft.createdAt
           }
@@ -376,11 +410,24 @@ const createContract = async (data: ContractCreation, user: User): Promise<Contr
 
     await trx.commit()
 
+    // creation
     NotificationsService.createNotificationByOperation(
       contract.automatic
         ? NotificationSources.automaticContractCreated
         : NotificationSources.manualContractCreated,
-      contract.id?.toString() || '0'
+      contract.id?.toString() || '0',
+      false
+    )
+
+    // publish or confirmed (only for manual contract)
+    NotificationsService.createNotificationByOperation(
+      contract.automatic
+        ? NotificationSources.automaticContractPublished
+        : confirmation
+        ? NotificationSources.manualContractApproved
+        : NotificationSources.manualContractPublished,
+      contract.id?.toString() || '0',
+      false
     )
 
     return contract
@@ -467,7 +514,8 @@ const publishContract = async (contractId: number, userId?: number) => {
       contract.automatic
         ? NotificationSources.automaticContractPublished
         : NotificationSources.manualContractPublished,
-      contract.id?.toString() || '0'
+      contract.id?.toString() || '0',
+      false
     )
   }
 
@@ -482,7 +530,8 @@ const approveContract = async (contractId: number, userId?: number) => {
       contract.automatic
         ? NotificationSources.automaticContractApproved
         : NotificationSources.manualContractApproved,
-      contract.id?.toString() || '0'
+      contract.id?.toString() || '0',
+      false
     )
   }
 
@@ -630,14 +679,16 @@ const batchStatusTransitions = async (
           automatic
             ? NotificationSources.automaticContractExpired
             : NotificationSources.manualContractExpired,
-          id?.toString() || '0'
+          id?.toString() || '0',
+          false
         )
       } else if (finalStatus === ContractStatus.Completed) {
         NotificationsService.createNotificationByOperation(
           automatic
             ? NotificationSources.automaticContractCompleted
             : NotificationSources.manualContractCompleted,
-          id?.toString() || '0'
+          id?.toString() || '0',
+          false
         )
       }
     })
@@ -673,24 +724,46 @@ const getContractAvailablePayments = async (contractId: string) => {
   } else if (frequency === frequencyNames.Biweekly) {
     freqObject.formatDate = 'DD-MM-YYYY'
     freqObject.frequency = '2 week'
-  } else {
+  } else if (frequency === frequencyNames.Monthly) {
     freqObject.formatDate = 'MM-YYYY'
     freqObject.frequency = '1 month'
+  } else {
+    freqObject.formatDate = 'DD-MM-YYYY'
+    freqObject.frequency = '1 day'
   }
+
   const payments = await Database.rawQuery(
-    `select to_char(months, '${freqObject.formatDate}') as dates
-      from generate_series(
-        '${startDate}'::DATE,
-        '${endDate}'::DATE,
-        '${freqObject.frequency}'
-      ) as months
-      where months::date - ${diff} not in (
-        select date_from::date from payments where contract_id = ${contract[0].id}
-      )
-      and months::date not in (
-        select date_from::date from payments where contract_id = ${contract[0].id}
-      )
-      order by extract(year from months) asc, extract(month from months) asc
+    `SELECT to_char(months, '${freqObject.formatDate}') as dates, 
+    ${contract[0].budget}::FLOAT / (
+       SELECT COUNT(*)::FLOAT
+       FROM generate_series(
+         '${startDate}'::DATE,
+         '${endDate}'::DATE,
+         '${freqObject.frequency}'
+       ) as series_count
+    ) as budget_per_element
+    FROM generate_series(
+    '${startDate}'::DATE,
+    '${endDate}'::DATE,
+    '${freqObject.frequency}'
+    ) as months
+     WHERE 
+       CASE 
+         WHEN '${freqObject.frequency}' = '1 month' THEN 
+           to_char(date_trunc('day', months), 'MM-YYYY')
+         ELSE 
+           to_char(date_trunc('day', months), 'DD-MM-YYYY')
+       END
+       NOT IN (
+         SELECT DISTINCT 
+         CASE 
+           WHEN '${freqObject.frequency}' = '1 month' THEN to_char(date_trunc('day', date_to::timestamp), 'MM-YYYY')
+           ELSE to_char(date_trunc('day', date_to::timestamp), 'DD-MM-YYYY')
+         END
+         FROM payments
+         WHERE contract_id = ${contract[0].id}
+       )
+       ORDER BY extract(year from months) ASC, extract(month from months) ASC
     `
   )
 

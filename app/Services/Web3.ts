@@ -28,25 +28,24 @@ type WalletBalance = {
   balance: number
 }
 
-
 interface AutomaticPaymentContractType {
-  contract_id: number;
-  contract_name: string;
-  payment_receiver_id: number;
-  contract_budget: number;
-  frecuency_id: number;
-  start_date: DateTime;
-  end_date: DateTime;
-  currency_id: number;
-  contract_Uptime: number;
-  contract_Latency: number;
-  contract_DSpeed: number;
-  contract_USeepd: number;
-  qtty_schools_sla_ok_period: number;
-  payment_amount: number;
-  payment_discount: number;
-  payment_date_from: string;
-  payment_date_to: string;
+  contract_id: number
+  contract_name: string
+  payment_receiver_id: number
+  contract_budget: number
+  frecuency_id: number
+  start_date: DateTime
+  end_date: DateTime
+  currency_id: number
+  contract_Uptime: number
+  contract_Latency: number
+  contract_DSpeed: number
+  contract_USeepd: number
+  qtty_schools_sla_ok_period: number
+  payment_amount: number
+  payment_discount: number
+  payment_date_from: string
+  payment_date_to: string
 }
 
 export const ENV_SUPPORTED_NETWORK_ID = parseInt(process.env.WEB3_NETWORK_ID || '0', 10)
@@ -180,7 +179,7 @@ const getAllContractFunds = async (contractId: string, tokenAddress: string) => 
     ]
     return result
   } catch (err) {
-    console.error('getContractAllFunds Error:', err)
+    console.error(`ContractId ${contractId}: getContractAllFunds Error:`, err)
   }
   return defaultResult
 }
@@ -205,7 +204,7 @@ const getLastFundInAddress = async (contractId: string, tokenAddress: string): P
     const response = await contractHandler.getlastFundInAddress(contractId, tokenAddress)
     result = response
   } catch (err) {
-    console.error('getLastFundInAddress Error:', err)
+    console.error(`ContractId ${contractId}: getLastFundInAddress Error:`, err)
   }
   return result ?? ''
 }
@@ -240,7 +239,7 @@ const smartContractCashback = async (
     console.log(`cashback: SC await result status ${trxAwait.status}`)
     result = { hash: trxAwait.transactionHash, status: parseInt(trxAwait.status) }
   } catch (err) {
-    console.error('cashback: Error:', err)
+    console.error(`ContractId ${contractId}: Cashback error:`, err)
   }
   return result
 }
@@ -272,10 +271,21 @@ const smartContractPayment = async (
 
     const tokenDecimals = (await getContractTokenData(tokenAddress)).decimals
     const amountParsed = ethers.utils.parseUnits(amount.toString().replace(',', '.'), tokenDecimals)
-    console.log('amountParsed:', amount.toString(), ethers.utils.formatUnits(amountParsed, tokenDecimals))
+    /*
+    console.log(
+      'amountParsed:',
+      amount.toString(),
+      ethers.utils.formatUnits(amountParsed, tokenDecimals)
+    )
+    */
 
-    console.log('automatic payment: Try SC', wallet.address)
-    let trx = await contractHandler.makePayment(contractId, tokenAddress, amountParsed, walletAddress)
+    console.log('automatic payment: Try SC with wallet', wallet.address)
+    let trx = await contractHandler.makePayment(
+      contractId,
+      tokenAddress,
+      amountParsed,
+      walletAddress
+    )
     console.log('automatic payment: call SC - trx hash ', trx.hash)
     result = { hash: trx.hash, status: 2 }
 
@@ -283,7 +293,7 @@ const smartContractPayment = async (
     console.log(`automatic payment: SC await result status ${trxAwait.status}`)
     result = { hash: trxAwait.transactionHash, status: parseInt(trxAwait.status) }
   } catch (err) {
-    console.error('automatic payment: Error:', err)
+    console.error(`ContractId ${contractId}: automatic payment error:`, err)
   }
   return result
 }
@@ -333,10 +343,13 @@ const contractIsValidForAutomaticPayment = async (
 ): Promise<boolean> => {
   const name = automaticPaymentContract.contract_name
   try {
-    const currency = (await Currency.query().where('id', automaticPaymentContract.currency_id).first()) as Currency
+    const currency = (await Currency.query()
+      .where('id', automaticPaymentContract.currency_id)
+      .first()) as Currency
+
     // Check currency
     if (!checkCurrency(currency)) {
-      const msg = `Invalid contract currency when try to create payments for automatic contract ${name}.`
+      const msg = `Invalid contract currency trying to create payments for automatic contract ${name}.`
       await notifyAutomaticError(msg, 'automatic payment: ')
       return false
     }
@@ -344,7 +357,7 @@ const contractIsValidForAutomaticPayment = async (
     // Check Payment Receiver in contract
     const paymentReiceverId = automaticPaymentContract.payment_receiver_id
     if (!paymentReiceverId) {
-      const msg = `No payment receiver when try to create payments for automatic contract ${name}.`
+      const msg = `No payment receiver trying to create payments for automatic contract ${name}.`
       await notifyAutomaticError(msg, 'automatic payment: ')
       return false
     }
@@ -371,7 +384,10 @@ const contractIsValidForAutomaticPayment = async (
     }
 
     // Check Contract balance in SC
-    let contractAllFunds = await getAllContractFunds(automaticPaymentContract.contract_id.toString(), currency.contractAddress)
+    let contractAllFunds = await getAllContractFunds(
+      automaticPaymentContract.contract_id.toString(),
+      currency.contractAddress
+    )
     if (contractAllFunds[0].totalFunds < automaticPaymentContract.payment_amount) {
       const msg = `The automatic contract ${name} doesn\'t have enough funds to make automatic payments.`
       await notifyAutomaticError(msg, 'automatic payment: ')
@@ -383,9 +399,8 @@ const contractIsValidForAutomaticPayment = async (
     await notifyAutomaticError(msg, 'automatic payment: ')
   }
 
-  console.log('automatic payments: all validations OK')
+  console.log(`automatic payments for contract ${name}: all validations OK`)
   return true
-
 }
 
 /**
@@ -393,7 +408,6 @@ const contractIsValidForAutomaticPayment = async (
  *
  * Steps:
  * - Automatic Payments validations
- * - Calculate payment value using QoS, Measures Data, Payment Frecuency & Discount
  * - Call SC to do payment
  * - Log the Transaction for Record-Keeping
  * - Save payment in bdd
@@ -404,62 +418,92 @@ const contractIsValidForAutomaticPayment = async (
  * @param user
  * @returns true/false
  */
-const automaticPaymentByContract = async (automaticPaymentContract: AutomaticPaymentContractType, user: User): Promise<boolean> => {
+const automaticPaymentByContract = async (
+  automaticPaymentContract: AutomaticPaymentContractType,
+  user: User
+): Promise<boolean> => {
   try {
-    if (!await contractIsValidForAutomaticPayment(automaticPaymentContract, user)) 
-      return false
+    if (!(await contractIsValidForAutomaticPayment(automaticPaymentContract, user))) return false
 
     const paymentReiceverId = automaticPaymentContract.payment_receiver_id
     const paymentReceiverUser = (await User.query()
       .where('id', paymentReiceverId || '')
       .first()) as User
 
+    // Get Currency
+    const currency = (await Currency.query()
+      .where('id', automaticPaymentContract.currency_id)
+      .first()) as Currency
+
+    // Keep current payout values to compare later
+    let contractAllFunds = await getAllContractFunds(
+      automaticPaymentContract.contract_id.toString(),
+      currency.contractAddress
+    )
+    const lastPayoutFunds = contractAllFunds[0].payoutFunds
+
     // Call SC to do payment
-    const currency = (await Currency.query().where('id', automaticPaymentContract.currency_id).first()) as Currency
-    const trxHash = await smartContractPayment(
+    const trxResult = await smartContractPayment(
       automaticPaymentContract.contract_id.toString(),
       currency.contractAddress,
       automaticPaymentContract.payment_amount,
       paymentReceiverUser?.walletAddress || ''
     )
+    
+    // Check new payout values to compare
+    contractAllFunds = await getAllContractFunds(
+      automaticPaymentContract.contract_id.toString(),
+      currency.contractAddress
+    )
+    const currentPayoutFunds = contractAllFunds[0].payoutFunds
+    const paymentOk = (trxResult.status === 1 && currentPayoutFunds > lastPayoutFunds)
+    console.log(`contractId ${automaticPaymentContract.contract_id} payment done:`, lastPayoutFunds, currentPayoutFunds, trxResult.status, paymentOk)
 
-    // Save transacton in bdd
-    const data: BlockchainTransactionCreation = {
-      id: 0,
-      userId: user.id,
-      contractId: automaticPaymentContract.contract_id,
-      walletAddress: user.walletAddress || '',
-      networkId: parseInt(process.env.WEB3_NETWORK_ID || '0', 10),
-      networkName: SUPPORTED_NETWORKS[ENV_SUPPORTED_NETWORK_ID].label || '',
-      transactionType: 'Automatic Payment',
-      transactionHash: trxHash.hash,
-      status: trxHash.status,
-      createdAt: DateTime.fromJSDate(new Date())
+    if (paymentOk) {
+      // Save transaction in bdd
+      const data: BlockchainTransactionCreation = {
+        id: 0,
+        userId: user.id,
+        contractId: automaticPaymentContract.contract_id,
+        walletAddress: user.walletAddress || '',
+        networkId: parseInt(process.env.WEB3_NETWORK_ID || '0', 10),
+        networkName: SUPPORTED_NETWORKS[ENV_SUPPORTED_NETWORK_ID].label || '',
+        transactionType: 'Automatic Payment',
+        transactionHash: trxResult.hash,
+        status: trxResult.status,
+        createdAt: DateTime.fromJSDate(new Date())
+      }
+      await service.createBlockchainTransaction(data)
+
+      // Save payment in bdd
+      const paymentData: CreatePaymentData = {
+        month: new Date().getMonth(),
+        year: new Date().getFullYear(),
+        day: new Date().getDay(),
+        description: 'automatic payment',
+        amount: automaticPaymentContract.payment_amount,
+        status: PaymentStatus.Paid,
+        contractId: automaticPaymentContract.contract_id.toString(),
+        discount: automaticPaymentContract.payment_discount,
+        isVerified: true,
+        dateFrom: automaticPaymentContract.payment_date_from,
+        dateTo: automaticPaymentContract.payment_date_to
+      }
+
+      // create payment and send notifications (inside createPayment)
+      await paymentSerivce.createPayment(paymentData, user)
+    } else {
+      // Some error ocurr saving transatiction in SC
+      const msg = `An error ocurred trying to creeate automatic 
+      payment for automatic contract ${automaticPaymentContract.contract_name}.`
+      await NotificationsService.createGenericAutomaticContractNotifications(msg)
     }
-    await service.createBlockchainTransaction(data)
-
-
-    // Save payment in bdd
-    const paymentData: CreatePaymentData = {
-      month: new Date().getMonth(),
-      year: new Date().getFullYear(),
-      description: 'automatic payment',
-      amount: automaticPaymentContract.payment_amount,
-      status: PaymentStatus.Paid,
-      contractId: automaticPaymentContract.contract_id.toString(),
-      discount: automaticPaymentContract.payment_discount,
-      isVerified: true,
-      dateFrom: automaticPaymentContract.payment_date_from,
-      dateTo: automaticPaymentContract.payment_date_to
-    }
-    // create payment and send notifications (inside createPayment)
-    await paymentSerivce.createPayment(paymentData, user)
 
     return true
+
   } catch (error) {
     console.error(error)
-    const msg = 
-      `Error ${error.message} when try to creeate automatic 
+    const msg = `Error ${error.message} trying to creeate automatic 
       payment for automatic contract ${automaticPaymentContract.contract_name}.`
     await NotificationsService.createGenericAutomaticContractNotifications(msg)
     return false
@@ -505,7 +549,9 @@ const contractIsValidForCashback = async (contract: Contract, user: User): Promi
 
     // Get wallets that made funds to contract from log
     const fundContractsTrxs = await service.listBlockchainTransactionsFundContracts(contract.id)
-    const walletsAddresses = fundContractsTrxs.map((transaction) => transaction.walletAddress.toUpperCase)
+    const walletsAddresses = fundContractsTrxs.map(
+      (transaction) => transaction.walletAddress.toUpperCase
+    )
 
     // Get last wallet that funded the contract from SC
     const lastWalletFundContract = await getLastFundInAddress(
@@ -530,7 +576,6 @@ const contractIsValidForCashback = async (contract: Contract, user: User): Promi
       await notifyAutomaticError(msg, 'cashback: ')
       return false
     }
-
   } catch (error) {
     const msg = `Error ${error.message} checking cashback conditions for automatic contract ${contract.name}.`
     await notifyAutomaticError(msg, 'cashback: ')
@@ -538,7 +583,6 @@ const contractIsValidForCashback = async (contract: Contract, user: User): Promi
 
   console.log('cashback: all validations OK')
   return true
-
 }
 
 /**
@@ -557,14 +601,14 @@ const contractIsValidForCashback = async (contract: Contract, user: User): Promi
  */
 const cashbackByContract = async (contract: Contract, user: User): Promise<boolean> => {
   try {
-    if (!await contractIsValidForCashback(contract, user)) return false
+    if (!(await contractIsValidForCashback(contract, user))) return false
 
     // Get contract funds
     let contractAllFunds = await getAllContractFunds(
       contract.id.toString(),
       contract.currency.contractAddress
     )
-    
+
     const haveFundsToReturn = contractAllFunds[0].totalFunds > contractAllFunds[0].payoutFunds
     if (haveFundsToReturn) {
       // Call caskback in SC
@@ -587,7 +631,7 @@ const cashbackByContract = async (contract: Contract, user: User): Promise<boole
         createdAt: DateTime.fromJSDate(new Date())
       }
       await service.createBlockchainTransaction(data)
-    
+
       // Get caskback value
       if (cashbackHash.status === 1) {
         contractAllFunds = await getAllContractFunds(
@@ -604,9 +648,9 @@ const cashbackByContract = async (contract: Contract, user: User): Promise<boole
       // Send notification
       NotificationsService.createNotificationByOperation(
         NotificationSources.automaticContractCashback,
-        contract.id.toString() || '0'
+        contract.id.toString() || '0',
+        false
       )
-      
     } else {
       console.info('cashback: nothing to return in cashback for contract', contract.name)
       contract.cashbackVerified = true
@@ -629,7 +673,7 @@ const automaticPayments = async (user: User): Promise<boolean> => {
   try {
     const result = await Database.query().select('*').from('contracts_for_automatic_payments')
     const formattedResult = result as AutomaticPaymentContractType[]
-  
+
     Promise.all(
       formattedResult.map((contract: AutomaticPaymentContractType) => {
         console.log('automatic payment contractId => ', contract.contract_id)
@@ -671,7 +715,7 @@ const cashback = async (user: User): Promise<boolean> => {
   }
 }
 
-// just for dev 
+// just for dev
 const dummyAutomaticPayment = async (contractId: number): Promise<boolean> => {
   const user = await userSerivce.getGigaSchedulerUser()
   const result = await Database.query()
@@ -690,7 +734,7 @@ const dummyAutomaticPayment = async (contractId: number): Promise<boolean> => {
   return true
 }
 
-// just for dev 
+// just for dev
 const dummyCashback = async (contractId: number): Promise<boolean> => {
   const user = await userSerivce.getGigaSchedulerUser()
   const contract = (await Contract.query()

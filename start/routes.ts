@@ -49,6 +49,11 @@ Route.get('/payment', 'PaymentsController.getPayments').middleware([
   `acl:${permissions.paymentRead}:${permissions.contractRead}`
 ])
 
+Route.post('/payment/measures', 'PaymentsController.getPaymentMeasures').middleware([
+  'auth:jwt',
+  `acl:${permissions.paymentRead}:${permissions.contractRead}`
+])
+
 Route.get('/payment/frequencies', 'PaymentsController.listFrequencies')
 
 Route.post('/payment', 'PaymentsController.createPayment').middleware([
@@ -295,7 +300,7 @@ Route.get('/attachments/:attachment_id', 'AttachmentsController.getAttachment').
 ])
 
 /**
- * IPS CONTACTS ROUTES - TODO FIX
+ * ISP CONTACTS ROUTES
  */
 
 Route.post('/contact/isp', 'IspContactsController.upload').middleware([
@@ -309,7 +314,7 @@ Route.delete('/contact/isp', 'IspContactsController.deleteIspContact').middlewar
 ])
 
 /**
- * STAKEHOLDERS ROUTES - TODO FIX
+ * STAKEHOLDERS ROUTES
  */
 
 Route.post('/stakeholder', 'StakeholdersController.upload').middleware([
@@ -471,6 +476,7 @@ Route.get('/help-request-functionalities', 'HelpRequestsController.listFunctiona
 
 Route.post('/help-request', 'HelpRequestsController.createHelpRequest').middleware([
   'auth:jwt',
+  'validator:CreateHelpRequestValidator',
   'throttle:2,300000' // max-attempts 2, time-limit-after-exceeding-quota: 5 min
 ])
 
@@ -514,4 +520,3 @@ Route.get('/dashboard/contracts/not-meets', 'DashboardController.listNotMeetsSla
 Route.get('/dummy/k/:contract_id', 'DummyController.dummyCashback').middleware(['auth:jwt'])
 Route.get('/dummy/p/:contract_id', 'DummyController.dummyAutomaticPayment').middleware(['auth:jwt'])
 Route.get('/dummy/e/', 'DummyController.dummyEnvCheck').middleware(['auth:jwt'])
-

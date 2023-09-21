@@ -42,7 +42,7 @@ export interface GetPayment {
 }
 
 const getPaymentDTO = (payment: Payment): GetPayment => {
-  const isMonthly = payment.contract.frequency.name === frequencyNames.Monthly;
+  const isMonthly = payment.contract.frequency.name === frequencyNames.Monthly
 
   return {
     id: payment.id,
@@ -70,7 +70,7 @@ const getPaymentDTO = (payment: Payment): GetPayment => {
 }
 
 const getPaymentWithDetailsDTO = (payment: Payment): GetPayment => {
-  const isMonthly = payment.contract.frequency.name === frequencyNames.Monthly;
+  const isMonthly = payment.contract.frequency.name === frequencyNames.Monthly
 
   return {
     id: payment.id,

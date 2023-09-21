@@ -3,7 +3,8 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import service, {
   CreatePaymentData,
   ChangePaymentStatusData,
-  UpdatePaymentData
+  UpdatePaymentData,
+  PaymentMeasures
 } from 'App/Services/Payment'
 
 export default class PaymentsController {
@@ -19,6 +20,18 @@ export default class PaymentsController {
       const { countryId } = request.qs()
       const payments = await service.getPayments(auth.user, countryId)
       return response.ok(payments)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
+
+  public async getPaymentMeasures({ response, request, auth }: HttpContextContract) {
+    try {
+      if (!auth.user) return
+
+      const data = request.body() as PaymentMeasures
+      const measures = await service.getPaymentMeasures(data)
+      return response.ok(measures)
     } catch (error) {
       return response.status(error.status).send(error.message)
     }

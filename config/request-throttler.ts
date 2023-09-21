@@ -13,7 +13,7 @@ export default {
 
   limitExceptionParams: {
     code: 'E_LIMIT_EXCEPTION',
-    message: 'Maximum number of login attempts exceeded. Please try again later.',
+    message: 'Maximum number of request attempts exceeded. Please try again later.',
     status: 429
   },
 

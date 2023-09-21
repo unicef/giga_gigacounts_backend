@@ -18,7 +18,7 @@ import Env from '@ioc:Adonis/Core/Env'
 |
 */
 const authConfig: AuthConfig = {
-  guard: 'jwt',
+  guard: 'api',
   guards: {
     /*
     |--------------------------------------------------------------------------

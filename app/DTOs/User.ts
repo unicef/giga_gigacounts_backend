@@ -1,3 +1,4 @@
+import ExternalContact from 'App/Models/ExternalContact'
 import User from 'App/Models/User'
 
 export interface GetUser {
@@ -13,6 +14,9 @@ export interface GetUser {
   countryName?: string
   walletAddress?: string
   email: string
+  ispId?: number
+  ispName?: string
+  phoneNumber?: string
 }
 
 const getUserDTO = (user: User): GetUser => ({
@@ -30,10 +34,33 @@ const getUserDTO = (user: User): GetUser => ({
   email: user.email
 })
 
+const getExternalContactDTO = (user: ExternalContact): GetUser => ({
+  id: user.id,
+  name: user.name,
+  lastName: '',
+  completeName: `${user.name}`,
+  role: {
+    code: '',
+    name: 'External Contact'
+  },
+  walletAddress: '',
+  countryId: user.countryId,
+  countryName: user.country?.name || '',
+  email: user.email,
+  ispId: user.ispId,
+  ispName: user.isp.name,
+  phoneNumber: user.phoneNumber
+})
+
 const getUsersByUserDTO = (users: User[]): GetUser[] => {
   return users.map(getUserDTO)
 }
 
+const getExternalContactsByExternalContactDTO = (users: ExternalContact[]): GetUser[] => {
+  return users.map(getExternalContactDTO)
+}
+
 export default {
-  getUsersByUserDTO
+  getUsersByUserDTO,
+  getExternalContactsByExternalContactDTO
 }

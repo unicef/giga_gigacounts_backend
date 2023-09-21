@@ -13,6 +13,9 @@ import { LoadMeasuresType } from './Contract'
 import { roles } from 'App/Helpers/constants'
 import NotFoundException from 'App/Exceptions/NotFoundException'
 import InvalidStatusException from 'App/Exceptions/InvalidStatusException'
+import Contract from 'App/Models/Contract'
+import Measure from 'App/Models/Measure'
+import DTOContract from 'App/DTOs/Contract'
 
 export type TimeInterval = 'day' | 'week' | 'month'
 
@@ -21,6 +24,8 @@ export interface SchoolMeasure {
   metric_name: string
   unit: string
   median_value: number
+  contract_id?: number
+  school_external_id?: string
 }
 
 interface LoadSchoolsMeasuresData {
@@ -56,18 +61,53 @@ const getAllSchoolsMeasures = async (
   if (await userService.checkUserRole(user, [roles.gigaAdmin, roles.gigaViewOnly])) {
     measures = await Database.rawQuery(
       // eslint-disable-next-line max-len
-      'SELECT date_trunc(?, measures.created_at) date, measures.id as measure_id, schools.name as school_name, schools.external_id as school_external_id, schools.education_level as school_education_level, contracts.name as contract_name, metrics.name as metric_name, metrics.unit as unit, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from measures INNER JOIN metrics ON metrics.id=measures.metric_id INNER JOIN contracts ON contracts.id=measures.contract_id INNER JOIN schools ON schools.id=measures.school_id group by measures.metric_id, measure_id, date, school_name, school_education_level, school_external_id, contract_name, metric_name, unit order by 1',
+      'SELECT date_trunc(?, measures.created_at) date, measures.id as measure_id, schools.name as school_name, schools.external_id as school_external_id, schools.education_level as school_education_level, schools.location_1 as school_location1, measures.contract_id as contract_id, contracts.name as contract_name, metrics.name as metric_name, metrics.unit as unit, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from measures INNER JOIN metrics ON metrics.id=measures.metric_id INNER JOIN contracts ON contracts.id=measures.contract_id INNER JOIN schools ON schools.id=measures.school_id group by measures.metric_id, measure_id, date, school_name, school_education_level, school_external_id, school_location1, contract_id, contract_name,  metric_name, unit order by 1',
       [interval]
     )
   } else {
     measures = await Database.rawQuery(
       // eslint-disable-next-line max-len
-      'SELECT date_trunc(?, measures.created_at) date, measures.id as measure_id, schools.name as school_name, schools.external_id as school_external_id, schools.education_level as school_education_level, contracts.name as contract_name, metrics.name as metric_name, metrics.unit as unit, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from measures INNER JOIN metrics ON metrics.id=measures.metric_id INNER JOIN contracts ON contracts.id=measures.contract_id INNER JOIN schools ON schools.id=measures.school_id where contracts.country_id = ? group by measures.metric_id, measure_id, date, school_name, school_education_level, school_external_id, contract_name, metric_name, unit order by 1',
+      'SELECT date_trunc(?, measures.created_at) date, measures.id as measure_id, schools.name as school_name, schools.external_id as school_external_id, schools.education_level as school_education_level, schools.location_1 as school_location1, measures.contract_id as contract_id, contracts.name as contract_name, metrics.name as metric_name, metrics.unit as unit, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY value) as median_value from measures INNER JOIN metrics ON metrics.id=measures.metric_id INNER JOIN contracts ON contracts.id=measures.contract_id INNER JOIN schools ON schools.id=measures.school_id where contracts.country_id = ? group by measures.metric_id, measure_id, date, school_name, school_education_level, school_external_id, school_location1, contract_id, contract_name, metric_name, unit order by 1',
       [interval, user.countryId]
     )
   }
 
-  return measures.rows as SchoolMeasure[]
+  return addConnectionField(measures.rows as SchoolMeasure[])
+}
+
+const addConnectionField = async (measures: SchoolMeasure[]): Promise<SchoolMeasure[]> => {
+  const updatedMeasures = await Promise.all(
+    measures.map(async (measure) => {
+      const school = (await School.findBy('external_id', measure.school_external_id)) as School
+      const contract = (await Contract.findBy('id', measure.contract_id)) as Contract
+      const schoolMeasures = {}
+
+      await contract.load('expectedMetrics')
+      schoolMeasures[contract.name] = {}
+      schoolMeasures[contract.name][school.name] = await Measure.query()
+        .avg('value')
+        .where('school_id', school.id)
+        .andWhere('contract_id', contract.id)
+        .select('metric_id')
+        .groupBy('metric_id')
+
+      if (contract.expectedMetrics) {
+        return {
+          ...measure,
+          connection: await DTOContract.calculateSchoolsMeasure(
+            schoolMeasures[contract.name][school.name],
+            contract.expectedMetrics
+          )
+        }
+      } else {
+        return {
+          ...measure
+        }
+      }
+    })
+  )
+
+  return updatedMeasures
 }
 
 const listSchoolByCountry = async (user: User, countryId?: number): Promise<School[]> => {

@@ -25,8 +25,6 @@ export default class SendEmailNotifications extends BaseTask {
 
       // Build and send mails
       orderedNotifications.map(async (notification) => {
-
-    
         switch (process.env.EMAIL_CLIENT_TO_USE) {
           case 'ETHEREAL':
             this.sendWithEthereal(notification)

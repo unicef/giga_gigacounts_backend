@@ -35,10 +35,11 @@ const listFeedbacks = async (user: User) => {
 const createFeedback = async (user: User, req: RequestContract): Promise<Feedback> => {
   const client = await Database.transaction()
   try {
-    const { rate, comment } = req.body()
+    const { rate, comment, path } = req.body()
     const data = await Feedback.create({
       rate,
-      comment
+      comment,
+      path
     })
 
     await notificationService.createFeedbackNotifications(data, user)

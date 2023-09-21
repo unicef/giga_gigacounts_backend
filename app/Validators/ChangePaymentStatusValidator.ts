@@ -6,10 +6,10 @@ export default class ChangePaymentStatusValidator {
 
   public schema = schema.create({
     paymentId: schema.string(),
-    status: schema.enum(['OnHold', 'Unpaid', 'Verified', 'Paid'])
+    status: schema.enum(['Draft', 'Unpaid', 'Paid'])
   })
 
   public messages: CustomMessages = {
-    'status.enum': 'Invalid status, available status are: OnHold, Unpaid, Verified and Paid'
+    'status.enum': 'Invalid status, available status are: Draft, Unpaid and Paid'
   }
 }
