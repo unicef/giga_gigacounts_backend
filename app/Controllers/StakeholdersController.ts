@@ -1,6 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import service, { UploadRequest } from 'App/Services/Stakeholder'
+import service, { UploadRequest } from 'App/Services/StakeholderService'
 
 export default class StakeholdersController {
   public async upload({ response, request, auth }: HttpContextContract) {

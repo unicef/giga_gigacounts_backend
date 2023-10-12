@@ -6,7 +6,6 @@
  */
 
 import { AuthConfig } from '@ioc:Adonis/Addons/Auth'
-import Env from '@ioc:Adonis/Core/Env'
 
 /*
 |--------------------------------------------------------------------------
@@ -87,26 +86,6 @@ const authConfig: AuthConfig = {
         | that time.
         |
         */
-        model: () => import('App/Models/User')
-      }
-    },
-    jwt: {
-      driver: 'jwt',
-      publicKey: Env.get('JWT_PUBLIC_KEY', '').replace(/\\n/g, '\n'),
-      privateKey: Env.get('JWT_PRIVATE_KEY', '').replace(/\\n/g, '\n'),
-      persistJwt: true,
-      jwtDefaultExpire: '10h',
-      refreshTokenDefaultExpire: '10h',
-      tokenProvider: {
-        type: 'api',
-        driver: 'database',
-        table: 'api_tokens',
-        foreignKey: 'user_id'
-      },
-      provider: {
-        driver: 'lucid',
-        identifierKey: 'id',
-        uids: ['email'],
         model: () => import('App/Models/User')
       }
     }

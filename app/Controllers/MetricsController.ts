@@ -1,6 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import service from 'App/Services/Metric'
+import service from 'App/Services/MetricService'
 
 export default class MetricsController {
   public async listMetricsSuggestedValues({ response }: HttpContextContract) {

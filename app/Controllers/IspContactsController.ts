@@ -1,6 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import service, { UploadRequest } from 'App/Services/IspContact'
+import service, { UploadRequest } from 'App/Services/IspContactService'
 
 export default class IspContactsController {
   public async upload({ response, request, auth }: HttpContextContract) {

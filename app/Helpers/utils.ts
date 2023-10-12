@@ -133,6 +133,39 @@ const GetDateTimeFromFormat = (dateFormat: string, stringDate?: string) => {
   return DateTime.fromFormat(stringDate, dateFormat)
 }
 
+const calculateDatesRange = (
+  lastxDays: number | undefined,
+  dateFrom: string | undefined,
+  dateTo: string | undefined
+) => {
+  const lastxDaysValid = !lastxDays || lastxDays > 30 ? 30 : lastxDays
+  let startDate
+  let endDate
+
+  if (dateFrom) {
+    startDate = DateTime.fromISO(dateFrom)
+  }
+
+  if (dateTo) {
+    endDate = DateTime.fromISO(dateTo)
+  }
+
+  if (!startDate && !endDate) {
+    const today = DateTime.now()
+    endDate = today.plus({ days: 30 })
+    startDate = today.minus({ days: 30 })
+  } else if (!startDate) {
+    startDate = endDate.minus({ days: lastxDaysValid })
+  } else if (!endDate) {
+    endDate = startDate.plus({ days: lastxDaysValid })
+  }
+
+  startDate = setDateToBeginOfDayFromISO(startDate)
+  endDate = setDateToEndOfDayFromISO(endDate)
+
+  return { startDate, endDate }
+}
+
 export default {
   removeProperty,
   getPercentage,
@@ -149,5 +182,6 @@ export default {
   diffOfDays,
   toNormalNumber,
   handleDBError,
-  GetDateTimeFromFormat
+  GetDateTimeFromFormat,
+  calculateDatesRange
 }

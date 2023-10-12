@@ -2,7 +2,7 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import service, {
   CreateNotificationConfigData,
   CreateNotificationConfigMessageData
-} from 'App/Services/NotificationConfiguration'
+} from 'App/Services/NotificationConfigurationService'
 
 export default class NotificationConfigurationController {
   public async listNotificationConfigurations({ request, response, auth }: HttpContextContract) {

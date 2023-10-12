@@ -37,26 +37,6 @@ const listCurrenciesDTO = async (currencies: Currency[]): Promise<CurrencyData[]
     })
   )
 }
-/*
-  return currencies.map((currency) => ({
-    id: currency.id.toString(),
-    code: currency.code,
-    name: currency.name,
-    type: CurrencyType[currency.type],
-    contractAddress: currency.contractAddress,
-    networkId: currency.networkId,
-    countries: Promise.all( 
-      currency.countries.map(async (country) => {
-        return {
-          id: country.id,
-          code: country.code,
-          name: country.name
-        }
-      })
-    )
-  }))
-}
-*/
 
 export default {
   listCurrenciesDTO

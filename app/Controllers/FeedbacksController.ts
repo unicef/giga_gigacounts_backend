@@ -1,11 +1,11 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import service from 'App/Services/Feedback'
+import service from 'App/Services/FeedbackService'
 
 export default class FeedbacksController {
   public async listFeedbacks({ response, auth }: HttpContextContract) {
     if (!auth.user) return
-    const feedbacks = await service.listFeedbacks(auth.user)
+    const feedbacks = await service.listFeedbacks()
     return response.ok(feedbacks)
   }
 

@@ -2,8 +2,8 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import NotFoundException from 'App/Exceptions/NotFoundException'
 import User from 'App/Models/User'
 
-import service from 'App/Services/User'
-import roleService from 'App/Services/Role'
+import service from 'App/Services/UserService'
+import roleService from 'App/Services/RoleService'
 
 export default class UsersController {
   public async profile({ auth, response }: HttpContextContract) {

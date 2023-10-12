@@ -12,7 +12,6 @@ import {
 } from '@ioc:Adonis/Lucid/Orm'
 
 import Country from 'App/Models/Country'
-import Lta from 'App/Models/Lta'
 import Currency from 'App/Models/Currency'
 import Frequency from 'App/Models/Frequency'
 import Isp from 'App/Models/Isp'
@@ -39,9 +38,6 @@ export default class Contract extends BaseModel {
 
   @column()
   public name: string
-
-  @column()
-  public ltaId: number
 
   @column()
   public currencyId: number
@@ -112,9 +108,6 @@ export default class Contract extends BaseModel {
 
   @belongsTo(() => Country as LucidModel)
   public country: BelongsTo<typeof Country>
-
-  @belongsTo(() => Lta as LucidModel)
-  public lta: BelongsTo<typeof Lta>
 
   @belongsTo(() => Currency as LucidModel)
   public currency: BelongsTo<typeof Currency>

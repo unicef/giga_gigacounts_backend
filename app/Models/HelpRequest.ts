@@ -3,7 +3,6 @@ import { BaseModel, BelongsTo, HasOne, belongsTo, column, hasOne } from '@ioc:Ad
 
 import User from 'App/Models/User'
 import HelpRequestValue from 'App/Models/HelpRequestValue'
-import Functionality from 'App/Models/Functionality'
 
 export default class HelpRequest extends BaseModel {
   @column({ isPrimary: true })
@@ -38,10 +37,4 @@ export default class HelpRequest extends BaseModel {
     foreignKey: 'code'
   })
   public feedbackValues: HasOne<typeof HelpRequestValue>
-
-  @hasOne(() => Functionality, {
-    localKey: 'functionality',
-    foreignKey: 'code'
-  })
-  public functionalityCode: HasOne<typeof Functionality>
 }

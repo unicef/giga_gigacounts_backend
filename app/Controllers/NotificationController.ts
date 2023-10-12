@@ -1,5 +1,5 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import service from 'App/Services/Notifications'
+import service from 'App/Services/NotificationService'
 
 export default class NotificationController {
   // Example filter by 2 status: {{BASE_URL}}/notifications?status=CREATED&channel=EMAIL

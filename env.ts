@@ -23,20 +23,18 @@ interface EnvInterface {
   CRON_TASK_CASHBACK_ENABLED: boolean
   CRON_TASK_AUTOMATIC_PAYMENTS_ENABLED: boolean
   EMAIL_FROM: string
+  EMAIL_REPLY_TO: string
   EMAIL_CLIENT_TO_USE: 'ETHEREAL' | 'MAILJET'
   EMAIL_MAILJET_API_KEY: string
   EMAIL_MAILJET_API_SECRET: string
   EMAIL_MAILJET_ADDRESS_TO_FAKE: string
   EMAIL_ETHEREAL_KEY: string
   EMAIL_ETHEREAL_SECRET: string
-  JWT_PRIVATE_KEY: string
-  JWT_PUBLIC_KEY: string
   URL_FRONTEND: string
   WEB3_NETWORK_ID: number
   WEB3_NODE_PROVIDER_URL: string
   WEB3_NODE_PROVIDER_KEY: string
   WEB3_OWNER_SK: string
-  WEB3_CONTRACTS_HANDLER_ADR: string
 }
 
 let rules: EnvInterface
@@ -66,20 +64,18 @@ if (NODE_ENV === 'production') {
     CRON_TASK_CASHBACK_ENABLED: Env.schema.boolean(),
     CRON_TASK_AUTOMATIC_PAYMENTS_ENABLED: Env.schema.boolean(),
     EMAIL_FROM: Env.schema.string(),
+    EMAIL_REPLY_TO: Env.schema.string(),
     EMAIL_CLIENT_TO_USE: Env.schema.enum(['ETHEREAL', 'MAILJET'] as const),
     EMAIL_MAILJET_API_KEY: Env.schema.string(),
     EMAIL_MAILJET_API_SECRET: Env.schema.string(),
     EMAIL_MAILJET_ADDRESS_TO_FAKE: Env.schema.string(),
     EMAIL_ETHEREAL_KEY: Env.schema.string(),
     EMAIL_ETHEREAL_SECRET: Env.schema.string(),
-    JWT_PRIVATE_KEY: Env.schema.string(),
-    JWT_PUBLIC_KEY: Env.schema.string(),
     URL_FRONTEND: Env.schema.string(),
     WEB3_NETWORK_ID: Env.schema.number(),
     WEB3_NODE_PROVIDER_URL: Env.schema.string(),
     WEB3_NODE_PROVIDER_KEY: Env.schema.string(),
-    WEB3_OWNER_SK: Env.schema.string(),
-    WEB3_CONTRACTS_HANDLER_ADR: Env.schema.string()
+    WEB3_OWNER_SK: Env.schema.string()
   })
 } else {
   rules = Env.rules({
@@ -105,20 +101,18 @@ if (NODE_ENV === 'production') {
     CRON_TASK_CASHBACK_ENABLED: Env.schema.boolean() || false,
     CRON_TASK_AUTOMATIC_PAYMENTS_ENABLED: Env.schema.boolean() || false,
     EMAIL_FROM: Env.schema.string(),
+    EMAIL_REPLY_TO: Env.schema.string(),
     EMAIL_CLIENT_TO_USE: Env.schema.enum(['ETHEREAL', 'MAILJET'] as const),
     EMAIL_MAILJET_API_KEY: Env.schema.string(),
     EMAIL_MAILJET_API_SECRET: Env.schema.string(),
     EMAIL_MAILJET_ADDRESS_TO_FAKE: Env.schema.string(),
     EMAIL_ETHEREAL_KEY: Env.schema.string(),
     EMAIL_ETHEREAL_SECRET: Env.schema.string(),
-    JWT_PRIVATE_KEY: Env.schema.string(),
-    JWT_PUBLIC_KEY: Env.schema.string(),
     URL_FRONTEND: Env.schema.string(),
     WEB3_NETWORK_ID: Env.schema.number(),
     WEB3_NODE_PROVIDER_URL: Env.schema.string(),
     WEB3_NODE_PROVIDER_KEY: Env.schema.string(),
-    WEB3_OWNER_SK: Env.schema.string(),
-    WEB3_CONTRACTS_HANDLER_ADR: Env.schema.string()
+    WEB3_OWNER_SK: Env.schema.string()
   })
 }
 

@@ -31,7 +31,10 @@ const getUserDTO = (user: User): GetUser => ({
   walletAddress: user?.walletAddress,
   countryId: user.countryId,
   countryName: user.country?.name || '',
-  email: user.email
+  email: user.email,
+  ispId: user.isp[0]?.id,
+  ispName: user.isp[0]?.name,
+  phoneNumber: user.phoneNumber
 })
 
 const getExternalContactDTO = (user: ExternalContact): GetUser => ({

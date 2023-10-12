@@ -1,7 +1,7 @@
 import { schema, CustomMessages } from '@ioc:Adonis/Core/Validator'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import { AttachmentsType } from 'App/Services/Attachment'
+import { AttachmentsType } from 'App/Services/AttachmentService'
 
 export default class UploadFileValidator {
   constructor(protected ctx: HttpContextContract) {}

@@ -10,7 +10,6 @@ import {
   belongsTo
 } from '@ioc:Adonis/Lucid/Orm'
 
-import Lta from 'App/Models/Lta'
 import Contract from 'App/Models/Contract'
 import Country from 'App/Models/Country'
 import User from 'App/Models/User'
@@ -34,15 +33,6 @@ export default class Isp extends BaseModel {
   /**
    * RELATIONSHIPS
    */
-
-  @manyToMany(() => Lta, {
-    pivotTable: 'lta_isps',
-    localKey: 'id',
-    pivotForeignKey: 'isp_id',
-    relatedKey: 'id',
-    pivotRelatedForeignKey: 'lta_id'
-  })
-  public ltas: ManyToMany<typeof Lta>
 
   @hasMany(() => Contract)
   public contracts: HasMany<typeof Contract>

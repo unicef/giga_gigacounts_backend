@@ -1,6 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import service, { UploadRequest } from 'App/Services/Attachment'
+import service, { UploadRequest } from 'App/Services/AttachmentService'
 
 export default class AttachmentsController {
   public async upload({ response, request }: HttpContextContract) {

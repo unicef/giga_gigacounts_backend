@@ -19,6 +19,5 @@ sourceMapSupport.install({ handleUncaughtExceptions: false })
 new Ignitor(__dirname)
   .httpServer()
   .start()
-  .then(() => {
-  })
+  .then(() => {})
   .catch(console.error)

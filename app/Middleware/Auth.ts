@@ -90,7 +90,6 @@ export default class AuthMiddleware {
         await auth.use('api').generate(user)
         request.permissions = decodedToken.payload.extension_Permissions as string[]
       } catch (error) {
-        console.log(error)
         response.unauthorized({
           error: 'Unable to decode B2C JWT Token'
         })

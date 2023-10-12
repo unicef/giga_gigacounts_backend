@@ -1,11 +1,12 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import utils from 'App/Helpers/utils'
 
 import service, {
   CreatePaymentData,
   ChangePaymentStatusData,
   UpdatePaymentData,
   PaymentMeasures
-} from 'App/Services/Payment'
+} from 'App/Services/PaymentService'
 
 export default class PaymentsController {
   public async listFrequencies({ response }: HttpContextContract) {
@@ -17,8 +18,15 @@ export default class PaymentsController {
     try {
       if (!auth.user) return
 
-      const { countryId } = request.qs()
-      const payments = await service.getPayments(auth.user, countryId)
+      const { countryId, dateFrom, dateTo } = request.qs()
+      const { startDate, endDate } = utils.calculateDatesRange(30, dateFrom, dateTo)
+
+      const payments = await service.getPayments(
+        auth.user,
+        startDate,
+        endDate,
+        countryId || auth.user.countryId
+      )
       return response.ok(payments)
     } catch (error) {
       return response.status(error.status).send(error.message)
@@ -39,8 +47,10 @@ export default class PaymentsController {
 
   public async getPaymentsByContract({ response, request }: HttpContextContract) {
     try {
-      const { contract_id } = request.params()
-      const payments = await service.getPaymentsByContract(contract_id)
+      const { contract_id, dateFrom, dateTo } = request.params()
+      const { startDate, endDate } = utils.calculateDatesRange(30, dateFrom, dateTo)
+
+      const payments = await service.getPaymentsByContract(contract_id, startDate, endDate)
       return response.ok(payments)
     } catch (error) {
       return response.status(error.status).send(error.message)

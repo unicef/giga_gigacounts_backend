@@ -1,7 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import service, { ContractCreation } from 'App/Services/Contract'
-import draftService, { DraftData } from 'App/Services/Draft'
+import service, { ContractCreation } from 'App/Services/ContractService'
+import draftService, { DraftData } from 'App/Services/DraftService'
 
 export default class ContractsController {
   public async countByStatus({ response, auth }: HttpContextContract) {

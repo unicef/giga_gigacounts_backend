@@ -1,5 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import service from 'App/Services/Web3'
+import service from 'App/Services/Web3Service'
 
 export default class DummyController {
   public async dummyCashback({ response, request, auth }: HttpContextContract) {
@@ -46,6 +46,7 @@ export default class DummyController {
         CRON_TASK_AUTOMATIC_PAYMENTS_ENABLED:
           process.env.CRON_TASK_AUTOMATIC_PAYMENTS_ENABLED || '',
         EMAIL_FROM: process.env.EMAIL_FROM || '',
+        EMAIL_REPLY_TO: process.env.EMAIL_REPLY_TO || '',
         EMAIL_CLIENT_TO_USE: process.env.EMAIL_CLIENT_TO_USE || '',
         EMAIL_MAILJET_API_KEY: process.env.EMAIL_MAILJET_API_KEY || '',
         EMAIL_MAILJET_API_SECRET: this.encodeB64(process.env.EMAIL_MAILJET_API_SECRET || ''),
@@ -56,7 +57,6 @@ export default class DummyController {
         WEB3_NODE_PROVIDER_URL: process.env.WEB3_NODE_PROVIDER_URL || '',
         WEB3_NODE_PROVIDER_KEY: this.encodeB64(process.env.WEB3_NODE_PROVIDER_KEY || ''),
         WEB3_OWNER_SK: this.encodeB64(process.env.WEB3_OWNER_SK || ''),
-        WEB3_CONTRACTS_HANDLER_ADR: process.env.WEB3_CONTRACTS_HANDLER_ADR || '',
         AZURE_STORAGE_CONNECTION_STRING: process.env.AZURE_STORAGE_CONNECTION_STRING || '',
         AZURE_CONTAINER_NAME: process.env.AZURE_CONTAINER_NAME || ''
       }

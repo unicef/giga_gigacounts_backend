@@ -1,5 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import service from 'App/Services/Dashboard'
+import service from 'App/Services/DashboardService'
 
 export default class DashboardController {
   public async listDashboardSchools({ response, request, auth }: HttpContextContract) {

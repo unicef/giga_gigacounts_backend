@@ -1,5 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import service from 'App/Services/Country'
+import service from 'App/Services/CountryService'
 
 export default class CountriesController {
   public async listCountries({ response, auth }: HttpContextContract) {

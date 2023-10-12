@@ -1,6 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import service from 'App/Services/Measure'
+import service from 'App/Services/MeasureService'
 
 export default class MeasuresController {
   public async calculateMeasuresByMonthYear({ response, request }: HttpContextContract) {

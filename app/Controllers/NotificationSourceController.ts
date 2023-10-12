@@ -1,5 +1,5 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import service from 'App/Services/NotificationSource'
+import service from 'App/Services/NotificationSourceService'
 
 export default class NotificationSourceController {
   public async listNotificationSource({ response, auth }: HttpContextContract) {

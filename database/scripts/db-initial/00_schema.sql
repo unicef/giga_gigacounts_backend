@@ -108,7 +108,6 @@ CREATE TABLE contracts (
   government_behalf boolean DEFAULT false,
   automatic BOOLEAN NOT NULL DEFAULT false,
   name character varying(255),
-  lta_id bigint,
   currency_id bigint NOT NULL,
   budget decimal(20, 2) NOT NULL,
   frequency_id integer NOT NULL,
@@ -209,7 +208,6 @@ CREATE TABLE drafts (
   government_behalf boolean DEFAULT false,
   automatic BOOLEAN NOT NULL DEFAULT false,
   name character varying(255) NOT NULL,
-  lta_id bigint,
   currency_id bigint,
   budget decimal(20, 2) NOT NULL,
   frequency_id integer,
@@ -364,20 +362,6 @@ CREATE SEQUENCE help_request_values_id_seq AS bigint START WITH 1 INCREMENT BY 1
 
 -- Name: help_request_values_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 ALTER SEQUENCE help_request_values_id_seq OWNED BY help_request_values.id;
-
--- Name: functionalities; Type: TABLE; Schema: public; Owner: -
-CREATE TABLE functionalities (
-  id bigint NOT NULL,
-  name character varying(255),
-  code character varying(255) PRIMARY KEY
-);
-
--- Name: functionalities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
-CREATE SEQUENCE functionalities_id_seq AS bigint START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
-
--- Name: functionalities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
-ALTER SEQUENCE functionalities_id_seq OWNED BY functionalities.id;
-
 -- Name: feedbacks; Type: TABLE; Schema: public; Owner: -
 CREATE TABLE feedbacks (
   id bigint NOT NULL,
@@ -422,37 +406,6 @@ CREATE SEQUENCE isps_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE 
 
 -- Name: isps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 ALTER SEQUENCE isps_id_seq OWNED BY isps.id;
-
--- Name: lta_isps; Type: TABLE; Schema: public; Owner: -
-CREATE TABLE lta_isps (
-  id bigint NOT NULL,
-  lta_id bigint NOT NULL,
-  isp_id bigint NOT NULL,
-  created_at timestamp with time zone,
-  updated_at timestamp with time zone
-);
-
--- Name: lta_isps_id_seq; Type: SEQUENCE; Schema: public; Owner: -
-CREATE SEQUENCE lta_isps_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
-
--- Name: lta_isps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
-ALTER SEQUENCE lta_isps_id_seq OWNED BY lta_isps.id;
-
--- Name: ltas; Type: TABLE; Schema: public; Owner: -
-CREATE TABLE ltas (
-  id bigint NOT NULL,
-  name character varying(255) NOT NULL,
-  created_by bigint,
-  created_at timestamp with time zone,
-  updated_at timestamp with time zone,
-  country_id bigint
-);
-
--- Name: ltas_id_seq; Type: SEQUENCE; Schema: public; Owner: -
-CREATE SEQUENCE ltas_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
-
--- Name: ltas_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
-ALTER SEQUENCE ltas_id_seq OWNED BY ltas.id;
 
 -- Name: measures; Type: TABLE; Schema: public; Owner: -
 CREATE TABLE measures (
@@ -501,7 +454,6 @@ CREATE TABLE users (
   address character varying(200) NOT NULL,
   about character varying(5000) NOT NULL,
   country_id bigint,
-  safe_id bigint,
   wallet_address character varying(255),
   wallet_request_string character varying(255),
   default_language character varying(2) DEFAULT 'EN' :: character varying,
@@ -657,21 +609,6 @@ CREATE SEQUENCE roles_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE
 -- Name: roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 ALTER SEQUENCE roles_id_seq OWNED BY roles.id;
 
--- Name: safes; Type: TABLE; Schema: public; Owner: -
-CREATE TABLE safes (
-  id bigint NOT NULL,
-  address character varying(255) NOT NULL,
-  created_at timestamp with time zone,
-  updated_at timestamp with time zone,
-  name character varying(255) NOT NULL
-);
-
--- Name: safes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
-CREATE SEQUENCE safes_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
-
--- Name: safes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
-ALTER SEQUENCE safes_id_seq OWNED BY safes.id;
-
 -- Name: school_contracts; Type: TABLE; Schema: public; Owner: -
 CREATE TABLE school_contracts (
   id bigint NOT NULL,
@@ -763,6 +700,16 @@ CREATE TABLE logs (
   type character varying(100),
   description character varying(5000)
 );
+
+CREATE TABLE settings (
+  id integer not null,
+  key character varying(40) not null unique,
+  value character varying(400) not null,
+  protected boolean not null default false
+);
+
+create sequence settings_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+alter table ONLY settings alter column id SET DEFAULT nextval('settings_id_seq' :: regclass);
 
 -- Name: user_roles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 CREATE SEQUENCE user_roles_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
@@ -940,15 +887,7 @@ ALTER COLUMN
   id
 SET
   DEFAULT nextval('help_request_values_id_seq' :: regclass);
-
--- Name: functionalities id; Type: DEFAULT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY functionalities
-ALTER COLUMN
-  id
-SET
-  DEFAULT nextval('functionalities_id_seq' :: regclass);
-
+  
 -- Name: feedbacks id; Type: DEFAULT; Schema: public; Owner: -
 ALTER TABLE
   ONLY feedbacks
@@ -972,22 +911,6 @@ ALTER COLUMN
   id
 SET
   DEFAULT nextval('isps_id_seq' :: regclass);
-
--- Name: lta_isps id; Type: DEFAULT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY lta_isps
-ALTER COLUMN
-  id
-SET
-  DEFAULT nextval('lta_isps_id_seq' :: regclass);
-
--- Name: ltas id; Type: DEFAULT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY ltas
-ALTER COLUMN
-  id
-SET
-  DEFAULT nextval('ltas_id_seq' :: regclass);
 
 -- Name: measures id; Type: DEFAULT; Schema: public; Owner: -
 ALTER TABLE
@@ -1061,13 +984,6 @@ ALTER COLUMN
 SET
   DEFAULT nextval('roles_id_seq' :: regclass);
 
--- Name: safes id; Type: DEFAULT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY safes
-ALTER COLUMN
-  id
-SET
-  DEFAULT nextval('safes_id_seq' :: regclass);
 
 -- Name: school_contracts id; Type: DEFAULT; Schema: public; Owner: -
 ALTER TABLE
@@ -1315,30 +1231,6 @@ ALTER TABLE
 ADD
   CONSTRAINT isps_pkey PRIMARY KEY (id);
 
--- Name: lta_isps lta_isps_lta_id_isp_id_unique; Type: CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY lta_isps
-ADD
-  CONSTRAINT lta_isps_lta_id_isp_id_unique UNIQUE (lta_id, isp_id);
-
--- Name: lta_isps lta_isps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY lta_isps
-ADD
-  CONSTRAINT lta_isps_pkey PRIMARY KEY (id);
-
--- Name: ltas ltas_name_unique; Type: CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY ltas
-ADD
-  CONSTRAINT ltas_name_unique UNIQUE (name);
-
--- Name: ltas ltas_pkey; Type: CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY ltas
-ADD
-  CONSTRAINT ltas_pkey PRIMARY KEY (id);
-
 -- Name: measures measures_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 ALTER TABLE
   ONLY measures
@@ -1428,24 +1320,6 @@ ALTER TABLE
   ONLY roles
 ADD
   CONSTRAINT roles_pkey PRIMARY KEY (id);
-
--- Name: safes safes_address_unique; Type: CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY safes
-ADD
-  CONSTRAINT safes_address_unique UNIQUE (address);
-
--- Name: safes safes_name_unique; Type: CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY safes
-ADD
-  CONSTRAINT safes_name_unique UNIQUE (name);
-
--- Name: safes safes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY safes
-ADD
-  CONSTRAINT safes_pkey PRIMARY KEY (id);
 
 -- Name: school_contracts school_contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 ALTER TABLE
@@ -1579,12 +1453,6 @@ ALTER TABLE
 ADD
   CONSTRAINT contracts_isp_id_foreign FOREIGN KEY (isp_id) REFERENCES isps(id);
 
--- Name: contracts contracts_lta_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY contracts
-ADD
-  CONSTRAINT contracts_lta_id_foreign FOREIGN KEY (lta_id) REFERENCES ltas(id);
-
 -- Name: contracts contracts_payment_receiver_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 ALTER TABLE
   ONLY contracts
@@ -1651,11 +1519,6 @@ ALTER TABLE
 ADD
   CONSTRAINT drafts_isp_id_foreign FOREIGN KEY (isp_id) REFERENCES isps(id);
 
--- Name: drafts drafts_lta_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY drafts
-ADD
-  CONSTRAINT drafts_lta_id_foreign FOREIGN KEY (lta_id) REFERENCES ltas(id);
 
 -- Name: draft_isp_contacts draft_isp_contacts_draft_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 ALTER TABLE
@@ -1753,29 +1616,6 @@ ALTER TABLE
 ADD
   CONSTRAINT isps_country_id_foreign FOREIGN KEY (country_id) REFERENCES countries(id);
 
--- Name: lta_isps lta_isps_isp_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY lta_isps
-ADD
-  CONSTRAINT lta_isps_isp_id_foreign FOREIGN KEY (isp_id) REFERENCES isps(id);
-
--- Name: lta_isps lta_isps_lta_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY lta_isps
-ADD
-  CONSTRAINT lta_isps_lta_id_foreign FOREIGN KEY (lta_id) REFERENCES ltas(id);
-
--- Name: ltas ltas_country_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY ltas
-ADD
-  CONSTRAINT ltas_country_id_foreign FOREIGN KEY (country_id) REFERENCES countries(id);
-
--- Name: ltas ltas_created_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
-ALTER TABLE
-  ONLY ltas
-ADD
-  CONSTRAINT ltas_created_by_foreign FOREIGN KEY (created_by) REFERENCES users(id);
 
 -- Name: measures measures_contract_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 ALTER TABLE
@@ -1924,10 +1764,6 @@ ALTER TABLE
 ADD
   CONSTRAINT users_country_id_foreign FOREIGN KEY (country_id) REFERENCES countries(id);
 
-ALTER TABLE
-  ONLY users
-ADD
-  CONSTRAINT users_safeid_foreign FOREIGN KEY (safe_id) REFERENCES safes(id);
 
 CREATE TABLE contract_status (
   id bigint NOT NULL,
@@ -2050,8 +1886,6 @@ CREATE TYPE contracts_for_automatic_payments_type AS (
 );
 
 
-
-
 CREATE OR REPLACE FUNCTION get_sla_status_by_contract(contract_id_val integer, measure_date text)
 RETURNS SETOF get_sla_status_by_contract_type
 LANGUAGE plpgsql
@@ -2065,14 +1899,16 @@ BEGIN
         contractId, contractName, schoolId, schoolName, createdAt,
         Contract_Uptime, Contract_Latency, Contract_DSpeed, Contract_USeepd,
         School_Uptime, School_Latency, School_DSpeed, School_USpeed,
-        CASE WHEN contract_Uptime >= School_Uptime THEN 'SLA_Uptime_OK' ELSE 'SLA_Uptime_KO' END AS sla_uptime_status,
-        CASE WHEN Contract_Latency >= School_Latency THEN 'SLA_latency_OK' ELSE 'SLA_latency_KO' END AS sla_latency_status,
-        CASE WHEN Contract_DSpeed >= School_DSpeed THEN 'SLA_DSpeed_OK' ELSE 'SLA_DSpeed_KO' END AS sla_dspeed_status,
-        CASE WHEN Contract_USeepd >= School_USpeed THEN 'SLA_USeepd_OK' ELSE 'SLA_USeepd_KO' END AS sla_useepd_status,
+        -- school latency must be less than contract latency. Rest of school's metric grather than contract metrics.
+        CASE WHEN School_Latency <= Contract_Latency THEN 'SLA_latency_OK' ELSE 'SLA_latency_KO' END AS sla_latency_status,
+        CASE WHEN School_Uptime >= contract_Uptime THEN 'SLA_Uptime_OK' ELSE 'SLA_Uptime_KO' END AS sla_uptime_status,
+        CASE WHEN School_DSpeed >= Contract_DSpeed THEN 'SLA_DSpeed_OK' ELSE 'SLA_DSpeed_KO' END AS sla_dspeed_status,
+        CASE WHEN School_USpeed >= Contract_USeepd THEN 'SLA_USeepd_OK' ELSE 'SLA_USeepd_KO' END AS sla_useepd_status,
         CASE WHEN 
+            -- school latency must be less than contract latency. Rest of school's metric grather than contract metrics.
+            School_Latency <= Contract_Latency AND
+            School_DSpeed >= Contract_DSpeed -- AND
             -- contract_Uptime >= School_Uptime AND  -- omitted (it is not provided by UNICEF API)
-            Contract_Latency >= School_Latency AND
-            Contract_DSpeed >= School_DSpeed -- AND
             -- Contract_USeepd >= School_USpeed -- omitted (it not is provided by UNICEF API)
         THEN 'SLA_ALL_OK' ELSE 'SLA_ALL_KO' END AS sla_all_status
     FROM (
@@ -2083,10 +1919,10 @@ BEGIN
             COALESCE((SELECT value FROM expected_metrics WHERE contract_id = ms.contract_id AND metric_id = 2), 0) AS Contract_Latency,
             COALESCE((SELECT value FROM expected_metrics WHERE contract_id = ms.contract_id AND metric_id = 3), 0) AS Contract_DSpeed,
             COALESCE((SELECT value FROM expected_metrics WHERE contract_id = ms.contract_id AND metric_id = 4), 0) AS Contract_USeepd,
-            COALESCE((SELECT value FROM measures WHERE school_id = ms.school_id AND contract_id = ms.contract_id AND metric_id = 1), 0) AS School_Uptime,
-            COALESCE((SELECT value FROM measures WHERE school_id = ms.school_id AND contract_id = ms.contract_id AND metric_id = 2), 0) AS School_Latency,
-            COALESCE((SELECT value FROM measures WHERE school_id = ms.school_id AND contract_id = ms.contract_id AND metric_id = 3), 0) AS School_DSpeed,
-            COALESCE((SELECT value FROM measures WHERE school_id = ms.school_id AND contract_id = ms.contract_id AND metric_id = 4), 0) AS School_USpeed
+            COALESCE((SELECT avg(value) FROM measures WHERE school_id = ms.school_id AND contract_id = ms.contract_id AND metric_id = 1), 0) AS School_Uptime,
+            COALESCE((SELECT avg(value) FROM measures WHERE school_id = ms.school_id AND contract_id = ms.contract_id AND metric_id = 2), 0) AS School_Latency,
+            COALESCE((SELECT avg(value) FROM measures WHERE school_id = ms.school_id AND contract_id = ms.contract_id AND metric_id = 3), 0) AS School_DSpeed,
+            COALESCE((SELECT avg(value) FROM measures WHERE school_id = ms.school_id AND contract_id = ms.contract_id AND metric_id = 4), 0) AS School_USpeed
         FROM measures ms
         INNER JOIN schools sc ON sc.id = ms.school_id
         INNER JOIN contracts c ON c.id = ms.contract_id
@@ -2587,6 +2423,7 @@ END;
 $BODY$;
 
 
+
 CREATE OR REPLACE FUNCTION get_school_metrics(contract_id_val contracts.id%TYPE, metric_id_val measures.metric_id%TYPE, start_date_val TEXT, end_date_val TEXT)
 RETURNS TABLE (
   contract_id bigint,
@@ -2604,6 +2441,9 @@ VOLATILE PARALLEL UNSAFE
 AS $BODY$
 BEGIN
     qtty_days_in_period = CAST(COALESCE(CAST(LEFT(end_date_val, 8) AS BIGINT) - CAST(LEFT(start_date_val, 8) AS integer),0) as integer);
+    if (qtty_days_in_period <= 0) then
+      qtty_days_in_period = 1;
+    end if;
 
     RETURN QUERY
     SELECT
@@ -2624,10 +2464,19 @@ BEGIN
         COALESCE(avg(ms.value), 0) avg_school_value,
         COALESCE((select max(value) from expected_metrics em where em.contract_id = c.id and em.metric_id = metric_id_val), 0) as contract_value,
         SUM(CASE 
-          WHEN (
-              sch.reliable_measures = true and 
-              COALESCE(ms.value, 0) >= COALESCE((select max(value) from expected_metrics em where em.contract_id = c.id and em.metric_id = metric_id_val), 0)) THEN 1
           WHEN (sch.reliable_measures = false) THEN 1
+          WHEN (
+                sch.reliable_measures = true and
+                metric_id_val = 2 and -- latency
+                -- latency must compare with less than <=
+                COALESCE(ms.value, 0) <= COALESCE((select max(value) from expected_metrics em where em.contract_id = c.id and em.metric_id = metric_id_val), 0)
+                ) THEN 1  
+          WHEN (
+                sch.reliable_measures = true and
+                (metric_id_val = 1 or metric_id_val = 3 or metric_id_val = 4) and -- rest of metrics
+                -- rest of metrics must compare with less than <=
+                COALESCE(ms.value, 0) >= COALESCE((select max(value) from expected_metrics em where em.contract_id = c.id and em.metric_id = metric_id_val), 0)
+                ) THEN 1  
           ELSE 0
         END) as school_qtty_days_sla_ok,
       COALESCE(COUNT(ms.id), 0) as school_qtty_measures_records      
@@ -2778,6 +2627,8 @@ BEGIN
         END IF;
       END IF;
 
+      RAISE NOTICE 'contracts_for_automatic_payments_conditions contract: %, payment_date_from: %, payment_date_to: %', record.contract_id, payment_date_from, payment_date_to;
+
       IF (verified_payments_done = true and verified_payments_period = true) THEN
         SELECT 
             c.id as contract_id, 
@@ -2794,12 +2645,13 @@ BEGIN
             sla_metrics.contract_uspeed,
             sla_metrics.qtty_schools_sla_ok_period,
             (record.contract_budget / record.contract_qtty_payments_todo) payment_amount,
-            CASE 
+            COALESCE (
+            (CASE 
               WHEN COALESCE(contracts_qtty_schools, 0) = 0 THEN 0 
               ELSE 1-(ROUND(
                     (CAST(sla_metrics.qtty_schools_sla_ok_period as numeric) / 
                     CAST(contracts_qtty_schools as numeric)), 2)) 
-            END payment_discount_percent,
+            END) * (record.contract_budget / record.contract_qtty_payments_todo), 0) payment_discount,
             payment_date_from,
             payment_date_to
         INTO result
