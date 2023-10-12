@@ -52,10 +52,6 @@ export const permissions = {
   metricWrite: 'metric.write',
   measureRead: 'measure.read',
   measureWrite: 'measure.write',
-  safeRead: 'safe.read',
-  safeWrite: 'safe.write',
-  ltaWrite: 'lta.write',
-  ltaRead: 'lta.read',
   ispRead: 'isp.read',
   ispWrite: 'isp.write',
   schoolRead: 'school.read',
@@ -69,7 +65,13 @@ export const permissions = {
   blockchainTransactionsRead: 'blockchainTransactions.read',
   blockchainTransactionsWrite: 'blockchainTransactions.write',
   userSettingsRead: 'user.settings.read',
-  userSettingsWrite: 'user.settings.write'
+  userSettingsWrite: 'user.settings.write',
+  paymentLogRead: 'paymentLog.read',
+  schoolConnectivityRead: 'schoolConnectivity.read',
+  helpRequestRead: 'helprequest.read',
+  helpRequestWrite: 'helprequest.write',
+  feedbackRead: 'feedback.read',
+  feedbackWrite: 'feedback.Write'
 }
 
 export const Metrics = {
@@ -95,6 +97,7 @@ export const NotificationSources = {
   manualPaymentCreated: 'MPAYCRT',
   manualPaymentAccepted: 'MPAYAPP',
   automaticPaymentCreated: 'APAYCRT',
+  automaticPaymentNoFunds: 'AFUNDKO',
   feedback: 'FDBACK',
   helpRequest: 'HELPREQ',
   slaNotMet: 'SLAKO'
@@ -120,3 +123,7 @@ export const requestsFormatDate = 'iso'
 
 export const schedulerUserEmail = 'giga.scheduler@giga.com'
 export const adminUserEmail = 'admin@giga.com'
+
+export const settingKeys = {
+  web3ContractsHandlerAdr: 'web3_contracts_handler_adr'
+}

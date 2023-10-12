@@ -1,6 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import service from 'App/Services/Currency'
+import service from 'App/Services/CurrencyService'
 
 export default class CurrenciesController {
   public async listCurrencies({ response, request }: HttpContextContract) {

@@ -2,7 +2,7 @@
 
 ## Scheduler
 
-If you want to run adonis scheduler with the http-server, just update __server.ts__ with this code:
+If you want to run adonis scheduler with the http-server, just update **server.ts** with this code:
 
 ```js
 import 'reflect-metadata'

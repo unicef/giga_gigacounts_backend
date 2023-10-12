@@ -11,18 +11,14 @@ import {
   ModelQueryBuilderContract,
   belongsTo,
   BelongsTo,
-  hasOne,
-  HasOne,
   LucidModel
 } from '@ioc:Adonis/Lucid/Orm'
 import Hash from '@ioc:Adonis/Core/Hash'
 
 import Role from 'App/Models/Role'
 import Country from 'App/Models/Country'
-import Lta from 'App/Models/Lta'
 import Contract from 'App/Models/Contract'
 import Payment from 'App/Models/Payment'
-import Safe from 'App/Models/Safe'
 import Isp from 'App/Models/Isp'
 import School from 'App/Models/School'
 import Draft from './Draft'
@@ -45,9 +41,6 @@ export default class User extends BaseModel {
 
   @column()
   public countryId: number
-
-  @column()
-  public safeId?: number
 
   @column()
   public walletAddress?: string
@@ -113,9 +106,6 @@ export default class User extends BaseModel {
   })
   public roles: ManyToMany<typeof Role>
 
-  @hasMany(() => Lta as LucidModel)
-  public ltas: HasMany<typeof Lta>
-
   @hasMany(() => Contract as LucidModel, {
     localKey: 'id',
     foreignKey: 'created_by'
@@ -133,12 +123,6 @@ export default class User extends BaseModel {
     foreignKey: 'createdBy'
   })
   public payments: HasMany<typeof Payment>
-
-  @hasOne(() => Safe as LucidModel, {
-    localKey: 'safeId',
-    foreignKey: 'id'
-  })
-  public safe: HasOne<typeof Safe>
 
   @manyToMany(() => Isp as LucidModel, {
     pivotTable: 'isp_users',

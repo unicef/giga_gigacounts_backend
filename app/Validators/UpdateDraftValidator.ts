@@ -21,7 +21,6 @@ export default class UpdateDraftValidator {
     ]),
     countryId: schema.string.nullableAndOptional(),
     governmentBehalf: schema.boolean.nullableAndOptional(),
-    ltaId: schema.string.nullableAndOptional(),
     currencyId: schema.string.nullableAndOptional(),
     budget: schema.string.nullableAndOptional(),
     frequencyId: schema.string.nullableAndOptional(),

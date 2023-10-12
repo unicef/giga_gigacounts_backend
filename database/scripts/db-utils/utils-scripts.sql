@@ -217,10 +217,32 @@ from measures
 where contract_id = 1;
 
 
--- delete frafts
+-- delete drafts
 SELECT conname, conrelid::regclass AS table_name FROM pg_constraint WHERE confrelid = 'drafts'::regclass;
 delete from draft_external_contacts;
 delete from draft_attachments;
 delete from draft_stakeholders;
 delete from draft_isp_contacts;
 delete from drafts;
+
+-- delete all data tables
+delete from blockchain_transactions;
+delete from feedbacks;
+delete from help_requests;
+delete from notifications;
+delete from contract_attachments;
+delete from draft_attachments;
+delete from draft_external_contacts;
+delete from draft_isp_contacts;
+delete from draft_stakeholders;
+delete from contract_external_contacts;
+delete from contract_stakeholders;
+delete from contract_isp_contacts;
+delete from expected_metrics;
+delete from measures;
+delete from payments;
+delete from attachments;
+delete from school_contracts;
+delete from status_transitions;
+delete from drafts;
+delete from contracts;

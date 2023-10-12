@@ -19,7 +19,6 @@
       "@adonisjs/lucid",
       "@adonisjs/auth",
       "adonis5-scheduler",
-      "adonis5-jwt",
       "adonis-request-throttler"
     ]
   }

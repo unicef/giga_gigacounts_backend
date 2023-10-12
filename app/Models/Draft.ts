@@ -11,7 +11,6 @@ import {
 import Isp from 'App/Models/Isp'
 import Frequency from 'App/Models/Frequency'
 import Currency from 'App/Models/Currency'
-import Lta from 'App/Models/Lta'
 import Country from 'App/Models/Country'
 import User from 'App/Models/User'
 import Attachment from 'App/Models/Attachment'
@@ -32,9 +31,6 @@ export default class Draft extends BaseModel {
 
   @column()
   public name: string
-
-  @column({ serializeAs: 'ltaId' })
-  public ltaId?: number
 
   @column({ serializeAs: 'currencyId' })
   public currencyId?: number
@@ -91,9 +87,6 @@ export default class Draft extends BaseModel {
 
   @belongsTo(() => Country)
   public country: BelongsTo<typeof Country>
-
-  @belongsTo(() => Lta)
-  public lta: BelongsTo<typeof Lta>
 
   @belongsTo(() => Currency)
   public currency: BelongsTo<typeof Currency>

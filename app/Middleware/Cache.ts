@@ -2,7 +2,6 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import NodeCache from 'node-cache'
 
 const cache = new NodeCache()
-
 export default class CacheMiddleware {
   public async handle(
     { request, response }: HttpContextContract,
@@ -24,7 +23,6 @@ export default class CacheMiddleware {
       const cachedResponse = cache.get(key)
 
       if (cachedResponse) {
-        // console.log(`response from cache for URL ${request.url()}`)
         response.send(cachedResponse)
       } else {
         const originalSend = response.send

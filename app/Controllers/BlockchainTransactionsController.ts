@@ -1,5 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import service, { BlockchainTransactionCreation } from 'App/Services/BlockchainTransactions'
+import service, { BlockchainTransactionCreation } from 'App/Services/BlockchainTransactionsService'
 
 export default class BlockchainTransactionsController {
   public async listBlockchainTransactions({ response, request, auth }: HttpContextContract) {

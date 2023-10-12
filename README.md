@@ -129,6 +129,13 @@ PG_DB_NAME=unicef-giga
 
 ---
 
+## TODO (Improvements)
+
+- Improve scalability in the face of data growth (for example: schools) so that there is no impact on performance.
+- Move hardcoded sql code to database.
+
+---
+
 ## Source Code additional Documentation
 
 See [./doc/](./.doc/index.md), for documentation about source code and database commands.

@@ -39,10 +39,6 @@ export interface GetDraftDTOResponse {
   }
   frequency?: Frequency
   isp?: Isp
-  lta?: {
-    id: number
-    name: string
-  } | null
   createdBy?: {
     id: number
     name: string
@@ -55,6 +51,7 @@ export interface GetDraftDTOResponse {
     name: string
     email: string
     lastName: string
+    phoneNumber?: string
     role: {
       name?: string
       code?: string
@@ -91,6 +88,31 @@ const getDraftDTO = ({
   schools,
   expectedMetrics
 }: GetDraftDtoParams): GetDraftDTOResponse => {
+  const combinedContacts = [
+    ...(draft.ispContacts || []).map((contact) => ({
+      id: contact.id,
+      name: contact.name,
+      email: contact.email,
+      lastName: contact.lastName,
+      phoneNumber: contact.phoneNumber,
+      role: {
+        code: contact.roles[0]?.code,
+        name: contact.roles[0]?.name
+      }
+    })),
+    ...(draft.externalContacts || []).map((contact) => ({
+      id: contact.id,
+      name: contact.name,
+      email: contact.email,
+      lastName: '',
+      phoneNumber: contact.phoneNumber,
+      role: {
+        code: '',
+        name: 'External Contact'
+      }
+    }))
+  ]
+
   return {
     id: draft.id,
     name: draft.name,
@@ -111,12 +133,6 @@ const getDraftDTO = ({
       : undefined,
     frequency: draft.frequency,
     isp: draft.isp,
-    lta: draft.lta
-      ? {
-          id: draft?.lta.id,
-          name: draft?.lta.name
-        }
-      : null,
     createdBy: draft.user
       ? {
           id: draft?.user.id,
@@ -126,14 +142,15 @@ const getDraftDTO = ({
         }
       : null,
     attachments: draft?.attachments,
-    ispContacts: draft?.ispContacts.map((ispContact) => ({
-      id: ispContact.id,
-      name: ispContact.name,
-      email: ispContact.email,
-      lastName: ispContact.lastName,
+    ispContacts: combinedContacts.map((combinedContact) => ({
+      id: combinedContact.id,
+      name: combinedContact.name,
+      email: combinedContact.email,
+      lastName: combinedContact.lastName,
+      phoneNumber: combinedContact.phoneNumber,
       role: {
-        code: ispContact.roles[0]?.code,
-        name: ispContact.roles[0]?.name
+        code: combinedContact.role.code,
+        name: combinedContact.role.name
       }
     })),
     stakeholders: draft?.stakeholders.map((stakeHolder) => ({
@@ -141,6 +158,7 @@ const getDraftDTO = ({
       name: stakeHolder.name,
       email: stakeHolder.email,
       lastName: stakeHolder.lastName,
+      phoneNumber: stakeHolder.phoneNumber,
       role: {
         code: stakeHolder.roles[0]?.code,
         name: stakeHolder.roles[0]?.name

@@ -4,7 +4,6 @@ import { BaseModel, column, hasMany, HasMany, ManyToMany, manyToMany } from '@io
 import User from 'App/Models/User'
 import School from 'App/Models/School'
 import Contract from 'App/Models/Contract'
-import Lta from 'App/Models/Lta'
 import Currency from './Currency'
 
 export default class Country extends BaseModel {
@@ -41,9 +40,6 @@ export default class Country extends BaseModel {
 
   @hasMany(() => Contract)
   public contracts: HasMany<typeof Contract>
-
-  @hasMany(() => Lta)
-  public ltas: HasMany<typeof Lta>
 
   @manyToMany(() => Currency, {
     pivotTable: 'country_currencies',

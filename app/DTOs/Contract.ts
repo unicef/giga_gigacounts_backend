@@ -31,6 +31,7 @@ interface ContractList {
   start_date?: DateTime
   end_date?: DateTime
   status: string
+  createdBy?: number
   country?: {
     name: string
     code: string
@@ -40,10 +41,6 @@ interface ContractList {
   numberOfSchools?: number
   amount?: number
   totalSpent?: number
-  lta?: {
-    id: number
-    name: string
-  }
   notes?: string
   breakingRules?: string
   cashback?: number
@@ -71,10 +68,6 @@ export interface ContractDetails {
   automatic: boolean
   signedWithWallet?: boolean
   signedWalletAddress?: string
-  lta?: {
-    id: number
-    name: string
-  }
   startDate: DateTime
   endDate: DateTime
   launchDate: DateTime
@@ -107,6 +100,7 @@ export interface ContractDetails {
     name: string
     email: string
     lastName: string
+    phoneNumber?: string
     role: {
       name?: string
       code?: string
@@ -179,10 +173,6 @@ export interface ContractDTO {
   automatic: boolean
   signedWithWallet?: boolean
   signedWalletAddress?: string
-  lta?: {
-    id: number
-    name: string
-  }
   attachments?: {
     id: number
     url: string
@@ -328,10 +318,6 @@ const getContractDTO = async (contract: Contract): Promise<ContractDTO> => {
     automatic: contract.automatic,
     signedWithWallet: contract.signedWithWallet,
     signedWalletAddress: contract.signedWalletAddress,
-    lta: {
-      id: contract?.lta?.id,
-      name: contract?.lta?.name
-    },
     attachments: contract?.attachments,
     ispContacts: contract?.ispContacts.map((ispContact) => ({
       id: ispContact.id,
@@ -434,6 +420,31 @@ const contractDeatilsDTO = async (
     })
   }
 
+  const combinedContacts = [
+    ...(contract.ispContacts || []).map((contact) => ({
+      id: contact.id,
+      name: contact.name,
+      email: contact.email,
+      lastName: contact.lastName,
+      phoneNumber: contact.phoneNumber,
+      role: {
+        code: contact.roles[0]?.code,
+        name: contact.roles[0]?.name
+      }
+    })),
+    ...(contract.externalContacts || []).map((contact) => ({
+      id: contact.id,
+      name: contact.name,
+      email: contact.email,
+      lastName: '',
+      phoneNumber: contact.phoneNumber,
+      role: {
+        code: '',
+        name: 'External Contact'
+      }
+    }))
+  ]
+
   return {
     id: contract.id,
     name: contract.name,
@@ -442,19 +453,16 @@ const contractDeatilsDTO = async (
     automatic: contract.automatic,
     signedWithWallet: contract.signedWithWallet,
     signedWalletAddress: contract.signedWalletAddress,
-    lta: {
-      id: contract?.lta?.id,
-      name: contract?.lta?.name
-    },
     attachments: contract?.attachments,
-    ispContacts: contract?.ispContacts.map((ispContact) => ({
-      id: ispContact.id,
-      name: ispContact.name,
-      email: ispContact.email,
-      lastName: ispContact.lastName,
+    ispContacts: combinedContacts.map((combinedContact) => ({
+      id: combinedContact.id,
+      name: combinedContact.name,
+      email: combinedContact.email,
+      lastName: combinedContact.lastName,
+      phoneNumber: combinedContact.phoneNumber,
       role: {
-        code: ispContact.roles[0]?.code,
-        name: ispContact.roles[0]?.name
+        code: combinedContact.role.code,
+        name: combinedContact.role.name
       }
     })),
     stakeholders: contract?.stakeholders.map((stakeHolder) => ({
@@ -462,6 +470,7 @@ const contractDeatilsDTO = async (
       name: stakeHolder.name,
       email: stakeHolder.email,
       lastName: stakeHolder.lastName,
+      phoneNumber: stakeHolder.phoneNumber,
       role: {
         code: stakeHolder.roles[0]?.code,
         name: stakeHolder.roles[0]?.name
@@ -574,10 +583,8 @@ const contractCountByStatusDTO = (
 const contractListDTO = (
   data: Contract[],
   drafts: Draft[],
-  // ltasData: Lta[],
   schoolsMeasures: {}
 ): ContractListDTO => {
-  // const ltas: LtaList = formatLtaList(ltasData)
   const contracts: ContractList[] = []
 
   drafts.map((draft) => {
@@ -591,6 +598,7 @@ const contractListDTO = (
       end_date: draft.endDate || undefined,
       automatic: draft.automatic,
       currencyCode: draft.currency?.code,
+      createdBy: draft.createdBy,
       status: 'Draft',
       country: draft.country
         ? {
@@ -601,10 +609,6 @@ const contractListDTO = (
         : undefined,
       numberOfSchools: draft.schools?.schools.length,
       budget: draft.budget || 0,
-      lta: {
-        id: draft.lta?.id || 0,
-        name: draft.lta?.name || ''
-      },
       notes: draft.notes || '',
       breakingRules: draft.breakingRules || '',
       cashback: 0
@@ -642,6 +646,7 @@ const contractListDTO = (
       signedWithWallet: contract.signedWithWallet,
       signedWalletAddress: contract.signedWalletAddress,
       currencyCode: contract.currency.code,
+      createdBy: contract.createdBy,
       status: ContractStatus[contract.status],
       country: {
         name: contract.country.name,
@@ -665,10 +670,6 @@ const contractListDTO = (
       budget: contract.budget,
       numberOfSchools: contract.$extras.schools_count,
       totalSpent: utils.getPercentage(contract.budget, contract.$extras.total_payments),
-      lta: {
-        id: contract?.lta?.id,
-        name: contract?.lta?.name
-      },
       notes: contract.notes,
       breakingRules: contract.breakingRules,
       cashback: contract.cashback

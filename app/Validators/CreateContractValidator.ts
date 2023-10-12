@@ -12,7 +12,6 @@ export default class CreateContractValidator {
     automatic: schema.boolean(),
     countryId: schema.string(),
     governmentBehalf: schema.boolean.optional(),
-    ltaId: schema.string.nullableAndOptional(),
     currencyId: schema.string(),
     budget: schema.number(),
     startDate: schema.date(),
