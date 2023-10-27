@@ -421,7 +421,7 @@ const contractIsValidForAutomaticPayment = async (
  * - Automatic Payments validations
  * - Call SC to do payment
  * - Log the Transaction for Record-Keeping
- * - Save payment in bdd
+ * - Save payment in database
  * - Save discount applied in payment
  * - Send email about automatic payment creation
  *
@@ -481,7 +481,7 @@ const automaticPaymentByContract = async (
 
       const walletAddress = getSchedulerUserWallet().address
       if (paymentOk) {
-        // Save transaction in bdd
+        // Save transaction in database
         const data: BlockchainTransactionCreation = {
           id: 0,
           userId: user.id,
@@ -508,7 +508,7 @@ const automaticPaymentByContract = async (
       await NotificationsService.createGenericAutomaticContractNotifications(msg)
     }
 
-    // Save payment in bdd
+    // Save payment in database
     const paymentData: CreatePaymentData = {
       month: new Date().getMonth(),
       year: new Date().getFullYear(),
@@ -541,7 +541,7 @@ const automaticPaymentByContract = async (
  *
  * Check Currency in contract
  * Check contract End Date Against Current Date
- * Check that lastest wallet that fund contract has a record in bdd log
+ * Check that lastest wallet that fund contract has a record in database log
  * Check wallet balance (primary token)
  * Check Contract balance in SC
  *
@@ -585,7 +585,7 @@ const contractIsValidForCashback = async (contract: Contract): Promise<boolean> 
       contract.currency.contractAddress
     )
 
-    // Check that lastest wallet has a record in bdd log
+    // Check that lastest wallet has a record in database log
     if (!walletsAddresses.includes(lastWalletFundContract.toUpperCase)) {
       const msg = `Last Wallet address ${lastWalletFundContract} that found contract ${contract.name}, not found in log to return funds.`
       await notifyAutomaticError(msg, 'cashback: ')
@@ -619,7 +619,7 @@ const contractIsValidForCashback = async (contract: Contract): Promise<boolean> 
  * - Cashback validations
  * - Do cashback in SC
  * - Log the Transaction for Record-Keeping
- * - Save cashback in bdd contract
+ * - Save cashback in database contract
  * - Send Notification
  *
  * @param contract
@@ -667,7 +667,7 @@ const cashbackByContract = async (contract: Contract, user: User): Promise<boole
           contract.currency.contractAddress
         )
 
-        // Save cashback in contract bdd
+        // Save cashback in contract database
         contract.cashback = contractAllFunds[0].cashbackFunds
         contract.cashbackVerified = true
         contract.save()

@@ -107,8 +107,7 @@ touch .env
 
 ## Environment variables
 
-The environment variables bellow needs to be set in the .env file when project is running locally: and in
-/.github/workflows/azure-static-web-app-deploy.yml when project is deployed to Azure.
+The environment variables bellow needs to be set in the .env file when project is running locally.
 
 ```sh
 SKIP_PREFLIGHT_CHECK=true
