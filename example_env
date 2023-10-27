@@ -31,18 +31,18 @@ CRON_TASK_AUTOMATIC_PAYMENTS_ENABLED=false
 EMAIL_FROM=no-reply@domain.com
 EMAIL_REPLY_TO: address@domain.com
 EMAIL_CLIENT_TO_USE=ETHEREAL {Options ETHEREAL, MAILJET}
-EMAIL_MAILJET_API_KEY=
-EMAIL_MAILJET_API_SECRET=
+EMAIL_MAILJET_API_KEY={mailjet api key}
+EMAIL_MAILJET_API_SECRET={mailjet secret key}
 EMAIL_MAILJET_ADDRESS_TO_FAKE={If you get an free mailjet account, set here the email sender validated in mailjet}
-EMAIL_ETHEREAL_KEY=
-EMAIL_ETHEREAL_SECRET=
-URL_FRONTEND=http://127.0.0.1:3000
+EMAIL_ETHEREAL_KEY={The key from ethereal.email if you want to use that client}
+EMAIL_ETHEREAL_SECRET={The secret from ethereal.email if you want to use that client}
+URL_FRONTEND=http://127.0.0.1:3000 {}
 TENANT_NAME=(Azure B2C tenant name)
 POLICY_NAME=(Azure B2C policy mame)
 TENANT_ID=(Azure B2C tenant id)
 APPLICATION_ID=(Azure B2C application id)
 WEB3_NETWORK_ID=80001
 WEB3_NODE_PROVIDER_URL=https://polygon-mumbai.g.alchemy.com/v2/
-WEB3_NODE_PROVIDER_KEY=
-WEB3_OWNER_SK=(the wallet secret key to use in cashback and automatic-payment. Related with public address in bdd for giga.scheduler@giga.com user)
+WEB3_NODE_PROVIDER_KEY=The api key from your node provider
+WEB3_OWNER_SK=(the wallet secret key to use in cashback and automatic-payment. Related with public address in database for giga.scheduler@giga.com user)
 
