@@ -19,6 +19,16 @@ export interface GetUser {
   phoneNumber?: string
 }
 
+export interface GetUnapprovedUser {
+  id: number
+  name: string
+  lastName: string
+  completeName: string
+  countryId?: number
+  countryName?: string
+  email: string
+}
+
 const getUserDTO = (user: User): GetUser => ({
   id: user.id,
   name: user.name,
@@ -35,6 +45,16 @@ const getUserDTO = (user: User): GetUser => ({
   ispId: user.isp[0]?.id,
   ispName: user.isp[0]?.name,
   phoneNumber: user.phoneNumber
+})
+
+const getUnapprovedUserDTO = (user: User): GetUnapprovedUser => ({
+  id: user.id,
+  name: user.name,
+  lastName: user.lastName,
+  completeName: `${user.name}, ${user.lastName}`,
+  countryId: user.countryId,
+  countryName: user.country?.name || '',
+  email: user.email,
 })
 
 const getExternalContactDTO = (user: ExternalContact): GetUser => ({
@@ -59,11 +79,16 @@ const getUsersByUserDTO = (users: User[]): GetUser[] => {
   return users.map(getUserDTO)
 }
 
+const getUnapprovedUsersByUnapprovedUserDTO = (users: User[]): GetUnapprovedUser[] => {
+  return users.map(getUnapprovedUserDTO)
+}
+
 const getExternalContactsByExternalContactDTO = (users: ExternalContact[]): GetUser[] => {
   return users.map(getExternalContactDTO)
 }
 
 export default {
   getUsersByUserDTO,
+  getUnapprovedUsersByUnapprovedUserDTO,
   getExternalContactsByExternalContactDTO
 }

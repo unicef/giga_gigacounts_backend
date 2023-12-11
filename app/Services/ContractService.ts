@@ -279,7 +279,7 @@ const getContractDetails = async (contractId: number) => {
     // eslint-disable-next-line max-len
     `SELECT ? as contract_id, metric_id, metrics.name as metric_name, metrics.unit as unit, ROUND(AVG(value)) as median_value
     FROM measures INNER JOIN metrics ON metrics.id=metric_id 
-    WHERE measures.school_id IN (${schoolIdsString}) AND measures.created_at BETWEEN ? AND ?
+    WHERE measures.school_id IN (${schoolIdsString}) AND measures.created_at BETWEEN ?::DATE AND ?::DATE
     GROUP BY contract_id, metric_id, metric_name, unit`,
     [contract[0].id, contract[0].launchDate.toSQL()!, contract[0].endDate.toSQL()!]
   )
