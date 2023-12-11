@@ -16,6 +16,26 @@ export default class UsersController {
     return response.ok(user)
   }
 
+  public async register({ request, response }: HttpContextContract) {
+    const { country, email, givenName } = request.all()
+
+    try {
+      const unapprovedUser = await service.register(country, email, givenName)
+
+      return response.ok(unapprovedUser)
+    } catch (error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
+
+  public async approve({request, response}: HttpContextContract) {
+    const { unapprovedUserId, roleCode, ispId } = request.all()
+
+    const user = await service.approve(unapprovedUserId, roleCode, ispId)
+
+    return response.ok(user)
+  }
+
   public async login({ request, response, auth }: HttpContextContract) {
     try {
       const { email, password } = request.all()
@@ -36,7 +56,7 @@ export default class UsersController {
           permissions: permissions
         }
       }
-      const token = await auth.use('jwt').attempt(email, password, { payload })
+      const token = await auth.use('api').attempt(email, password, { payload })
 
       return response.ok(token)
     } catch (error) {
@@ -123,5 +143,28 @@ export default class UsersController {
       ispId
     )
     return response.ok(users)
+  }
+
+  public async listUnapprovedUsers({ response, auth }: HttpContextContract) {
+    if (!auth.user) return
+
+    try {
+      const users = await service.listUnapprovedUsers(auth.user)
+      return response.ok(users)
+    } catch(error) {
+      return response.status(error.status).send(error.message)
+    }
+  }
+
+  public async unapprovedUserChange({ request, response, auth }: HttpContextContract) {
+    if (!auth.user || auth.user.approved) return
+    const { roleCode, ispId } = request.all()
+
+    try {
+      const user = await service.unapprovedUserChange(auth.user, roleCode, ispId)
+      return response.ok(user)
+    } catch(error) {
+      return response.status(error.status).send(error.message)
+    }
   }
 }

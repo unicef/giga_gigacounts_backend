@@ -266,7 +266,7 @@ const getConnectionsMedian = async (contract: Contract, dateFrom: Date, dateTo: 
     const result = await Database.rawQuery(
       `SELECT ? as contract_id, metric_id, metrics.name as metric_name, metrics.unit as unit, ROUND(AVG(value)) as median_value
       FROM measures INNER JOIN metrics ON metrics.id=metric_id 
-      WHERE measures.school_id IN (${schoolIdsString}) AND measures.created_at BETWEEN ? AND ?
+      WHERE measures.school_id IN (${schoolIdsString}) AND measures.created_at BETWEEN ?::DATE AND ?::DATE
       GROUP BY contract_id, metric_id, metric_name, unit`,
       [contract.id, formattedDateFrom, formattedDateTo]
     )
@@ -281,8 +281,8 @@ const getSchoolMeasures = async (contract: Contract, dateFrom: Date, dateTo: Dat
   const schoolsMeasures = {}
   const connectionList: SchoolConnectionInfo[] = []
   dateTo.setHours(23, 59, 59, 999)
-  const formattedDateFrom = dateFrom.toISOString()
-  const formattedDateTo = dateTo.toISOString()
+  const formattedDateFrom = DateTime.fromJSDate(dateFrom).toFormat('yyyy-MM-dd');
+  const formattedDateTo = DateTime.fromJSDate(dateTo).toFormat('yyyy-MM-dd');
   if (contract.schools?.length) {
     schoolsMeasures[contract.name] = {}
     for (const school of contract.schools) {

@@ -6,7 +6,9 @@ export default class AccessControlList {
     next: () => Promise<void>,
     attr: string[]
   ) {
-    if (!auth.user) return response.status(401).send({ message: 'Unauthorized' })
+    if (!auth.user || !auth.user.approved) {
+      return response.status(401).send({ message: 'Unauthorized' });
+    }
 
     const permissions = request.permissions
 

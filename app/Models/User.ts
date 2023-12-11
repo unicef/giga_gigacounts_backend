@@ -72,6 +72,9 @@ export default class User extends BaseModel {
   @column()
   public automaticContractsEnabled?: boolean
 
+  @column()
+  public approved?: boolean
+
   /**
    * HOOKS
    */

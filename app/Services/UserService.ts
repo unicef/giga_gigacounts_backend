@@ -10,14 +10,16 @@ import NotFoundException from 'App/Exceptions/NotFoundException'
 import SignedMessageException from 'App/Exceptions/SignedMessageException'
 
 import { v1 } from 'uuid'
-import Role from 'App/Services/RoleService'
+import Role from 'App/Models/Role'
 import { ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm'
 
-import dto, { GetUser } from 'App/DTOs/User'
+import dto, { GetUnapprovedUser, GetUser } from 'App/DTOs/User'
 import ExternalContact from 'App/Models/ExternalContact'
 
 import Safe from '@safe-global/protocol-kit'
 import { SafeTransaction } from '@safe-global/safe-core-sdk-types'
+import UnAuthorizedException from 'App/Exceptions/UnauthorizedException'
+import Isp from 'App/Models/Isp'
 
 export interface Tx {
   safeSdk: Safe
@@ -44,6 +46,7 @@ interface UserProfile {
   walletAddress?: string
   isp?: { id: number; name: string }
   automaticContractsEnabled?: boolean
+  approved?: boolean
 }
 
 interface AttachWalletData {
@@ -90,6 +93,7 @@ const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
           }
         : undefined,
     walletAddress: user?.walletAddress,
+    approved: user.approved,
     isp:
       user.isp?.length > 0
         ? {
@@ -98,6 +102,99 @@ const getProfile = async (user?: User): Promise<UserProfile | undefined> => {
           }
         : undefined
   }
+}
+
+const register = async (country: string, email: string, givenName: string) => {
+  const countryData = await Country.query().where("name", country).firstOrFail()
+
+  const unnaprovedUser = User.create({
+    name: givenName.split(' ')[0],
+    lastName: givenName.split(' ')[1],
+    email: email,
+    password: "",
+    countryId: countryData.id || 0,
+    approved: false,
+    phoneNumber: "",
+    zipCode: "",
+    photoUrl: "",
+    address: "",
+    about: "",
+  })
+
+  return unnaprovedUser
+}
+
+const approve = async (unapprovedUserId: number, roleCode: string, ispId: number) => {
+  const unnaprovedUser = await User.query().where("id", unapprovedUserId).firstOrFail()
+  const rolesWithoutAdminOrInternal = await roleService.getRoles();
+  const roleCodes = rolesWithoutAdminOrInternal.map(role => role.code);
+
+  if (roleCodes.includes(roleCode)) {
+    const role = await Role.query().where("code", roleCode).first()
+
+    if (roleCode === roles.ispContractManager || roleCode === roles.ispCustomerService) {
+      const isp = await Isp.query().where("id", ispId).first()
+
+      if (isp) {     
+        if (unnaprovedUser.countryId === isp.countryId) {
+          await unnaprovedUser.related('isp').detach()   
+          await unnaprovedUser.related("isp").attach([isp.id])
+        } else {
+          throw Error("The ISP is not available in the country.")
+        } 
+      } else {
+        throw Error("The ISP is not valid.")
+      }
+    }
+
+    if (role) {
+      await unnaprovedUser.related('roles').detach()
+      await unnaprovedUser.related('roles').attach([role.id])
+      unnaprovedUser.approved = true
+    }
+  }
+
+  await unnaprovedUser.save()
+  
+  return unnaprovedUser
+}
+
+const unapprovedUserChange = async (user: User, roleCode: string, ispId?: number) => {
+  const rolesWithoutAdminOrInternal = await roleService.getRoles();
+  const roleCodes = rolesWithoutAdminOrInternal.map(role => role.code);
+
+  if (roleCodes.includes(roleCode)) {
+    const role = await Role.query().where("code", roleCode).first()
+
+    if (roleCode === roles.ispContractManager || roleCode === roles.ispCustomerService) {
+      if (!ispId) {
+        throw Error("The ISP is not recognized.")
+      }
+      
+      const isp = await Isp.query().where("id", ispId).first()
+
+      if (isp) {        
+        if (user.countryId === isp.countryId) {
+          await user.related("isp").attach([isp.id])
+        } else {
+          throw Error("The ISP is not available in the country.")
+        } 
+      } else {
+        throw Error("The ISP is not valid.")
+      }
+    }
+
+    if (role) {
+      await user.related('roles').detach()
+      await user.related('roles').attach([role.id])
+    }
+  }
+
+  await user.save()
+  await user.load('country')
+  await user.load('roles')
+  await user.load('isp')
+  return user
 }
 
 const checkUserRole = async (user: User, rolesToCheck: string[]): Promise<boolean> => {
@@ -175,7 +272,7 @@ const getPermissionsByEmail = async (email: string) => {
   if (!user) throw new NotFoundException('User not found')
 
   return {
-    permissions: await Role.getRolesPermission(user.roles),
+    permissions: await roleService.getRolesPermission(user.roles),
     userId: user.id,
     countryId: user.countryId
   }
@@ -215,6 +312,22 @@ const listUsers = async (
   }
 }
 
+const listUnapprovedUsers = async (
+  user: User,
+): Promise<GetUnapprovedUser[]> => {
+  const isAdmin = await checkUserRole(user, [roles.gigaAdmin, roles.gigaViewOnly])
+
+  if (!isAdmin) {
+    throw new UnAuthorizedException(
+      'The current user does not have the required permissions to list the unapproved users.'
+    )
+  }
+
+  const users = await User.query().where("approved", false).preload('country')
+  const usersDto = dto.getUnapprovedUsersByUnapprovedUserDTO(users)
+  return usersDto
+}
+
 const queryBuilderUser = async (
   user: User,
   countryId?: number,
@@ -223,7 +336,10 @@ const queryBuilderUser = async (
 ): Promise<{
   query: ModelQueryBuilderContract<typeof User, User>
 }> => {
-  let query = User.query().whereNot('id', user.id).whereNot('email', schedulerUserEmail)
+  let query = User.query()
+              .whereNot('id', user.id)
+              .whereNot('email', schedulerUserEmail)
+              .where('approved', true)
 
   if (
     await checkUserRole(user, [
@@ -318,11 +434,15 @@ const getGigaSchedulerUser = async (): Promise<User> => {
 export default {
   getProfile,
   checkUserRole,
+  register,
+  approve,
   generateWalletRandomString,
   attachWallet,
   getPermissionsByEmail,
   updateSettingAutomaticContracts,
   listUsers,
+  unapprovedUserChange,
+  listUnapprovedUsers,
   gigaTokenWalletOwnerAddress,
   getGigaSuperAdminUser,
   getGigaSchedulerUser

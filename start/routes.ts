@@ -9,6 +9,14 @@ Route.post('/login', 'UsersController.login').middleware('validator:LoginValidat
 
 Route.get('/user/profile', 'UsersController.profile').middleware('auth:api')
 
+Route.post('/user/register', 'UsersController.register')
+
+Route.get("user/unapproved", 'UsersController.listUnapprovedUsers').middleware('auth:api')
+
+Route.put("user/unapproved/change", 'UsersController.unapprovedUserChange').middleware('auth:api')
+
+Route.post('/user/approve', 'UsersController.approve').middleware('auth:api')
+
 Route.get('/user/wallet-random-string', 'UsersController.generateWalletRandomString').middleware([
   'auth:api',
   `acl:${permissions.walletWrite}`
@@ -88,7 +96,7 @@ Route.put('/payment', 'PaymentsController.updatePayment').middleware([
  * ISP ROUTES
  */
 
-Route.get('/isp', 'IspsController.listIsps').middleware(['auth:api', `acl:${permissions.ispRead}`])
+Route.get('/isp', 'IspsController.listIsps').middleware(['auth:api'])
 
 /**
  * METRIC ROUTES
@@ -497,6 +505,12 @@ Route.get('/dashboard/contracts/not-meets', 'DashboardController.listNotMeetsSla
   `acl:${permissions.contractRead}`,
   `cache:${60 * 60}`
 ])
+
+/**
+ * ROLES
+ */
+
+Route.get('/roles', 'RolesController.getRoles').middleware(['auth:api'])
 
 /**
  * Settings

@@ -458,6 +458,7 @@ CREATE TABLE users (
   wallet_request_string character varying(255),
   default_language character varying(2) DEFAULT 'EN' :: character varying,
   automatic_contracts_enabled boolean NOT NULL default false,
+  approved boolean NOT NULL default false,
   created_at timestamp with time zone,
   updated_at timestamp with time zone
 );
